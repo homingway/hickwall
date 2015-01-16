@@ -40,8 +40,6 @@ func (log Logger) LoadConfigurationFromString(contents string){
 
 // Load XML configuration; see examples/example.xml for documentation
 func (log Logger) LoadConfiguration(filename string) {
-	log.Close()
-
 	// Open the configuration file
 	fd, err := os.Open(filename)
 	if err != nil {
