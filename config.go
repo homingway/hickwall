@@ -5,6 +5,7 @@ package log4go
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -30,8 +31,6 @@ type xmlLoggerConfig struct {
 
 // Load XML configuration; see examples/example.xml for documentation
 func (log Logger) LoadConfiguration(filename string) {
-	log.Close()
-
 	// Open the configuration file
 	fd, err := os.Open(filename)
 	if err != nil {
@@ -39,15 +38,27 @@ func (log Logger) LoadConfiguration(filename string) {
 		os.Exit(1)
 	}
 
-	contents, err := ioutil.ReadAll(fd)
+	log.LoadConfigurationFromReader(fd)
+}
+
+func (log Logger) LoadConfigurationFromReader(r io.Reader) {
+	log.Close()
+
+	contents, err := ioutil.ReadAll(r)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not read %q: %s\n", filename, err)
+		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not read from io.Reader %s\n", err)
 		os.Exit(1)
 	}
 
+	log.LoadConfigurationFromString(contents)
+}
+
+func (log Logger) LoadConfigurationFromString(contents []byte) {
+	log.Close()
+
 	xc := new(xmlLoggerConfig)
 	if err := xml.Unmarshal(contents, xc); err != nil {
-		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not parse XML configuration in %q: %s\n", filename, err)
+		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not parse XML configuration: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -58,21 +69,21 @@ func (log Logger) LoadConfiguration(filename string) {
 
 		// Check required children
 		if len(xmlfilt.Enabled) == 0 {
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required attribute %s for filter missing in %s\n", "enabled", filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required attribute %s for filter missing\n", "enabled")
 			bad = true
 		} else {
 			enabled = xmlfilt.Enabled != "false"
 		}
 		if len(xmlfilt.Tag) == 0 {
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "tag", filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing\n", "tag")
 			bad = true
 		}
 		if len(xmlfilt.Type) == 0 {
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "type", filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing\n", "type")
 			bad = true
 		}
 		if len(xmlfilt.Level) == 0 {
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "level", filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing\n", "level")
 			bad = true
 		}
 
@@ -94,7 +105,7 @@ func (log Logger) LoadConfiguration(filename string) {
 		case "CRITICAL":
 			lvl = CRITICAL
 		default:
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter has unknown value in %s: %s\n", "level", filename, xmlfilt.Level)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter has unknown value: %s\n", "level", xmlfilt.Level)
 			bad = true
 		}
 
@@ -105,15 +116,15 @@ func (log Logger) LoadConfiguration(filename string) {
 
 		switch xmlfilt.Type {
 		case "console":
-			filt, good = xmlToConsoleLogWriter(filename, xmlfilt.Property, enabled)
+			filt, good = xmlToConsoleLogWriter(xmlfilt.Property, enabled)
 		case "file":
-			filt, good = xmlToFileLogWriter(filename, xmlfilt.Property, enabled)
+			filt, good = xmlToFileLogWriter(xmlfilt.Property, enabled)
 		case "xml":
-			filt, good = xmlToXMLLogWriter(filename, xmlfilt.Property, enabled)
+			filt, good = xmlToXMLLogWriter(xmlfilt.Property, enabled)
 		case "socket":
-			filt, good = xmlToSocketLogWriter(filename, xmlfilt.Property, enabled)
+			filt, good = xmlToSocketLogWriter(xmlfilt.Property, enabled)
 		default:
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not load XML configuration in %s: unknown filter type \"%s\"\n", filename, xmlfilt.Type)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not load XML configuration: unknown filter type \"%s\"\n", xmlfilt.Type)
 			os.Exit(1)
 		}
 
@@ -131,12 +142,12 @@ func (log Logger) LoadConfiguration(filename string) {
 	}
 }
 
-func xmlToConsoleLogWriter(filename string, props []xmlProperty, enabled bool) (*ConsoleLogWriter, bool) {
+func xmlToConsoleLogWriter(props []xmlProperty, enabled bool) (*ConsoleLogWriter, bool) {
 	// Parse properties
 	for _, prop := range props {
 		switch prop.Name {
 		default:
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for console filter in %s\n", prop.Name, filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for console filter\n", prop.Name)
 		}
 	}
 
@@ -167,7 +178,7 @@ func strToNumSuffix(str string, mult int) int {
 	parsed, _ := strconv.Atoi(str)
 	return parsed * num
 }
-func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*FileLogWriter, bool) {
+func xmlToFileLogWriter(props []xmlProperty, enabled bool) (*FileLogWriter, bool) {
 	file := ""
 	format := "[%D %T] [%L] (%S) %M"
 	maxlines := 0
@@ -191,13 +202,13 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
 		case "rotate":
 			rotate = strings.Trim(prop.Value, " \r\n") != "false"
 		default:
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n", prop.Name, filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter\n", prop.Name)
 		}
 	}
 
 	// Check properties
 	if len(file) == 0 {
-		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n", "filename", filename)
+		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing\n", "filename")
 		return nil, false
 	}
 
@@ -214,7 +225,7 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
 	return flw, true
 }
 
-func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*FileLogWriter, bool) {
+func xmlToXMLLogWriter(props []xmlProperty, enabled bool) (*FileLogWriter, bool) {
 	file := ""
 	maxrecords := 0
 	maxsize := 0
@@ -235,13 +246,13 @@ func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*Fil
 		case "rotate":
 			rotate = strings.Trim(prop.Value, " \r\n") != "false"
 		default:
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for xml filter in %s\n", prop.Name, filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for xml filter\n", prop.Name)
 		}
 	}
 
 	// Check properties
 	if len(file) == 0 {
-		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for xml filter missing in %s\n", "filename", filename)
+		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for xml filter missing\n", "filename")
 		return nil, false
 	}
 
@@ -257,7 +268,7 @@ func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*Fil
 	return xlw, true
 }
 
-func xmlToSocketLogWriter(filename string, props []xmlProperty, enabled bool) (SocketLogWriter, bool) {
+func xmlToSocketLogWriter(props []xmlProperty, enabled bool) (SocketLogWriter, bool) {
 	endpoint := ""
 	protocol := "udp"
 
@@ -269,13 +280,13 @@ func xmlToSocketLogWriter(filename string, props []xmlProperty, enabled bool) (S
 		case "protocol":
 			protocol = strings.Trim(prop.Value, " \r\n")
 		default:
-			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n", prop.Name, filename)
+			fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter\n", prop.Name)
 		}
 	}
 
 	// Check properties
 	if len(endpoint) == 0 {
-		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n", "endpoint", filename)
+		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing\n", "endpoint")
 		return nil, false
 	}
 

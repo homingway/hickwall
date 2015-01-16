@@ -93,9 +93,27 @@ var logRecordWriteTests = []struct {
 	},
 }
 
-func TestConsoleLogWriter(t *testing.T) {
-	console := make(ConsoleLogWriter)
+func TestLoadConfigFromString(t *testing.T) {
+	log := make(Logger)
+	log.LoadConfigurationFromString([]byte(`<logging>
+	  <filter enabled="true">
+	    <tag>stdout</tag>
+	    <type>console</type>
+	    <!-- level is (:?FINEST|FINE|DEBUG|TRACE|INFO|WARNING|ERROR) -->
+	    <level>DEBUG</level>
+	  </filter>
+	  </logging>`))
+	if _, ok := log["stdout"]; !ok {
+		t.Errorf("Expected stdout logger")
+	}
+}
 
+func TestConsoleLogWriter(t *testing.T) {
+	// console := make(ConsoleLogWriter)
+	console := &ConsoleLogWriter{
+		format: "[%T %D] [%L] %M",
+		w:      make(chan *LogRecord, LogBufferLength),
+	}
 	r, w := io.Pipe()
 	go console.run(w)
 	defer console.Close()
@@ -383,7 +401,7 @@ func TestXMLConfig(t *testing.T) {
 	}
 
 	// Make sure they're the right type
-	if _, ok := log["stdout"].LogWriter.(ConsoleLogWriter); !ok {
+	if _, ok := log["stdout"].LogWriter.(*ConsoleLogWriter); !ok {
 		t.Fatalf("XMLConfig: Expected stdout to be ConsoleLogWriter, found %T", log["stdout"].LogWriter)
 	}
 	if _, ok := log["file"].LogWriter.(*FileLogWriter); !ok {

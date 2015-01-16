@@ -5,6 +5,7 @@ package log4go
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -15,6 +16,18 @@ var (
 
 func init() {
 	Global = NewDefaultLogger(DEBUG)
+}
+
+// Load XML configuration from string:
+//  l4g.LoadConfigurationFromString(`<logging>
+// 		....
+//	</logging>`
+func LoadConfigurationFromString(contents string) {
+	Global.LoadConfigurationFromString([]byte(contents))
+}
+
+func LoadConfigurationFromReader(r io.Reader) {
+	Global.LoadConfigurationFromReader(r)
 }
 
 // Wrapper for (*Logger).LoadConfiguration
