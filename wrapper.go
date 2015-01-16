@@ -17,6 +17,10 @@ func init() {
 	Global = NewDefaultLogger(DEBUG)
 }
 
+func LoadConfigurationFromString(contents string){
+	Global.LoadConfigurationFromString(contents)
+}
+
 // Wrapper for (*Logger).LoadConfiguration
 func LoadConfiguration(filename string) {
 	Global.LoadConfiguration(filename)

@@ -28,6 +28,16 @@ type xmlLoggerConfig struct {
 	Filter []xmlFilter `xml:"filter"`
 }
 
+
+// Load XML configuration from string:
+//
+//  l4g.LoadConfigurationFromString(`<logging>
+// 		....
+//	</logging>`)
+func (log Logger) LoadConfigurationFromString(contents string){
+	log.loadConfigurationFromString("<runtime string>", []byte(contents))
+}
+
 // Load XML configuration; see examples/example.xml for documentation
 func (log Logger) LoadConfiguration(filename string) {
 	log.Close()
@@ -44,6 +54,12 @@ func (log Logger) LoadConfiguration(filename string) {
 		fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not read %q: %s\n", filename, err)
 		os.Exit(1)
 	}
+
+	log.loadConfigurationFromString(filename, contents)
+}
+
+func (log Logger) loadConfigurationFromString(filename string, contents []byte){
+	log.Close()
 
 	xc := new(xmlLoggerConfig)
 	if err := xml.Unmarshal(contents, xc); err != nil {
@@ -130,6 +146,8 @@ func (log Logger) LoadConfiguration(filename string) {
 		log[xmlfilt.Tag] = &Filter{lvl, filt}
 	}
 }
+
+
 
 func xmlToConsoleLogWriter(filename string, props []xmlProperty, enabled bool) (ConsoleLogWriter, bool) {
 	// Parse properties
