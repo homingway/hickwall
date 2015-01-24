@@ -17,8 +17,12 @@ func init() {
 	Global = NewDefaultLogger(DEBUG)
 }
 
-func LoadConfigurationFromString(contents string){
-	Global.LoadConfigurationFromString(contents)
+// Load XML configuration from string:
+//  l4g.LoadConfigurationFromString(`<logging>
+// 		....
+//	</logging>`
+func LoadConfigurationFromString(contents string) {
+	Global.LoadConfigurationFromString([]byte(contents))
 }
 
 // Wrapper for (*Logger).LoadConfiguration
