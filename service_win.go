@@ -5,6 +5,7 @@ package main
 import (
 	"code.google.com/p/winsvc/svc"
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"net"
 	"os"
@@ -105,15 +106,8 @@ loop:
 }
 
 func runService(name string, isDebug bool) {
-	f, err := os.OpenFile(getLogFilePath(), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Printf("error opening file: %v \n", err)
-	}
-	defer f.Close()
-	log.SetOutput(f)
-
 	log.Printf("runService: starting %s service \r\n", name)
-	err = svc.Run(name, &myservice{})
+	err := svc.Run(name, &myservice{})
 	if err != nil {
 		log.Printf("runService: Error: %s service failed: %v\r\n", name, err)
 		return
@@ -131,6 +125,7 @@ func serveConn(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Sta
 	signal.Notify(interrupt, os.Interrupt, os.Kill, syscall.SIGTERM)
 
 	// Set up listener for defined host and port
+	port := viper.GetString("port")
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		return false, err

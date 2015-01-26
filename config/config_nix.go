@@ -1,3 +1,5 @@
+// +build linux darwin
+
 package config
 
 import (
@@ -6,17 +8,21 @@ import (
 )
 
 const (
-	APPNAME   = "oleservice"
+	VERSION   = "v0.0.1"
 	CONF_NAME = "config"
+	APP_NAME  = "hickwall"
+	APP_DESC  = "monitoring system"
 )
 
 type Config struct {
 	Name string
 }
 
-func SetDefault() {
+func LoadConfig() {
 	viper.SetConfigName(CONF_NAME)
-	// viper.AddConfigPath(fmt.Sprintf("/etc/%s/", APPNAME))
+
+	viper.AddConfigPath(".")
+	viper.AddConfigPath(fmt.Sprintf("/etc/%s/", APP_NAME))
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("toml")
@@ -27,5 +33,6 @@ func SetDefault() {
 	}
 
 	viper.SetDefault("msg", "hello")
-
+	viper.SetDefault("port", ":9977")
+	viper.SetDefault("hickwall_root", fmt.Sprintf("/usr/lib/%s", APP_NAME))
 }

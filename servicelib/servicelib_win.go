@@ -7,6 +7,7 @@ import (
 	"code.google.com/p/winsvc/mgr"
 	"code.google.com/p/winsvc/svc"
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"time"
 )
@@ -93,7 +94,12 @@ func (this *Service) RemoveService() error {
 }
 
 func (this *Service) Status() error {
-	log.Println("ServiceManagement.Status\r\n")
+	log.Println("ServiceManagement.Status --------------------\r\n")
+
+	log.Printf("config: %s \n", viper.GetString("msg"))
+	log.Printf("config: log.logpath%s \n", viper.GetString("log.logpath"))
+	log.Printf("config: %v \n", viper.GetStringMap("log")["logpath"])
+	log.Printf("config keys: %v \n", viper.AllKeys())
 	return nil
 }
 

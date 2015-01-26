@@ -1,8 +1,11 @@
 msg = "this is from config.toml"
 
+hickwall_root = "/usr/lib/hickwall"
+
+port = ":9977"
 
 [log]
 logpath = "/var/log/oleservice"
 
 
-[root]
+

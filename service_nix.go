@@ -10,9 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	// "bytes"
+	"github.com/spf13/viper"
 	"time"
-	// "github.com/takama/daemon"
 )
 
 func getLogFilePath() string {
@@ -58,6 +57,9 @@ func runService(name string, idDebug bool) (string, error) {
 	signal.Notify(interrupt, os.Interrupt, os.Kill, syscall.SIGTERM)
 
 	// Set up listener for defined host and port
+	port := viper.GetString("port")
+	log.Printf("port: %v\n", port)
+
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		return "Possibly was a problem with the port binding", err
