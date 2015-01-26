@@ -1,0 +1,8 @@
+msg = "this is from config.toml"
+
+
+[log]
+logpath = "/var/log/oleservice"
+
+
+[root]
