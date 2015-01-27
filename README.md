@@ -16,7 +16,7 @@ Its quite straightforward.
     import "stringio"
 
     func main() {
-       sio := stringio.New()
+       sio := stringio.NewStringIO()
        sio.WriteString("this is a test")
        sio.Seek(0, 0)
        out := sio.GetValueString()
