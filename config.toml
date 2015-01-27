@@ -1,3 +1,30 @@
 port = ":9977"
 
 logfile = "/var/log/hickwall/hickwall.log"
+
+[consolelog]
+# Levels: FINEST|FINE|DEBUG|TRACE|INFO|WARNING|ERROR
+level = "DEBUG"
+
+# Format :
+#   %T - Time (15:04:05 MST)
+#   %t - Time (15:04)
+#   %D - Date (2006/01/02)
+#   %d - Date (01/02/06)
+#   %L - Level (FNST, FINE, DEBG, TRAC, WARN, EROR, CRIT)
+#   %S - Source
+#   %M - Message
+# It ignores unknown format strings (and removes them)
+# Recommended: "[%D %T] [%L] (%S) %M"
+
+format = "[%D %T] [%L] (%S) %M"
+
+
+[filelog]
+level = "DEBUG"
+logfile = "/var/log/hickwall/hickwall.log"
+format = "[%D %T] [%L] (%S) %M"
+rotate = false
+maxsize = "0M"
+maxlines = "0K"
+daily = true

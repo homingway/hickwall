@@ -31,7 +31,6 @@ func mkdir_p_logdir(logfile string) {
 }
 
 func main() {
-	config.LoadConfig()
 	logfile := viper.GetString("logfile")
 	if logfile == "" {
 		fmt.Println("Error: `logfile` is not defined in config")
