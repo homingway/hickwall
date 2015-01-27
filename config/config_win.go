@@ -21,10 +21,10 @@ type Config struct {
 func LoadConfig() {
 	viper.SetConfigName(CONF_NAME)
 
+	viper.AddConfigPath(fmt.Sprintf("c:\\hickwall\\%s", APP_NAME))
 	viper.AddConfigPath(".")
-	viper.AddConfigPath(fmt.Sprintf("/etc/%s/", APP_NAME))
 
-	viper.SetConfigName("config")
+	viper.SetConfigName("config_win")
 	viper.SetConfigType("toml")
 
 	err := viper.ReadInConfig()
@@ -32,7 +32,5 @@ func LoadConfig() {
 		fmt.Println("No configuration file loaded - using defaults")
 	}
 
-	viper.SetDefault("msg", "hello")
 	viper.SetDefault("port", ":9977")
-	viper.SetDefault("hickwall_root", fmt.Sprintf("c:\\%s", APP_NAME))
 }

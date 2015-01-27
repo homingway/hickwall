@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/servicelib"
+	// l4g "github.com/oliveagle/log4go"
+	"github.com/spf13/viper"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -19,9 +22,26 @@ func usage(errmsg string) {
 	os.Exit(2)
 }
 
+func mkdir_p_logdir(logfile string) {
+	dir, _ := filepath.Split(logfile)
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		fmt.Println("Error: cannot create log dir: %s, err: %s", dir, err)
+	}
+}
+
 func main() {
+	config.LoadConfig()
+	logfile := viper.GetString("logfile")
+	if logfile == "" {
+		fmt.Println("Error: `logfile` is not defined in config")
+		os.Exit(2)
+	}
+	mkdir_p_logdir(logfile)
+
 	// - log --------------------
-	f, err := os.OpenFile(getLogFilePath(), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	// f, err := os.OpenFile(getLogFilePath(), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("error opening file: %v \n", err)
 	}
@@ -29,34 +49,13 @@ func main() {
 	log.SetOutput(f)
 	// -------------------- log -
 
-	config.LoadConfig()
-
 	srv := servicelib.NewService(config.APP_NAME, config.APP_DESC)
 
 	if len(os.Args) >= 2 {
-		log.Println("new func main\r\n")
-
 		cmd := strings.ToLower(os.Args[1])
-		switch cmd {
-		case "install":
-			err = srv.InstallService()
-		case "remove":
-			err = srv.RemoveService()
-		case "start":
-			err = srv.StartService()
-		case "stop":
-			err = srv.StopService()
-		case "pause":
-			err = srv.PauseService()
-		case "continue":
-			err = srv.ContinueService()
-		case "status":
-			err = srv.Status()
-		default:
-			usage(fmt.Sprintf("invalid command %s", cmd))
-		}
+		err = servicelib.HandleCmd(srv, cmd)
 		if err != nil {
-			log.Fatalf("failed to %s %s: %v", cmd, config.APP_NAME, err)
+			usage(fmt.Sprintf("failed to %s %s: %v", cmd, config.APP_NAME, err))
 		}
 	} else {
 		isIntSess, err := srv.IsAnInteractiveSession()
