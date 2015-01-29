@@ -5,7 +5,6 @@ package servicelib
 import (
 	"fmt"
 	// "github.com/oliveagle/hickwall/config"
-	// "log"
 	// log "github.com/cihub/seelog"
 	log "github.com/oliveagle/hickwall/_third_party/seelog"
 	// "github.com/op/go-logging"
@@ -13,10 +12,10 @@ import (
 )
 
 func printCmdRes(str string, err error) {
-	fmt.Println("** print cmd ****", str)
-	if err != nil {
-		fmt.Println(err)
-	}
+	fmt.Println(str)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 }
 
 func (this *Service) IsAnInteractiveSession() (bool, error) {
@@ -26,26 +25,25 @@ func (this *Service) IsAnInteractiveSession() (bool, error) {
 
 func (this *Service) InstallService() error {
 	log.Debug("ServiceManager.InstallService")
+
 	str, err := this.Install()
-	log.Debug("InstallService: %s, err: %v\n", str, err)
+	// log.Debug("InstallService: %s, err: %v\n", str, err)
 	printCmdRes(str, err)
 	return err
 }
 
 func (this *Service) RemoveService() error {
 	log.Debug("ServiceManager.RemoveService")
+
 	str, err := this.Remove()
-	log.Debug("RemoveService: %s, err: %v", str, err)
+	// log.Debug("RemoveService: %s, err: %v", str, err)
 	printCmdRes(str, err)
 	return err
 }
 
 func (this *Service) Status() error {
-	log.Debug("ServiceManagement.Status not supported")
-	log.Info("hahahh")
+	log.Error("ServiceManagement.Status not supported")
 
-	log.Debug("Status ---------- @#@#@#  logging")
-	log.Error("Status ---------- @#@#@#  logging 1212")
 	return nil
 }
 
@@ -53,36 +51,27 @@ func (this *Service) StartService() error {
 	log.Debug("ServiceManager.StartService")
 
 	str, err := this.Start()
-	log.Debug("StartService: %s, err: %v", str, err)
+	// log.Debug("StartService: %s, err: %v", str, err)
 	printCmdRes(str, err)
 	return err
 }
 
 func (this *Service) StopService() error {
-	// log.Println("ServiceManager.StopService")
 	log.Debug("ServiceManager.StopService")
-	// robustly.Run(func() {
 
-	// }, nil)
-	// printCmdRes(str, err)
 	str, err := this.Stop()
 	printCmdRes(str, err)
-
-	log.Trace("ServiceManager.StopService ---------- @#@#@#  logging")
-	log.Debug("ServiceManager.StopService ---------- @#@#@#  logging")
-	log.Info("ServiceManager.StopService ---------- @#@#@#  logging")
-	log.Warn("ServiceManager.StopService ---------- @#@#@#  logging")
-	log.Error("ServiceManager.StopService ---------- @#@#@#  logging 1212")
-	log.Critical("ServiceManager.StopService ---------- @#@#@#  logging")
 	return err
 }
 
 func (this *Service) PauseService() error {
-	log.Debug("ServiceManager.PauseServicen not supported ")
+	log.Error("ServiceManager.PauseServicen not supported ")
+
 	return nil
 }
 
 func (this *Service) ContinueService() error {
-	log.Debug("ServiceManager.ContinueService not supported ")
+	log.Error("ServiceManager.ContinueService not supported ")
+
 	return nil
 }

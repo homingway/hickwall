@@ -1,8 +1,12 @@
+// this is a wrapper of two opensource project to implement
+// a unanimous interface to install, remove, start, stop services
+
 package servicelib
 
 import (
 	"fmt"
 	"github.com/oliveagle/hickwall/_third_party/daemon"
+	"github.com/oliveagle/hickwall/config"
 	"os"
 	"path/filepath"
 )
@@ -16,6 +20,7 @@ type IService interface {
 	StopService() error
 	PauseService() error
 	ContinueService() error
+	Version() error
 }
 
 func HandleCmd(isrv IService, cmd string) (err error) {
@@ -34,6 +39,8 @@ func HandleCmd(isrv IService, cmd string) (err error) {
 		err = isrv.ContinueService()
 	case "status":
 		err = isrv.Status()
+	case "version":
+		err = isrv.Version()
 	default:
 		err = fmt.Errorf("invalid command %s", cmd)
 	}
@@ -79,4 +86,9 @@ func NewService(name, desc string) *Service {
 		os.Exit(1)
 	}
 	return &Service{srv, name, desc}
+}
+
+func (this *Service) Version() (err error) {
+	fmt.Println("Version: ", config.VERSION)
+	return err
 }

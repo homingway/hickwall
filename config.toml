@@ -4,8 +4,9 @@ port = ":9977"
 log_colored_console = true
 
 # Levels: trace, debug, info, warn, error, critical
-log_console_level = "debug"
+log_console_level = "info"
 
+#TODO: log format instruction
 # Format :
 log_console_format = "%Time [%LEV] %Msg%n"
 

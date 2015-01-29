@@ -58,6 +58,8 @@ func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 }
 
 func init() {
+	fmt.Println("Initializing Configuration")
+
 	viper.SetConfigType("toml")
 
 	// read config file
@@ -93,4 +95,5 @@ func init() {
 	// 	return
 	// }
 	// log.ReplaceLogger(logger)
+
 }
