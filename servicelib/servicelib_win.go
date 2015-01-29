@@ -7,8 +7,8 @@ import (
 	"code.google.com/p/winsvc/mgr"
 	"code.google.com/p/winsvc/svc"
 	"fmt"
-	"github.com/spf13/viper"
-	"log"
+	log "github.com/oliveagle/hickwall/_third_party/seelog"
+	// "github.com/spf13/viper"
 	"time"
 )
 
@@ -17,13 +17,13 @@ func (this *Service) IsAnInteractiveSession() (bool, error) {
 }
 
 func (this *Service) StartService() error {
-	log.Println("ServiceManager.StartService\r\n")
+	log.Info("ServiceManager.StartService\r\n")
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
 	}
 	defer m.Disconnect()
-	log.Println("Connected mgr\r\n")
+	log.Info("Connected mgr\r\n")
 
 	s, err := m.OpenService(this.name)
 	if err != nil {
@@ -31,18 +31,18 @@ func (this *Service) StartService() error {
 	}
 	defer s.Close()
 
-	log.Println("Opened Service\r\n")
+	log.Info("Opened Service\r\n")
 
 	err = s.Start([]string{"p1", "p2", "p3"})
 	if err != nil {
 		return fmt.Errorf("could not start service: %v", err)
 	}
-	log.Println("returned ServiceManager.StartService\r\n")
+	log.Info("returned ServiceManager.StartService\r\n")
 	return nil
 }
 
 func (this *Service) InstallService() error {
-	log.Println("ServiceManager.InstallService\r\n")
+	log.Info("ServiceManager.InstallService\r\n")
 	exepath, err := exePath()
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (this *Service) InstallService() error {
 }
 
 func (this *Service) RemoveService() error {
-	log.Println("ServiceManager.RemoveService\r\n")
+	log.Info("ServiceManager.RemoveService\r\n")
 	m, err := mgr.Connect()
 	if err != nil {
 		return err
@@ -94,32 +94,27 @@ func (this *Service) RemoveService() error {
 }
 
 func (this *Service) Status() error {
-	log.Println("ServiceManagement.Status --------------------\r\n")
-
-	log.Printf("config: %s \n", viper.GetString("msg"))
-	log.Printf("config: log.logpath%s \n", viper.GetString("log.logpath"))
-	log.Printf("config: %v \n", viper.GetStringMap("log")["logpath"])
-	log.Printf("config keys: %v \n", viper.AllKeys())
+	log.Info("ServiceManagement.Status --------------------\r\n")
 	return nil
 }
 
 func (this *Service) StopService() error {
-	log.Println("ServiceManager.StopService\r\n")
+	log.Info("ServiceManager.StopService\r\n")
 	return controlService(this.name, svc.Stop, svc.Stopped)
 }
 
 func (this *Service) PauseService() error {
-	log.Println("ServiceManager.PauseService\r\n")
+	log.Info("ServiceManager.PauseService\r\n")
 	return controlService(this.name, svc.Pause, svc.Paused)
 }
 
 func (this *Service) ContinueService() error {
-	log.Println("ServiceManager.ContinueService\r\n")
+	log.Info("ServiceManager.ContinueService\r\n")
 	return controlService(this.name, svc.Continue, svc.Running)
 }
 
 func controlService(name string, c svc.Cmd, to svc.State) error {
-	log.Printf("controlService: %s \r\n", name)
+	log.Info("controlService: %s \r\n", name)
 	m, err := mgr.Connect()
 	if err != nil {
 		return err

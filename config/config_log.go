@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/hickwall/_third_party/seelog"
 	"github.com/oliveagle/hickwall/_third_party/stringio"
 	"os"
 	"path/filepath"
@@ -91,7 +91,7 @@ func gen_outputs(args *gen_outputs_args) (str string, err error) {
 		tpl_log_out_console := `<console formatid="console-{{.Level}}"/>`
 		// console logger can enable or disable colored output
 		if idx >= idx_console_level {
-			if args.colored_console {
+			if ALLOWED_COLOR_LOG && args.colored_console {
 				tmp_filter_console, err = evalTpl(tpl_log_out_console, struct {
 					Level string
 				}{

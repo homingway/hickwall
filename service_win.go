@@ -5,9 +5,9 @@ package main
 import (
 	"code.google.com/p/winsvc/svc"
 	"fmt"
-	log "github.com/cihub/seelog"
+	// log "github.com/cihub/seelog"
+	log "github.com/oliveagle/hickwall/_third_party/seelog"
 	"github.com/spf13/viper"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -113,7 +113,7 @@ func runService(name string, isDebug bool) {
 }
 
 func serveConn(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (bool, error) {
-	log.Println("serveConn\r\n")
+	log.Info("serveConn\r\n")
 
 	// Set up channel on which to send signal notifications.
 	// We must use a buffered channel or risk missing the signal
@@ -134,14 +134,14 @@ func serveConn(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Sta
 
 	// loop work cycle with accept connections or interrupt
 	// by system signal
-	log.Println("Manage() loop\r\n")
+	log.Info("Manage() loop\r\n")
 	for {
 		select {
 		case conn := <-listen:
 			go handleClient(conn)
 		case killSignal := <-interrupt:
-			log.Println("Got signal:", killSignal, "\r\n")
-			log.Println("Stoping listening on ", listener.Addr(), "\r\n")
+			log.Info("Got signal:", killSignal, "\r\n")
+			log.Info("Stoping listening on ", listener.Addr(), "\r\n")
 			listener.Close()
 			if killSignal == os.Interrupt {
 				return false, fmt.Errorf("Daemon was interruped by system signal")

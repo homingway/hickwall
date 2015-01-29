@@ -2,15 +2,11 @@ package main
 
 import (
 	"fmt"
+	log "github.com/oliveagle/hickwall/_third_party/seelog"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/servicelib"
-	// "github.com/spf13/viper"
-	// "log"
 	"os"
-	// "path/filepath"
 	"strings"
-
-	log "github.com/cihub/seelog"
 )
 
 func usage(errmsg string) {
