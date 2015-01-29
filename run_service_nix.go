@@ -9,6 +9,9 @@ import (
 	"syscall"
 
 	log "github.com/oliveagle/hickwall/_third_party/seelog"
+
+	"github.com/rcrowley/go-metrics"
+	"net"
 	"time"
 )
 
@@ -21,10 +24,19 @@ func runService(name string, idDebug bool) (string, error) {
 
 	tick := time.Tick(1 * time.Second)
 
+	// go service_process()
+	addr, _ := net.ResolveTCPAddr("tcp", "127.0.0.1:2003")
+	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Second, "metrics", addr)
+
+	c := metrics.NewCounter()
+	metrics.Register("foo", c)
+
 	for {
 		select {
 		case now := <-tick:
-			log.Debug("tick: %v", now)
+			c.Inc(47)
+			log.Trace("tick: %v", now)
+
 		case killSignal := <-interrupt:
 			if killSignal == os.Interrupt {
 				return "Daemon was interruped by system signal", nil

@@ -10,10 +10,6 @@ import (
 	"time"
 )
 
-func beep() {
-	log.Info("beep")
-}
-
 type myservice struct{}
 
 func (this *myservice) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
@@ -32,7 +28,7 @@ loop:
 	for {
 		select {
 		case <-tick:
-			beep()
+			log.Info("beep")
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:

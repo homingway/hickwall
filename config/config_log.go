@@ -233,6 +233,8 @@ func gen_config(formats_args *gen_formats_args, outputs_args *gen_outputs_args) 
 	return config_str, nil
 }
 
+var Logger log.LoggerInterface
+
 func ConfigLogger() error {
 	setLoggerDefaults()
 
@@ -258,11 +260,11 @@ func ConfigLogger() error {
 		return err
 	}
 	// fmt.Println(config_str)
-	logger, err := log.LoggerFromConfigAsString(config_str)
+	Logger, err = log.LoggerFromConfigAsString(config_str)
 	if err != nil {
 		fmt.Println("Error: cannot load log config from string: ", err)
 		return err
 	}
-	log.ReplaceLogger(logger)
+	log.ReplaceLogger(Logger)
 	return nil
 }
