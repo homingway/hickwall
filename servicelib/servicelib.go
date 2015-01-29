@@ -75,7 +75,7 @@ type Service struct {
 func NewService(name, desc string) *Service {
 	srv, err := daemon.New(name, desc)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("Error: cannot create daemon Service: ", err)
 		os.Exit(1)
 	}
 	return &Service{srv, name, desc}

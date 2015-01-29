@@ -5,6 +5,7 @@ package main
 import (
 	"code.google.com/p/winsvc/svc"
 	"fmt"
+	log "github.com/cihub/seelog"
 	"github.com/spf13/viper"
 	"log"
 	"net"
@@ -21,12 +22,8 @@ var (
 	beepFunc = syscall.MustLoadDLL("user32.dll").MustFindProc("MessageBeep")
 )
 
-func getLogFilePath() string {
-	return "c:\\tools\\myservice.log"
-}
-
 func beep() {
-	log.Println("beep\r\n")
+	log.Info("beep")
 	beepFunc.Call(0xffffffff)
 }
 
@@ -62,7 +59,7 @@ func handleClient(client net.Conn) {
 type myservice struct{}
 
 func (this *myservice) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	log.Println("myservice.Execute\r\n")
+	log.Info("myservice.Execute\r\n")
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
 
@@ -97,7 +94,7 @@ loop:
 				changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 				tick = fasttick
 			default:
-				log.Printf("unexpected control request #%d", c)
+				log.Error("unexpected control request #%d", c)
 			}
 		}
 	}
@@ -106,13 +103,13 @@ loop:
 }
 
 func runService(name string, isDebug bool) {
-	log.Printf("runService: starting %s service \r\n", name)
+	log.Debug("runService: starting %s service \r\n", name)
 	err := svc.Run(name, &myservice{})
 	if err != nil {
-		log.Printf("runService: Error: %s service failed: %v\r\n", name, err)
+		log.Debug("runService: Error: %s service failed: %v\r\n", name, err)
 		return
 	}
-	log.Printf("runService: %s service stopped\r\n", name)
+	log.Debug("runService: %s service stopped\r\n", name)
 }
 
 func serveConn(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (bool, error) {

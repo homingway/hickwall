@@ -27,6 +27,7 @@ _testmain.go
 *.log
 .DS_Store
 bin
+.idea
 
 hickwall
 hickwall.exe

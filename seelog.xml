@@ -1,0 +1,50 @@
+<seelog type="asynctimer" asyncinterval="5000000" minlevel="trace" maxlevel="critical"><outputs><filter levels="debug"><console formatid="console-debug"/><rollingfile formatid="file-debug" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300" maxrolls="5"/></filter><filter levels="info"><console formatid="console-info"/><rollingfile formatid="file-info" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300" maxrolls="5"/></filter><filter levels="warn"><console formatid="console-warn"/><rollingfile formatid="file-warn" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300" maxrolls="5"/></filter><filter levels="error"><console formatid="console-error"/><rollingfile formatid="file-error" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300" maxrolls="5"/></filter><filter levels="critical"><console formatid="console-critical"/><rollingfile formatid="file-critical" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300" maxrolls="5"/></filter></outputs><formats><format id="console-" format="%Time [%LEV] %Msg%n"/><format id="file-" format="%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n"/><format id="console-debug" format="%EscM(1;30)%Time [%LEV] %Msg%n%EscM(0)"/><format id="file-debug" format="%EscM(1;30)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/><format id="console-info" format="%EscM(1;34)%Time [%LEV] %Msg%n%EscM(0)"/><format id="file-info" format="%EscM(1;34)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/><format id="console-warn" format="%EscM(33)%Time [%LEV] %Msg%n%EscM(0)"/><format id="file-warn" format="%EscM(33)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/><format id="console-error" format="%EscM(31)%Time [%LEV] %Msg%n%EscM(0)"/><format id="file-error" format="%EscM(31)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/><format id="console-critical" format="%EscM(35)%Time [%LEV] %Msg%n%EscM(0)"/><format id="file-critical" format="%EscM(35)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/><format id="console-trace" format="%Time [%LEV] %Msg%n"/><format id="file-trace" format="%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n"/></formats></seelog>
+<!-- 
+<seelog type="asynctimer" asyncinterval="5000000" minlevel="trace" maxlevel="critical">
+    <outputs>
+        <filter levels="trace">
+            <console formatid="console-trace"/>
+            <rollingfile formatid="file-trace" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300000" maxrolls="5" />
+        </filter>
+        <filter levels="debug">
+            <console formatid="console-debug"/>
+            <rollingfile formatid="file-debug" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300000" maxrolls="5" />
+        </filter>
+        <filter levels="info">
+            <console formatid="console-info"/>
+            <rollingfile formatid="file-info" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300000" maxrolls="5" />
+        </filter>
+        <filter levels="warn">
+            <console formatid="console-warn"/>
+            <rollingfile formatid="file-warn" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300000" maxrolls="5" />
+        </filter>
+        <filter levels="error">
+            <console formatid="console-error"/>
+            <rollingfile formatid="file-error" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300000" maxrolls="5" />
+        </filter>
+        <filter levels="critical">
+            <console formatid="console-critical"/>
+            <rollingfile formatid="file-critical" type="size" filename="/var/log/hickwall/hickwall.log" maxsize="300000" maxrolls="5" />
+        </filter>
+
+    </outputs>
+    <formats>
+        <format id="file" format="%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n"/>
+
+        <format id="file-trace" format="%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n"/>
+        <format id="file-debug" format="%EscM(1;30)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/>
+        <format id="file-info" format="%EscM(1;34)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/>
+        <format id="file-warn" format="%EscM(33)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/>
+        <format id="file-error" format="%EscM(31)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/>
+        <format id="file-critical" format="%EscM(35)%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n%EscM(0)"/>
+
+        <format id="console" format="%Time [%LEV] %Msg%n"/>
+
+        <format id="console-trace" format="%Level %Msg%n"/>
+        <format id="console-debug" format="%EscM(1;30)%Level %Msg%n%EscM(0)"/>
+        <format id="console-info" format="%EscM(1;34)%Level %Msg%n%EscM(0)"/>
+        <format id="console-warn" format="%EscM(33)%Level %Msg%n%EscM(0)"/>
+        <format id="console-error" format="%EscM(31)%Level %Msg%n%EscM(0)"/>
+        <format id="console-critical" format="%EscM(35)%Level %Msg%n%EscM(0)"/>
+    </formats>
+</seelog> -->

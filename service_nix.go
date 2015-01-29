@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	// "log"
 	"net"
 	"os"
 	"os/signal"
@@ -13,10 +13,6 @@ import (
 	"github.com/spf13/viper"
 	"time"
 )
-
-func getLogFilePath() string {
-	return "/var/log/myservice.log"
-}
 
 func acceptConnection(listener net.Listener, listen chan<- net.Conn) {
 	for {
@@ -48,7 +44,7 @@ func handleClient(client net.Conn) {
 }
 
 func runService(name string, idDebug bool) (string, error) {
-	log.Println("runService()\r\n")
+	// log.Println("runService()\r\n")
 
 	// Set up channel on which to send signal notifications.
 	// We must use a buffered channel or risk missing the signal
@@ -58,7 +54,7 @@ func runService(name string, idDebug bool) (string, error) {
 
 	// Set up listener for defined host and port
 	port := viper.GetString("port")
-	log.Printf("port: %v\n", port)
+	// log.Printf("port: %v\n", port)
 
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
@@ -71,14 +67,14 @@ func runService(name string, idDebug bool) (string, error) {
 
 	// loop work cycle with accept connections or interrupt
 	// by system signal
-	log.Println("Manage() loop\r\n")
+	// log.Println("Manage() loop\r\n")
 	for {
 		select {
 		case conn := <-listen:
 			go handleClient(conn)
 		case killSignal := <-interrupt:
-			log.Println("Got signal:", killSignal, "\r\n")
-			log.Println("Stoping listening on ", listener.Addr(), "\r\n")
+			// log.Println("Got signal:", killSignal, "\r\n")
+			// log.Println("Stoping listening on ", listener.Addr(), "\r\n")
 			listener.Close()
 			if killSignal == os.Interrupt {
 				return "Daemon was interruped by system signal", nil
