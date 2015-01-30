@@ -1,7 +1,6 @@
 package main
 
 import (
-	// log "github.com/oliveagle/hickwall/_third_party/seelog"
 	// "github.com/oliveagle/hickwall/config"
 	"github.com/rcrowley/go-metrics"
 	"testing"

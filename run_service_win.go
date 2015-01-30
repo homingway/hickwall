@@ -5,8 +5,7 @@ package main
 import (
 	"code.google.com/p/winsvc/svc"
 	// "fmt"
-	// log "github.com/cihub/seelog"
-	log "github.com/oliveagle/hickwall/_third_party/seelog"
+	log "github.com/cihub/seelog"
 	"time"
 )
 

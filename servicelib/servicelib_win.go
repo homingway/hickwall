@@ -7,7 +7,7 @@ import (
 	"code.google.com/p/winsvc/mgr"
 	"code.google.com/p/winsvc/svc"
 	"fmt"
-	log "github.com/oliveagle/hickwall/_third_party/seelog"
+	log "github.com/cihub/seelog"
 	// "github.com/spf13/viper"
 	"time"
 )

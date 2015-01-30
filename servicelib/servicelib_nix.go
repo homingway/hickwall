@@ -6,7 +6,7 @@ import (
 	"fmt"
 	// "github.com/oliveagle/hickwall/config"
 	// log "github.com/cihub/seelog"
-	log "github.com/oliveagle/hickwall/_third_party/seelog"
+	log "github.com/cihub/seelog"
 	// "github.com/op/go-logging"
 	// "github.com/VividCortex/robustly"
 )

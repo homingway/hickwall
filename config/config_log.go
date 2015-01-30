@@ -2,8 +2,8 @@ package config
 
 import (
 	"fmt"
-	log "github.com/oliveagle/hickwall/_third_party/seelog"
-	"github.com/oliveagle/hickwall/_third_party/stringio"
+	log "github.com/cihub/seelog"
+	"github.com/oliveagle/stringio"
 	"os"
 	"path/filepath"
 	"text/template"

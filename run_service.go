@@ -2,7 +2,7 @@ package main
 
 import (
 	// "fmt"
-	log "github.com/oliveagle/hickwall/_third_party/seelog"
+	log "github.com/cihub/seelog"
 	// "github.com/oliveagle/hickwall/config"
 	"github.com/rcrowley/go-metrics"
 	"net"
