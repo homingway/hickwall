@@ -11,6 +11,11 @@
 			"Rev": "dcfedd50ed5334f96adee43fc88518a4f095e15c"
 		},
 		{
+			"ImportPath": "github.com/cihub/seelog",
+			"Comment": "go1.1-52-g65c6194",
+			"Rev": "65c61944370449dbba8b5b587e9f85826eba11c7"
+		},
+		{
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-24-g7381bc4",
 			"Rev": "7381bc4e62942763475703c7edd405f1e42adf4f"
@@ -39,8 +44,12 @@
 			"Rev": "380dec92d5a04849bc0abbde3faa42ab27db0840"
 		},
 		{
-			"ImportPath": "github.com/rcrowley/go-metrics",
+			"ImportPath": "github.com/oliveagle/go-metrics",
 			"Rev": "dee209f2455f101a5e4e593dea94872d2c62d85d"
+		},
+		{
+			"ImportPath": "github.com/oliveagle/stringio",
+			"Rev": "836ca167006d47ef75cceb49346b7b88bea720f2"
 		},
 		{
 			"ImportPath": "github.com/spf13/cast",

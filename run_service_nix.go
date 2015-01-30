@@ -10,7 +10,7 @@ import (
 
 	log "github.com/cihub/seelog"
 
-	"github.com/rcrowley/go-metrics"
+	"github.com/oliveagle/go-metrics"
 	"net"
 	"time"
 )

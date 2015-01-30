@@ -4,7 +4,7 @@ import (
 	// "fmt"
 	log "github.com/cihub/seelog"
 	// "github.com/oliveagle/hickwall/config"
-	"github.com/rcrowley/go-metrics"
+	"github.com/oliveagle/go-metrics"
 	"net"
 	"time"
 )

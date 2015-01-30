@@ -9,9 +9,9 @@
 
 mkdir -p bin
 echo "building windows 386 into bin/  ..." && \
-  GOOS=windows GOARCH=386 go build -o bin/hickwall.exe && \
+  GOOS=windows GOARCH=386 godep go build -o bin/hickwall.exe && \
 echo "building linux amd64 into bin/  ..." && \
-  GOOS=linux GOARCH=amd64 go build -o bin/hickwall.linux.amd64 && \
+  GOOS=linux GOARCH=amd64 godep go build -o bin/hickwall.linux.amd64 && \
 echo "building darwin amd64 into bin/ ..." && \
-  GOOS=darwin GOARCH=amd64 go build -o bin/hickwall.darwin.amd64
+  GOOS=darwin GOARCH=amd64 godep go build -o bin/hickwall.darwin.amd64
 

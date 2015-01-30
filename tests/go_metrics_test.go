@@ -2,7 +2,7 @@ package main
 
 import (
 	// "github.com/oliveagle/hickwall/config"
-	"github.com/rcrowley/go-metrics"
+	"github.com/oliveagle/go-metrics"
 	"testing"
 	"time"
 )
