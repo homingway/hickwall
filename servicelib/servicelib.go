@@ -5,7 +5,7 @@ package servicelib
 
 import (
 	"fmt"
-	"github.com/oliveagle/hickwall/_third_party/daemon"
+	"github.com/oliveagle/daemon"
 	"github.com/oliveagle/hickwall/config"
 	"os"
 	"path/filepath"

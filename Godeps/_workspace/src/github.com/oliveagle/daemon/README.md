@@ -1,5 +1,3 @@
-tweaked this project a little
-
 Go Daemon
 =========
 
