@@ -1,0 +1,72 @@
+&{os.mem.free                                       {host=myhost}}
+&{os.mem.total                                      {host=myhost}}
+&{os.mem.used                                       {host=myhost}}
+&{os.mem.percent_free                               {host=myhost}}
+
+&{darwin.disk.fs.total                              {host=myhost,mount=/}}
+&{darwin.disk.fs.used                               {host=myhost,mount=/}}
+&{darwin.disk.fs.free                               {host=myhost,mount=/}}
+&{darwin.disk.fs.inodes.total                       {host=myhost,mount=/}}
+&{darwin.disk.fs.inodes.used                        {host=myhost,mount=/}}
+&{darwin.disk.fs.inodes.free                        {host=myhost,mount=/}}
+&{darwin.disk.fs.total                              {host=myhost,mount=/Volumes/oleDataA}}
+&{darwin.disk.fs.used                               {host=myhost,mount=/Volumes/oleDataA}}
+&{darwin.disk.fs.free                               {host=myhost,mount=/Volumes/oleDataA}}
+&{darwin.disk.fs.inodes.total                       {host=myhost,mount=/Volumes/oleDataA}}
+&{darwin.disk.fs.inodes.used                        {host=myhost,mount=/Volumes/oleDataA}}
+&{darwin.disk.fs.inodes.free                        {host=myhost,mount=/Volumes/oleDataA}}
+&{darwin.disk.fs.total                              {host=myhost,mount=/Volumes/oleData}}
+&{darwin.disk.fs.used                               {host=myhost,mount=/Volumes/oleData}}
+&{darwin.disk.fs.free                               {host=myhost,mount=/Volumes/oleData}}
+&{darwin.disk.fs.inodes.total                       {host=myhost,mount=/Volumes/oleData}}
+&{darwin.disk.fs.inodes.used                        {host=myhost,mount=/Volumes/oleData}}
+&{darwin.disk.fs.inodes.free                        {host=myhost,mount=/Volumes/oleData}}
+&{darwin.disk.fs.total                              {host=myhost,mount=/Volumes/TrueCryptOne}}
+&{darwin.disk.fs.used                               {host=myhost,mount=/Volumes/TrueCryptOne}}
+&{darwin.disk.fs.free                               {host=myhost,mount=/Volumes/TrueCryptOne}}
+&{darwin.disk.fs.inodes.total                       {host=myhost,mount=/Volumes/TrueCryptOne}}
+&{darwin.disk.fs.inodes.used                        {host=myhost,mount=/Volumes/TrueCryptOne}}
+&{darwin.disk.fs.inodes.free                        {host=myhost,mount=/Volumes/TrueCryptOne}}
+
+&{darwin.disk.kilobytes_transfer                    {disk=disk0,host=myhost}}
+&{darwin.disk.transactions                          {disk=disk0,host=myhost}}
+&{darwin.disk.megabytes                             {disk=disk0,host=myhost}}
+&{darwin.disk.kilobytes_transfer                    {disk=disk1,host=myhost}}
+&{darwin.disk.transactions                          {disk=disk1,host=myhost}}
+&{darwin.disk.megabytes                             {disk=disk1,host=myhost}}
+&{darwin.disk.kilobytes_transfer                    {disk=disk3,host=myhost}}
+&{darwin.disk.transactions                          {disk=disk3,host=myhost}}
+&{darwin.disk.megabytes                             {disk=disk3,host=myhost}}
+
+&{darwin.mem.vm.4kpages.free                        {host=myhost}}
+&{darwin.mem.vm.4kpages.active                      {host=myhost}}
+&{darwin.mem.vm.4kpages.inactive                    {host=myhost}}
+&{darwin.mem.vm.4kpages.speculative                 {host=myhost}}
+&{darwin.mem.vm.4kpages.throttled                   {host=myhost}}
+&{darwin.mem.vm.4kpages.wireddown                   {host=myhost}}
+&{darwin.mem.vm.4kpages.purgeable                   {host=myhost}}
+&{darwin.mem.vm.4kpages.copy-on-write               {host=myhost}}
+&{darwin.mem.vm.4kpages.zerofilled                  {host=myhost}}
+&{darwin.mem.vm.4kpages.reactivated                 {host=myhost}}
+&{darwin.mem.vm.4kpages.purged                      {host=myhost}}
+&{darwin.mem.vm.4kpages.storedincompressor          {host=myhost}}
+&{darwin.mem.vm.4kpages.occupiedbycompressor        {host=myhost}}
+&{darwin.mem.vm.pageins                             {host=myhost}}
+&{darwin.mem.vm.pageouts                            {host=myhost}}
+
+&{ntp.current_source                                {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+&{ntp.stratum                                       {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+&{ntp.when                                          {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+&{ntp.poll                                          {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+&{ntp.reach                                         {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+&{ntp.delay                                         {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+&{ntp.offset                                        {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+&{ntp.jitter                                        {host=myhost,refid=17.82.254.14,remote=17.83.253.7}}
+
+&{darwin.cpu.user                                   {host=myhost}}
+&{darwin.cpu.sys                                    {host=myhost}}
+&{darwin.cpu.idle                                   {host=myhost}}
+
+&{darwin.loadavg_1_min                              {host=myhost}}
+&{darwin.loadavg_5_min                              {host=myhost}}
+&{darwin.loadavg_15_min                             {host=myhost}}

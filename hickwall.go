@@ -9,20 +9,17 @@ import (
 	"github.com/oliveagle/hickwall/servicelib"
 	"os"
 	// "strings"
-)
 
-func usage(errmsg string) {
-	fmt.Fprintf(os.Stderr,
-		"%s\n\n"+
-			"usage: %s <command>\n"+
-			"       where <command> is one of\n"+
-			"       install, remove, status, start, stop, pause or continue.\n",
-		errmsg, os.Args[0])
-}
+	// "github.com/kr/pretty"
+)
 
 var err error
 
 func main() {
+
+	// pretty.Println(config.Conf)
+	// os.Exit(1)
+
 	defer log.Flush()
 
 	app := cli.NewApp()
@@ -93,7 +90,7 @@ func main() {
 	} else {
 		isIntSess, err := srv.IsAnInteractiveSession()
 		if err != nil {
-			log.Error("failed to determine if we are running in an interactive session: %v", err)
+			log.Error("failed to determine if we are running in an interactive session or not: %v", err)
 			return
 		}
 		if !isIntSess {

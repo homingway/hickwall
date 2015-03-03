@@ -1,0 +1,56 @@
+{
+    "Desc": "configuration from json",
+    "Port": "",
+    "Logfile": "",
+    "Log_colored_console": true,
+    "Log_console_level": "info",
+    "Log_console_format": "%Time [%LEV] %Msg%n",
+    "Log_file_level": "debug",
+    "Log_file_filepath": "/var/log/hickwall/hickwall.log",
+    "Log_file_format": "%Date %Time [%Level] %RelFile %Msg%n",
+    "Log_file_maxsize": 100,
+    "Log_file_maxrolls": 5,
+    "Transport_flat_metric_key_format": "hotel.{tags.bu}.{hostname}.{key}.{tags}",
+    "Transport_backfill_enabled": false,
+    "Transport_graphite_hosts": ["127.0.0.1:2003", "127.0.0.1:2004"],
+    "Collector_win_pdh": [{
+        "Alias": "a",
+        "Interval": 2,
+        "Querys": [
+            ["进程数", "\\System\\Processes"],
+            ["进程数2", "\\System\\Processes"],
+        ],
+    }, {
+        "Alias": "b",
+        "Interval": 2,
+        "Querys": [
+            ["进程数", "\\System\\Processes"],
+            ["进程数2", "\\System\\Processes"],
+        ],
+    }, ],
+    "Collector_mysql_query": [{
+        "Alias": "",
+        "Host": "127.0.0.1",
+        "Port": 3306,
+        "Username": "root",
+        "Password": "root",
+        "Queries": [{
+            "Alias": "a",
+            "Database": "db1",
+            "Desc": "one line query",
+            "Query": "SELECT count(*) as cnt, sum(*) as total FROM sometable where column=123",
+            "ValuesFrom": ""
+        }, {
+            "Alias": "b",
+            "Database": "db1",
+            "Desc": "multiple line query",
+            "Query": "SELECT count(*) as cnt, sum(*) as total FROM sometable where column=123",
+            "ValuesFrom": ""
+        }, ],
+    }, ],
+    "collector_ping": [{
+        "alias": "p2_PING",
+        "hosts": ["www.baidu.com", "www.12306.com"],
+        "interval": 10,
+    }, ],
+}

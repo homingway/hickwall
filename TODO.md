@@ -8,3 +8,4 @@
 
 * metrics collector framework, plugin framework
 
+* re-org metrics name, opentsdb with tags, influxdb without tags

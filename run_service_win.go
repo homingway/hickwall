@@ -4,7 +4,7 @@ package main
 
 import (
 	"code.google.com/p/winsvc/svc"
-	// "fmt"
+	"fmt"
 	log "github.com/cihub/seelog"
 	"time"
 )
@@ -53,6 +53,7 @@ loop:
 }
 
 func runService(name string, isDebug bool) {
+	fmt.Println("hahah")
 	log.Debug("runService: starting %s service \r\n", name)
 	err := svc.Run(name, &myservice{})
 	if err != nil {

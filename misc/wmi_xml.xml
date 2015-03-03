@@ -1,0 +1,78 @@
+<COMMAND SEQUENCENUM="1" ISSUEDFROM="OLIVEAGLEC841" STARTTIME="03-02-2015T16:58:45" EVERYCOUNT="0">
+    <REQUEST>
+        <COMMANDLINE> cpu get /format:rawxml</COMMANDLINE>
+        <COMMANDLINECOMPONENTS>
+            <NODELIST><NODE>OLIVEAGLEC841</NODE></NODELIST>
+        </COMMANDLINECOMPONENTS>
+        <CONTEXT>
+            <NAMESPACE>root\cimv2</NAMESPACE>
+            <ROLE>root\cli</ROLE>
+            <IMPLEVEL>IMPERSONATE</IMPLEVEL>
+            <AUTHLEVEL>PKTPRIVACY</AUTHLEVEL>
+            <LOCALE>ms_804</LOCALE>
+            <PRIVILEGES>ENABLE</PRIVILEGES>
+            <TRACE>OFF</TRACE>
+            <RECORD>N/A</RECORD>
+            <INTERACTIVE>OFF</INTERACTIVE>
+            <FAILFAST>OFF</FAILFAST>
+            <OUTPUT>STDOUT</OUTPUT>
+            <APPEND>STDOUT</APPEND>
+            <USER>N/A</USER>
+            <AGGREGATE>ON</AGGREGATE>
+        </CONTEXT>
+    </REQUEST>
+    <RESULTS NODE="OLIVEAGLEC841">
+        <CIM>
+            <INSTANCE CLASSNAME="Win32_Processor">
+                <PROPERTY NAME="AddressWidth" CLASSORIGIN="CIM_Processor" TYPE="uint16"><VALUE>64</VALUE></PROPERTY>
+                <PROPERTY NAME="Architecture" CLASSORIGIN="Win32_Processor" TYPE="uint16"><VALUE>9</VALUE></PROPERTY>
+                <PROPERTY NAME="Availability" CLASSORIGIN="CIM_LogicalDevice" TYPE="uint16"><VALUE>3</VALUE></PROPERTY>
+                <PROPERTY NAME="Caption" CLASSORIGIN="CIM_ManagedSystemElement" TYPE="string"><VALUE>Intel64 Family 6 Model 42 Stepping 7</VALUE></PROPERTY>
+                <PROPERTY NAME="ConfigManagerErrorCode" CLASSORIGIN="CIM_LogicalDevice" PROPAGATED="true" TYPE="uint32"></PROPERTY>
+                <PROPERTY NAME="ConfigManagerUserConfig" CLASSORIGIN="CIM_LogicalDevice" PROPAGATED="true" TYPE="boolean"></PROPERTY>
+                <PROPERTY NAME="CpuStatus" CLASSORIGIN="Win32_Processor" TYPE="uint16"><VALUE>1</VALUE></PROPERTY>
+                <PROPERTY NAME="CreationClassName" CLASSORIGIN="CIM_LogicalDevice" TYPE="string"><VALUE>Win32_Processor</VALUE></PROPERTY>
+                <PROPERTY NAME="CurrentClockSpeed" CLASSORIGIN="CIM_Processor" TYPE="uint32"><VALUE>2400</VALUE></PROPERTY>
+                <PROPERTY NAME="CurrentVoltage" CLASSORIGIN="Win32_Processor" TYPE="uint16"><VALUE>33</VALUE></PROPERTY>
+                <PROPERTY NAME="DataWidth" CLASSORIGIN="CIM_Processor" TYPE="uint16"><VALUE>64</VALUE></PROPERTY>
+                <PROPERTY NAME="Description" CLASSORIGIN="CIM_ManagedSystemElement" TYPE="string"><VALUE>Intel64 Family 6 Model 42 Stepping 7</VALUE></PROPERTY>
+                <PROPERTY NAME="DeviceID" CLASSORIGIN="CIM_LogicalDevice" TYPE="string"><VALUE>CPU0</VALUE></PROPERTY>
+                <PROPERTY NAME="ErrorCleared" CLASSORIGIN="CIM_LogicalDevice" PROPAGATED="true" TYPE="boolean"></PROPERTY>
+                <PROPERTY NAME="ErrorDescription" CLASSORIGIN="CIM_LogicalDevice" PROPAGATED="true" TYPE="string"></PROPERTY>
+                <PROPERTY NAME="ExtClock" CLASSORIGIN="Win32_Processor" TYPE="uint32"><VALUE>400</VALUE></PROPERTY>
+                <PROPERTY NAME="Family" CLASSORIGIN="CIM_Processor" TYPE="uint16"><VALUE>1</VALUE></PROPERTY>
+                <PROPERTY NAME="InstallDate" CLASSORIGIN="CIM_ManagedSystemElement" PROPAGATED="true" TYPE="datetime"></PROPERTY>
+                <PROPERTY NAME="L2CacheSize" CLASSORIGIN="Win32_Processor" PROPAGATED="true" TYPE="uint32"></PROPERTY>
+                <PROPERTY NAME="L2CacheSpeed" CLASSORIGIN="Win32_Processor" PROPAGATED="true" TYPE="uint32"></PROPERTY>
+                <PROPERTY NAME="L3CacheSize" CLASSORIGIN="Win32_Processor" TYPE="uint32"><VALUE>0</VALUE></PROPERTY>
+                <PROPERTY NAME="L3CacheSpeed" CLASSORIGIN="Win32_Processor" TYPE="uint32"><VALUE>0</VALUE></PROPERTY>
+                <PROPERTY NAME="LastErrorCode" CLASSORIGIN="CIM_LogicalDevice" PROPAGATED="true" TYPE="uint32"></PROPERTY>
+                <PROPERTY NAME="Level" CLASSORIGIN="Win32_Processor" TYPE="uint16"><VALUE>6</VALUE></PROPERTY>
+                <PROPERTY NAME="LoadPercentage" CLASSORIGIN="CIM_Processor" TYPE="uint16"><VALUE>0</VALUE></PROPERTY>
+                <PROPERTY NAME="Manufacturer" CLASSORIGIN="Win32_Processor" TYPE="string"><VALUE>GenuineIntel</VALUE></PROPERTY>
+                <PROPERTY NAME="MaxClockSpeed" CLASSORIGIN="CIM_Processor" TYPE="uint32"><VALUE>2400</VALUE></PROPERTY>
+                <PROPERTY NAME="Name" CLASSORIGIN="CIM_ManagedSystemElement" TYPE="string"><VALUE>Intel(R) Core(TM) i5-2435M CPU @ 2.40GHz</VALUE></PROPERTY>
+                <PROPERTY NAME="NumberOfCores" CLASSORIGIN="Win32_Processor" TYPE="uint32"><VALUE>2</VALUE></PROPERTY>
+                <PROPERTY NAME="NumberOfLogicalProcessors" CLASSORIGIN="Win32_Processor" TYPE="uint32"><VALUE>2</VALUE></PROPERTY>
+                <PROPERTY NAME="OtherFamilyDescription" CLASSORIGIN="CIM_Processor" PROPAGATED="true" TYPE="string"></PROPERTY>
+                <PROPERTY NAME="PNPDeviceID" CLASSORIGIN="CIM_LogicalDevice" PROPAGATED="true" TYPE="string"></PROPERTY>
+                <PROPERTY.ARRAY NAME="PowerManagementCapabilities" CLASSORIGIN="CIM_LogicalDevice" PROPAGATED="true" TYPE="uint16"></PROPERTY.ARRAY>
+                <PROPERTY NAME="PowerManagementSupported" CLASSORIGIN="CIM_LogicalDevice" TYPE="boolean"><VALUE>FALSE</VALUE></PROPERTY>
+                <PROPERTY NAME="ProcessorId" CLASSORIGIN="Win32_Processor" TYPE="string"><VALUE>BFEBFBFF000206A7</VALUE></PROPERTY>
+                <PROPERTY NAME="ProcessorType" CLASSORIGIN="Win32_Processor" TYPE="uint16"><VALUE>3</VALUE></PROPERTY>
+                <PROPERTY NAME="Revision" CLASSORIGIN="Win32_Processor" TYPE="uint16"><VALUE>10759</VALUE></PROPERTY>
+                <PROPERTY NAME="Role" CLASSORIGIN="CIM_Processor" TYPE="string"><VALUE>CPU</VALUE></PROPERTY>
+                <PROPERTY NAME="SocketDesignation" CLASSORIGIN="Win32_Processor" TYPE="string"><VALUE>CPU Socket #0</VALUE></PROPERTY>
+                <PROPERTY NAME="Status" CLASSORIGIN="CIM_ManagedSystemElement" TYPE="string"><VALUE>OK</VALUE></PROPERTY>
+                <PROPERTY NAME="StatusInfo" CLASSORIGIN="CIM_LogicalDevice" TYPE="uint16"><VALUE>3</VALUE></PROPERTY>
+                <PROPERTY NAME="Stepping" CLASSORIGIN="CIM_Processor" PROPAGATED="true" TYPE="string"></PROPERTY>
+                <PROPERTY NAME="SystemCreationClassName" CLASSORIGIN="CIM_LogicalDevice" TYPE="string"><VALUE>Win32_ComputerSystem</VALUE></PROPERTY>
+                <PROPERTY NAME="SystemName" CLASSORIGIN="CIM_LogicalDevice" TYPE="string"><VALUE>OLIVEAGLEC841</VALUE></PROPERTY>
+                <PROPERTY NAME="UniqueId" CLASSORIGIN="CIM_Processor" PROPAGATED="true" TYPE="string"></PROPERTY>
+                <PROPERTY NAME="UpgradeMethod" CLASSORIGIN="CIM_Processor" TYPE="uint16"><VALUE>1</VALUE></PROPERTY>
+                <PROPERTY NAME="Version" CLASSORIGIN="Win32_Processor" TYPE="string"><VALUE></VALUE></PROPERTY>
+                <PROPERTY NAME="VoltageCaps" CLASSORIGIN="Win32_Processor" TYPE="uint32"><VALUE>2</VALUE></PROPERTY>
+            </INSTANCE>
+        </CIM>
+    </RESULTS>
+</COMMAND>

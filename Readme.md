@@ -1,7 +1,7 @@
 Hickwall
 ==========
 
-a metric collection and reporting daemon for major platform. 
+A metric collection and reporting daemon for major platforms. 
 
 ***Under heavy construction!***
 

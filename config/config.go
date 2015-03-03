@@ -17,6 +17,8 @@ const (
 
 // Design Principle: Flat is better than nasted!
 type Config struct {
+	Tags map[string]string
+
 	Port                string
 	Logfile             string
 	Log_colored_console bool
@@ -27,6 +29,50 @@ type Config struct {
 	Log_file_format     string
 	Log_file_maxsize    int
 	Log_file_maxrolls   int
+
+	Transport_flat_metric_key_format string
+	Transport_backfill_enabled       bool
+	Transport_graphite_hosts         []string
+
+	Collector_win_pdh     []Conf_win_pdh
+	Collector_mysql_query []c_mysql_query
+
+	Collector_ping []c_ping
+}
+
+type Conf_win_pdh struct {
+	// Tags     [][]string
+	Tags     map[string]string
+	Interval int
+	Queries  map[string]string
+}
+
+type c_mysql_query struct {
+	Metric_key string
+	Tags       [][]string
+	Host       string
+	Port       int
+	Username   string
+	Password   string
+	Queries    []c_mysql_query_item
+}
+
+type c_mysql_query_item struct {
+	Metric_key string
+	Tags       [][]string
+	Database   string
+	Desc       string
+	Query      string
+	ValuesFrom string
+	Comment    string
+}
+
+type c_ping struct {
+	Metric_key string
+	Tags       [][]string
+
+	Hosts    []string
+	Interval int
 }
 
 var Conf Config
@@ -60,7 +106,8 @@ func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 func init() {
 	fmt.Println("Initializing Configuration")
 
-	viper.SetConfigType("toml")
+	// viper.SetConfigType("toml")
+	//viper.SetConfigType("yml")
 
 	// read config file
 	addConfigPath()
@@ -78,10 +125,12 @@ func init() {
 
 	// fmt.Println("-------- after marshal --------------")
 	// pretty.Println(&Conf)
+	// os.Exit(1)
 
 	// place all setDefault here -----------------
 	// First we have to find out which config item is not been set in config.toml
 	// then we only set default values to these missing items.
+
 	//TODO: remove port :9977
 	Conf.setDefaultByKey("port", ":9977")
 	Conf.setDefaultByKey("Logfile", "/var/log/hickwall/hickwall.log")
