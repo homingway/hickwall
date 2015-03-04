@@ -34,17 +34,42 @@ type Config struct {
 	Transport_backfill_enabled       bool
 	Transport_graphite_hosts         []string
 
-	Collector_win_pdh     []Conf_win_pdh
+	Collector_win_pdh []Conf_win_pdh
+	Collector_win_wmi []Conf_win_wmi
+
 	Collector_mysql_query []c_mysql_query
 
 	Collector_ping []c_ping
 }
 
 type Conf_win_pdh struct {
-	// Tags     [][]string
 	Tags     map[string]string
 	Interval int
-	Queries  map[string]string
+	Queries  []Conf_win_pdh_query
+}
+
+type Conf_win_pdh_query struct {
+	Query  string
+	Metric string
+	Tags   map[string]string
+	// Meta   map[string]string		//TODO: Meta
+}
+
+type Conf_win_wmi struct {
+	Tags     map[string]string
+	Interval int
+	Queries  []Conf_win_wmi_query
+}
+type Conf_win_wmi_query struct {
+	Query   string
+	Tags    map[string]string
+	Metrics []Conf_win_wmi_query_metric
+}
+type Conf_win_wmi_query_metric struct {
+	Value_from string
+	Metric     string
+	Tags       map[string]string
+	Meta       map[string]string //TODO: Meta
 }
 
 type c_mysql_query struct {

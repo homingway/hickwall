@@ -69,6 +69,15 @@ func GetCollectorFactoryByName(name string) (collector_factory_func, bool) {
 	return factory, ok
 }
 
+func GetBuiltinCollectorByName(name string) Collector {
+	for _, c := range builtin_collectors {
+		if c.Name() == name {
+			return c
+		}
+	}
+	return nil
+}
+
 func GetBuiltinCollectors() []Collector {
 	return builtin_collectors
 }

@@ -3,13 +3,23 @@
 # hostname: "test_server1"
 
 #TODO: split config into configuration folder
-# TODO: normalize metric, only `a-z._` allowed in metric
-# TODO: normalize tags
+#2015Mar04 DONE TODO: normalize metric, only `a-z._` allowed in metric
+#2015Mar04 DONE TODO: normalize tags
 
 # these tags will be appended into metrics' tags field. 
 tags: {
-    "bu": "hotel"
+    "bu": "hotel",
+    "global": "tag",
 }
+
+#TODO: enable_metadata
+# only opentsdb support metadata
+enable_metadata: false
+
+#TODO: merge_metadata_to_tags
+# If enable metadata, but backend don't support metadata. this option will merge all metadata
+# into tags
+merge_metadata_to_tags: false
 
 #TODO: debug flag
 debug: false
@@ -172,32 +182,46 @@ collector_default_interval: 1
 #TODO: metric key, tags configuration in collectors ?
 
 #TODO: different collector type: gauge, counter 
-#DELETE-TODO: [don't need]collectored value can be transformed into different units: bytes, mb, gb, ...
+#2015MAR03 DELETE TODO: [don't need]collectored value can be transformed into different units: bytes, mb, gb, ...
 
 collector_win_pdh:
     - 
         interval: 2
         tags: {
-            "bu": "train",
-            "prodution": "中文"
+            "bu": "train"
         }
-
-        # query: metric_key
-        queries: {
-            "\\System\\Processes": "win.pdh.process_cnt",
-            "\\Memory\\Available Bytes": "win.pdh.memory.available_bytes",
-        }
+        queries:
+            -
+                query: "\\System\\Processes"
+                metric: "win.pdh.process_cnt"
+                # metric: "win.processes.count"     duplicated metric key: win.processes.count
+            - 
+                query: "\\Memory\\Available Bytes"
+                metric: "win.pdh.memory.available_bytes"
 
     - 
         interval: 2
         tags: {
-            "prodution": "------------"
+            "bu": "train"
         }
-        queries: {
-            "\\System\\Processes": "win.pdh.process_cnt_1",
-            "\\Memory\\Available Bytes": "win.pdh.memory.available_bytes_1",
-        }
-
+        queries: 
+            -
+                query: "\\System\\Processes"
+                metric: "win.pdh.process_cnt_1"
+                tags: {
+                    "mount": "C",
+                    "prodution": "中文",
+                }
+                #TODO: support meta
+                # meta: {
+                #     "unit": "bytes"
+                # }
+            - 
+                query: "\\Memory\\Available Bytes"
+                metric: "win.pdh.memory.available_bytes_1"
+                tags: {
+                    "mount": "C"
+                }
 
 
 # This collector is supplement for win_pdh. and is not performace optimized. so should be used with 
@@ -211,81 +235,54 @@ collector_win_wmi:
         }
 
         queries: 
-            # # simplest query form. for single instance return query
-            # - 
-            #     query: "select Caption, FreePhysicalMemory, TotalVirtualMemorySize from win32_operatingsystem"
-            #     # in metrics config, character cases matters!!
-            #     metrics: {
-            #         "Caption": "win.wmi.os.caption",
-            #         "FreePhysicalMemory": "win.wmi.os.freephysicalmemory.bytes",
-            #         "TotalVirtualMemorySize": "win.wmi.os.totalvirtualmemorysize.bytes",
-            #     }
-
-            # # query with metric templating, for multiple instance return query
-            # - 
-            #     query: "wmic logicaldisk"
-            #     # in metrics config, character cases matters!!
-            #     metrics: {
-            #         "Size": "win.wmi.fs.{Name}.{FileSystem}.size.bytes",
-            #         "FreeSpace": "win.wmi.fs.{Name}.{FileSystem}.freespace.bytes"
-            #     }
-
             # simplest query form. for single instance return query
             - 
-                query: "select Caption, FreePhysicalMemory, TotalVirtualMemorySize from win32_operatingsystem"
+                query: "wmic cpu get Name,NumberOfCores"
                 metrics:
                     # character cases matters here!!  
                     -
-                        value_from: "Caption"
-                        metric: "win.wmi.os.caption"
+                        value_from: "Name"
+                        metric: "win.wmi.cpu.name"
                     -
-                        value_from: "FreePhysicalMemory"
-                        metric: "win.wmi.os.freephysicalmemory.bytes"
+                        value_from: "NumberOfCores"
+                        metric: "win.wmi.cpu.numberofcores"
 
-            # query with metric templating, for multiple instance return query
+            # query with metric templating, tags for multiple instance return query
             - 
-                query: "wmic logicaldisk"
+                # query: "wmic logicaldisk get Name, FileSystem, FreeSpace"
+                query: "wmic logicaldisk where 'mediatype=11 or mediatype=12' get Name, FileSystem, FreeSpace, Size"
+
+                #  map[FreeSpace: Name:A: FileSystem:]
+                #  map[Name:C: FileSystem:NTFS FreeSpace:57517752320]
+                #  map[FileSystem:CDFS FreeSpace:0 Name:D:]
+
+                tags: {
+                    "tag_level": "query_tag"
+                }
                 # metric string is a template. {Name} means use the value of `Name` Field of collected record. 
                 metrics:
                     # character cases matters here!!  
                     -
                         value_from: "Size"
-                        metric: "win.wmi.fs.{Name}.{FileSystem}.size.bytes"
+                        metric: "win.wmi.fs.{{.Name}}.{{.FileSystem}}.size.bytes"
+                        tags: {
+                            "mount": "{{.Name}}",
+                            "fs_type": "{{.FileSystem}}",
+                        }
                     -
                         value_from: "FreeSpace"
-                        metric: "win.wmi.fs.{Name}.{FileSystem}.freespace.bytes"
-
-
-            # most complicated query with metric templating, tags, meta
-            - 
-                query: "wmic logicaldisk"
-
-                # metric string is a template. {Name} means use the value of `Name` Field of collected record. 
-                metrics:
-                    -
-                        value_from: "Size"
-                        metric: "win.wmi.fs.{Name}.{FileSystem}.size.bytes"
+                        metric: "win.wmi.fs.{{.Name}}.{{.FileSystem}}.freespace.bytes"
                         tags: {
-                            "mount": "{Name}",
-                            "fs_type": "{FileSystem}",
+                            "mount": "{{.Name}}",
+                            "fs_type": "{{.FileSystem}}",
                         }
-                        meta: {
-                            "unit": "bytes"
-                        }
-                        # TODO: furture plan.
-                        # aggregation: "",  "abs", "delta(1:tick)", "delta(1:minute)", "average(5:tick)", 
-                        #       "average(5:second)", "middle(5:tick)", "max(5:tick)", "min(5:tick)", "sum(5:tick)"
-                    -
-                        value_from: "FreeSpace"
-                        metric: "win.wmi.fs.{Name}.{FileSystem}.freespace.bytes"
-                        tags: {
-                            "mount": "{Name}",
-                            "fs_type": "{FileSystem}",
-                        }
-                        meta: {
-                            "unit": "bytes"
-                        }
-
+                        #TODO: support meta
+                        # meta: {
+                        #     "unit": "bytes"
+                        # }
+                    - 
+                        value_from: "FileSystem"
+                        metric: "win.wmi.fs.{{.Name}}.filesystem"
 
 # TODO: collector_mysql_query
 # collector_mysql_query:
