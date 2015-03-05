@@ -70,6 +70,7 @@ type Conf_win_wmi_query_metric struct {
 	Metric     string
 	Tags       map[string]string
 	Meta       map[string]string //TODO: Meta
+	Default    interface{}
 }
 
 type c_mysql_query struct {

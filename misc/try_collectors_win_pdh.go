@@ -30,7 +30,7 @@ func main() {
 	go cc[0].Run(ch)
 	go cc[1].Run(ch)
 
-	done := time.After(time.Second * 300)
+	done := time.After(time.Second * 3)
 	delay := time.After(time.Second * 1)
 loop:
 	for {

@@ -15,22 +15,22 @@ func main() {
 
 	// pretty.Println(config.Conf)
 
-	cs := GetBuiltinCollectors()
+	cs := GetBuiltinCollectorByName("builtin_win_wmi")
 
 	AddCustomizedCollectorByName("win_wmi", "cc[0]collector", config.Conf.Collector_win_wmi[0])
 	// AddCustomizedCollectorByName("win_pdh", "cc[1]collector", config.Conf.Collector_win_pdh[1])
 	cc := GetCustomizedCollectors()
 
+	fmt.Println(" ++ builtin_collector: ", &cs)
 	fmt.Println(" ++ customized_collectors:  ", cc)
-	fmt.Println(" ++ builtin_collectors: ", cs)
 
 	ch := make(chan *datapoint.DataPoint)
 
-	// go cs[0].Run(ch)
-	go cc[0].Run(ch)
+	go cs.Run(ch)
+	// go cc[0].Run(ch)
 	// go cc[1].Run(ch)
 
-	done := time.After(time.Second * 300)
+	done := time.After(time.Second * 3)
 	delay := time.After(time.Second * 1)
 loop:
 	for {
@@ -40,7 +40,7 @@ loop:
 			fmt.Println(" point ---> ", dp, err)
 			// fmt.Println("-------------------")
 		case <-delay:
-			fmt.Println("-------------------")
+			// fmt.Println("-------------------")
 			// change config on the fly
 			// cs[0].Init()
 			// cs[0].(*IntervalCollector).SetInterval(time.Millisecond * 200)

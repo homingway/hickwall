@@ -6,6 +6,7 @@ import (
 	"github.com/mattn/go-ole/oleutil"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -25,27 +26,14 @@ func ParseFieldsFromQuery(query string) []string {
 	}
 
 	fields := strings.Split(matched_fields[1], ",")
-	for idx, pat := range fields {
+	// for idx, pat := range fields {
+	for _, pat := range fields {
 		field := strings.Trim(pat, " ")
-		fmt.Println(idx, field)
+		// fmt.Println(idx, field)
 		results = append(results, field)
 	}
 
 	return results
-}
-
-func VariantToString(v *ole.VARIANT) (res string, err error) {
-	// fmt.Println(v.Val, int64(MaxInt32))
-
-	// v.Val  8463721106786746373
-	if v.Val >= int64(MaxInt32) {
-		res = ""
-		err = fmt.Errorf("Invalid address: %v", v.Val)
-		return
-	}
-
-	res = v.ToString()
-	return
 }
 
 func WmiQueryWithFields(query string, fields []string) []map[string]string {
@@ -89,15 +77,10 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 		for _, field := range fields {
 			asString, err := oleutil.GetProperty(item, field)
 
-			// asString, err := oleutil.GetProperty(item, "NumberOfLogicalProcessors")
-
-			// asString may return invalid pointer: drivetype &{3 0 0 0 8463721106786746371}
-
-			// field_string, err := VariantToString(asString)
 			fmt.Println(field, asString, err)
 			if err == nil {
 				// itemMap[field] = asString.ToString()
-				itemMap[field], _ = VariantToString(asString)
+				itemMap[field] = fmt.Sprintf("%v", asString.Value())
 			} else {
 				fmt.Println(err)
 			}
@@ -158,11 +141,10 @@ func WmiQuery(query string) []map[string]string {
 
 			// asString may return invalid pointer: drivetype &{3 0 0 0 8463721106786746371}
 
-			// field_string, err := VariantToString(asString)
 			// fmt.Println(field, asString, err, field_string)
 			if err == nil {
 				// itemMap[field] = asString.ToString()
-				itemMap[field], _ = VariantToString(asString)
+				itemMap[field] = fmt.Sprintf("%v", asString.Value())
 			} else {
 				fmt.Println(err)
 			}
@@ -177,17 +159,43 @@ func WmiQuery(query string) []map[string]string {
 
 func main() {
 	// query := "select Caption, FreePhysicalMemory, TotalVirtualMemorySize from win32_operatingsystem"
-	// query := "select Name, FileSystem, Size, FreeSpace from Win32_LogicalDisk"
 
-	// query := "select Caption from Win32_Processor"
 	// query := "select Caption, NumberOfCores from Win32_Processor"
 	// query := "select Caption, NumberOfProcessors, NumberOfLogicalProcessors from Win32_ComputerSystem"
-	query := "select * from Win32_ComputerSystem"
 
-	// results := WmiQuery(query)
-	results := WmiQueryWithFields(query, []string{"Caption", "NumberOfProcessors"})
+	// don't support *
+	// query := "select * from Win32_ComputerSystem"
+	// query := "select Caption, FreePhysicalMemory, TotalVirtualMemorySize from win32_operatingsystem"
+	// query := "select Name, FileSystem, Size, FreeSpace from Win32_LogicalDisk"
+	query := "select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12"
+
+	results := WmiQuery(query)
+	// results := WmiQueryWithFields(query, []string{"Caption", "NumberOfProcessors"})
 
 	for _, item := range results {
 		fmt.Println(item)
 	}
+	time.Sleep(time.Millisecond * 1)
+
+	// 	done := time.After(time.Second * 300)
+	// 	delay := time.After(time.Second * 1)
+	// 	tick := time.Tick(time.Millisecond * 1000)
+	// loop:
+	// 	for {
+	// 		select {
+	// 		// case dp, err := <-ch:
+	// 		// case <-ch:
+	// 		// fmt.Println(" point ---> ", dp, err)
+	// 		// fmt.Println("-------------------")
+	// 		case <-tick:
+	// 			WmiQuery(query)
+	// 		case <-delay:
+	// 			// fmt.Println("-------------------")
+	// 			// change config on the fly
+	// 			// cs[0].Init()
+	// 			// cs[0].(*IntervalCollector).SetInterval(time.Millisecond * 200)
+	// 		case <-done:
+	// 			break loop
+	// 		}
+	// 	}
 }
