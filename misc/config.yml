@@ -3,8 +3,8 @@
 # hostname: "test_server1"
 
 #TODO: split config into configuration folder
-#2015Mar04 DONE TODO: normalize metric, only `a-z._` allowed in metric
-#2015Mar04 DONE TODO: normalize tags
+#TODO: [done 2015Mar04] normalize metric, only `a-z._` allowed in metric
+#TODO: [done 2015Mar04] normalize tags
 
 # these tags will be appended into metrics' tags field. 
 tags: {
@@ -182,7 +182,7 @@ collector_default_interval: 1
 #TODO: metric key, tags configuration in collectors ?
 
 #TODO: different collector type: gauge, counter 
-#2015MAR03 DELETE TODO: [don't need]collectored value can be transformed into different units: bytes, mb, gb, ...
+#TODO: [delete 2015MAR03] collectored value can be transformed into different units: bytes, mb, gb, ...
 
 collector_win_pdh:
     - 
@@ -223,6 +223,184 @@ collector_win_pdh:
                     "mount": "C"
                 }
 
+# TODO: postponed, aggregation would be better to have.
+# `Exits` aggregation function can apply on any kind of value.  
+# But in most cases, only `int` and `float` can be aggregated. Internally, all numbers
+# will be converted into float64
+# TODO: graphite aggregator like aggregation ??
+collector_aggregation:
+    - 
+        # TickDriven
+        # single source and simple calc
+        Interval: 60
+        source: {
+            "A": "win.phd.memory.available_bytes"
+        }
+        aggregation: "A / 1024 / 1024"
+        metric: "win.pdh.memory.available.mb"
+        inherit_tags: "A"
+        tags: {
+            "new_tag": "aggregation"
+        }
+        # Merge(A.Tags).Merge(tags)
+        inherit_meta: "A"
+        meta: {
+            "unit": "MegaBytes",
+            "interval": "60s"
+        }
+
+    - 
+        # aggregated on tags
+        Interval: 60
+        source: {
+            "A": "win.pdh.memory.available.mb"
+        }
+
+        # because we are aggregated on tags. so tags been aggregated will not been merged
+        source_tags: 
+            - "bu"
+
+        aggregation: "Sum(A)"
+        metric: "win.pdh.memory.available.mb.{{.bu}}"
+        inherit_meta: "A"
+
+    - 
+        # TickDriven
+        # source can be generated from other aggregations
+        # single source and predefined aggregation functions with tick period
+        source: {
+            "A": "win.pdh.memory.available.mb"
+        }
+        aggregation: "Average(WindowTick(A, 5))"
+        metric: "win.pdh.memory.available.mb.avg.5tick"
+
+    - 
+        # single source with '*'
+        source: {
+            "A": "win.wmi.fs.*.size.bytes"
+        }
+
+        # for `Sum` aggregation function
+
+        # s1     s2     s3     s4     s5
+        # --------------------------------
+        # A1.1   A1.2   A1.3   A1.4   A1.5
+        # -      A2.1   -      A2.2   - 
+        # -      -      A3.1   -      -
+
+        # s1 = A1.1
+        # s2 = A1.2 + A2.1
+        # s3 = A1.3 + A2.1 + A3.1
+
+        # S = Last(A1) + Last(A2) + Last(A3)
+
+        aggregation: "Sum(A) / 1024 / 1024"
+        metric: "win.wmi.fs.total_size.mb"
+        # if drop_source == true, source metric data will not be sent to transport middleware.
+        drop_source: true
+
+    - 
+        # TODO: multiple source value may not arrived at the same time. 
+
+        # multiple source and simple calc
+        source: {
+            "A": "win.phd.memory.available_bytes",
+            "B": "win.wmi.mem.totalphysicalmemory"
+        }
+
+        # for `Percent` aggregation function, value will only be avaible if the last 
+        # data source have valid data tick comes in.
+        # `A` is srouce A, `B` is source B, `P` is Percent
+
+        # A A A A A A A 
+        # - - - - B - - 
+        # - - - - P P P
+
+        # TODO: [done 2015mar05]how long we have to keep data `B`, forever in stats file
+
+        # TODO: persist program states forever.
+        # Last Data point B will be persist forever.
+        aggregation: "Percent(A, Last(B))"  
+
+        metric: "win.pdh.memory.available.pct"
+        # Merge(B.Tags).Merge(A.Tags)
+        inherit_tags: "B,A" 
+
+    - 
+        # single source and perdefined aggregation functions with minute period
+
+        # TODO: aggregation on Minute Time Window
+        # Note: aggregation on Minute time window is a little bit tricky. data
+        # will not be generated once a new data point comes in. coz we may not
+        # know if the new data point is the last data tick within the unit(Minute, Day, ...)
+        #  of this time window. So we have to wait the time unit to close. then 
+        # we can calculate and emit the data.
+
+        # `Average(WindowMinute(A, 3))` calculation process is shown as below.
+        # m1 ... m5 represent five minutes. `[- -]` represent the minute has
+        # two time span, the first half minute, and the second half minute.
+        # `@` represent to a data tick comes in.  `|` and beneath represent
+        # a aggregation happened at that time.
+
+        #  m1    m2    m3    m4    m5
+        # [- -] [- -] [- -] [- -] [- -]
+        #  @     @       @
+        #                    |
+        #                    Average(m1, m2, m3)
+        #                    @ 
+        #                          |
+        #                          Average(m2, m3, m4)     
+        #                            @
+        # [- -] [- -] [- -] [- -] [- -]
+
+        source: {
+            "A": "win.pdh.memory.available.mb"
+        }
+        aggregation: "Average(WindowMinute(A, 5))"
+        metric: "win.pdh.memory.available.mb.avg.5min"
+
+    -
+        # single source, exists
+        source: {
+            "A": "win.wmi.service.iis"
+        }
+        Interval: 60
+        aggregation: "Exists(Last(A))"
+        aggregation: "Exists(Last(WindowTick(A, 100)))"
+        aggregation: "Exists(Last(WindowHour(A, 24)))"
+        metric: "win.wmi.service.iis.installed"
+
+    - 
+        # TickDriven
+        # single source and delta
+        source: {
+            "A": "win.phd.app.visits"
+        }
+        # delta can only applied on Window.size == 2
+        aggregation: "Delta(WindowTick(A,2))"
+        metric: "win.pdh.app.visits.delta.tick"
+    - 
+        # TickDriven
+        # single source and delta
+        source: {
+            "A": "win.phd.app.visits"
+        }
+        # delta can only applied on Window.size == 2
+        aggregation: "Delta(WindowMinute(A,2))"
+        metric: "win.pdh.app.visits.delta.minute"
+
+    - 
+        # single source, delta
+        source: {
+            "A": "win.pdh.app.visits.delta.minute"
+        }
+        aggregation: "Average(WindowMinute(A, 5))"
+        metric: "win.pdh.app.visits.delta.avg.5m"
+
+        # if drop_source == true, source metric data will not be sent to transport middleware
+        drop_source: true
+
+
 
 # This collector is supplement for win_pdh. and is not performace optimized. so should be used with 
 # limitations. Internally, all queries with in this collector will be executed sequencially.
@@ -244,6 +422,18 @@ collector_win_wmi:
                         value_from: "State"
                         metric: "win.wmi.service.iis.state"
                         default: "IIS Not Installed"
+
+
+            # - 
+            #     # query: "select * from Win32_SystemServices where Name='W3svc'"
+            #     query: "select * from Win32_Service where Name='W3svc'"
+            #     metrics:
+            #         # character cases matters here!!  
+            #         -
+            #             # default value
+            #             value_from: "State"
+            #             metric: "win.wmi.service.iis.state"
+            #             default: "IIS Not Installed"
 
 
             # simplest query form. for single instance return query

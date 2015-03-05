@@ -18,7 +18,6 @@ func main() {
 	cs := GetBuiltinCollectorByName("builtin_win_wmi")
 
 	AddCustomizedCollectorByName("win_wmi", "cc[0]collector", config.Conf.Collector_win_wmi[0])
-	// AddCustomizedCollectorByName("win_pdh", "cc[1]collector", config.Conf.Collector_win_pdh[1])
 	cc := GetCustomizedCollectors()
 
 	fmt.Println(" ++ builtin_collector: ", &cs)
