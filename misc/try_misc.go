@@ -1,29 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"regexp"
-	"strings"
 )
 
 func main() {
-
-	metric := "  win.wmi.fs.D:.CDFS.free space.bytes 中文"
-
-	pat_w, _ := regexp.Compile("\\w+(\\s+\\w+)?")
-	pat_s, _ := regexp.Compile("\\s+")
-
-	parts := pat_w.FindAllString(metric, -1)
-
-	for _, part := range parts {
-		fmt.Println(part)
+	var jsonBlob = []byte(`[
+		{"Name": "Platypus", "Order": "Monotremata"},
+		{"Name": "Quoll",    "Order": "Dasyuromorphia"}
+	]`)
+	type Animal struct {
+		Name  string
+		Order string
 	}
-	metric = strings.Join(parts, ".")
-	fmt.Println(metric)
-
-	metric = pat_s.ReplaceAllString(metric, "_")
-	fmt.Println(metric)
-
-	metric = strings.ToLower(metric)
-	fmt.Println(metric)
+	var animals []Animal
+	err := json.Unmarshal(jsonBlob, &animals)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fmt.Printf("%+v", animals)
 }

@@ -100,7 +100,7 @@ transport_backfill_delay: 10
 
 # each cached request will contain multiple data points. the client will try to merge several cached requests into one
 # backfill request whlie backfilling. this option decide how many of cached reqeusts can be merged into one.
-transport_backfill_batch: 2
+# [DELETE] transport_backfill_batch: 2
 
 # Whether the client will try to cool down a little while if a response latency threshold reached while backfilling.
 transport_backfill_handsoff: false
@@ -120,14 +120,14 @@ transport_graphite_interval: 60
 transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
 
 # if influxdb version smaller than `0.9`, the client will automatically flatten metric key.
-transport_influxdb_enabled: true
+# transport_influxdb_enabled: true
 # send data to influxdb with this interval in seconds
-transport_influxdb_interval: 10
-transport_influxdb_version: "0.8.8"
+# transport_influxdb_interval: 10
+# transport_influxdb_version: "0.8.8"
 # transport_influxdb_hosts: ["127.0.0.1:8086", "127.0.0.1:8087"]
-transport_influxdb_database: "metrics"
-transport_influxdb_username: "root"
-transport_influxdb_password: "root"
+# transport_influxdb_database: "metrics"
+# transport_influxdb_username: "root"
+# transport_influxdb_password: "root"
 
 # transport_backends:
 #     - graphtie:
@@ -141,6 +141,16 @@ transport_influxdb_password: "root"
 #         username: "root"
 #         password: "root"
 
+transport:
+    - influxdb:
+        hosts: 
+            - "127.0.0.1:8086"
+            - "127.0.0.1:8087"
+        database: "metrics"
+        username: "root"
+        password: "root"
+        interval: 1
+        max_batch_size: 200
 
 # TODO: support amqp transport
 # transport_amqp_enabled: false
@@ -223,7 +233,7 @@ collector_win_pdh:
                     "mount": "C"
                 }
 
-# TODO: postponed, aggregation would be better to have.
+# TODO: [postponed 2015Mar05] collector_aggregation would be better to have.
 # `Exits` aggregation function can apply on any kind of value.  
 # But in most cases, only `int` and `float` can be aggregated. Internally, all numbers
 # will be converted into float64
