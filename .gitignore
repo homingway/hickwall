@@ -28,6 +28,7 @@ _testmain.go
 .DS_Store
 bin
 .idea
+*.queue
 
 hickwall
 hickwall.exe
