@@ -5,6 +5,8 @@
 #TODO: split config into configuration folder
 #TODO: [done 2015Mar04] normalize metric, only `a-z._` allowed in metric
 #TODO: [done 2015Mar04] normalize tags
+#TODO: if collect data failed, now we can provide DEFAULT value from config. how about NO-DATA alert
+#   like zabbix ?
 
 # these tags will be appended into metrics' tags field. 
 tags: {
@@ -111,6 +113,11 @@ transport_backfill_latency_threshold_ms: 500
 # cool down period in seconds
 transport_backfill_cool_down_sec: 120
 
+# try best to merge small group of points to no more thatn max_batch_size. this option is meant to
+# backfill data as quick as possible and at the same time don't add extra http request than usual.
+# If you have a large cluster. it's better turn this off. coz once queue is long and backend host is
+# backup online again. the network traffic will be a lot greater than normal in some cases. 
+transport_merge_request: true
 
 # graphtie transport only support plain text protocol, and will automatically flatten metric key
 transport_graphite_enabled: true
@@ -143,14 +150,42 @@ transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
 
 transport:
     - influxdb:
-        hosts: 
-            - "127.0.0.1:8086"
-            - "127.0.0.1:8087"
-        database: "metrics"
+        version: "v0.9.0-rc7"
+        enabled: true
+        max_batch_size: 200
+        interval_ms: 1000
+        url: "http://192.168.59.103:8086/write"
         username: "root"
         password: "root"
-        interval: 1
+        database: "metrics"
+        retentionpolicy: "p1"
+
+        backfill_enabled: true
+        backfill_interval_s: 1
+        backfill_handsoff: true
+        backfill_latency_threshold_ms: 10
+        backfill_cool_down_s: 5
+
+        merge_reqeusts: false
+
+    - influxdb:
+        version: "v0.8.8"
+        enabled: true
         max_batch_size: 200
+        interval_ms: 1000
+        url: "http://192.168.59.103:8086/write"
+        username: "root"
+        password: "root"
+        database: "metrics"
+        retentionpolicy: "p1"
+
+        backfill_enabled: true
+        backfill_interval_s: 1
+        backfill_handsoff: true
+        backfill_latency_threshold_ms: 10
+        backfill_cool_down_s: 5
+
+        merge_reqeusts: false
 
 # TODO: support amqp transport
 # transport_amqp_enabled: false

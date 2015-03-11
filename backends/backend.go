@@ -47,10 +47,38 @@ func init() {
 		Backfill_interval: time.Millisecond * time.Duration(200),
 	}
 	backends["stdout"] = NewStdoutWriter(stdConf)
+
+	influxdbConf := InfluxdbWriterConf{
+		Version:        "v0.9.0-rc7",
+		Enabled:        true,
+		Max_batch_size: MAX_BATCH_SIZE,
+		Interval_ms:    1000,
+
+		URL:             "http://192.168.59.103:8086/write",
+		Username:        "root",
+		Password:        "root",
+		Database:        "metrics",
+		RetentionPolicy: "p1",
+
+		Backfill_enabled:    true,
+		Backfill_interval_s: 1,
+
+		Backfill_handsoff:             true,
+		Backfill_latency_threshold_ms: 10,
+		Backfill_cool_down_s:          5,
+		Merge_Requests:                false,
+	}
+	backends["influxdb-v0.9.0-rc7"] = NewInfluxdbWriter(influxdbConf)
 }
 
 func GetBackendByName(name string) (w TSWriter, b bool) {
 	w, b = backends[strings.ToLower(name)]
+	return
+}
+
+func GetBackendByNameVersion(name, version string) (w TSWriter, b bool) {
+	key := strings.Join([]string{name, version}, "-")
+	w, b = backends[strings.ToLower(key)]
 	return
 }
 

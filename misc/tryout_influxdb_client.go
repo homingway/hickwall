@@ -33,8 +33,8 @@ var (
 	}
 )
 
-func mockWrite() client.Write {
-	return client.Write{
+func mockWrite() client.BatchPoints {
+	return client.BatchPoints{
 		Database:        "metrics",
 		RetentionPolicy: "p1",
 		Points:          mockDataPoint(),
@@ -56,7 +56,7 @@ func mockDataPoint() (points []client.Point) {
 		point := client.Point{
 			Name: name,
 			// Tags:      tags,
-			Timestamp: client.Timestamp(time.Now()),
+			Timestamp: time.Now(),
 			Fields:    fields,
 			Precision: "s",
 		}
@@ -93,8 +93,8 @@ func main() {
 	// pretty.Println(write)
 	fmt.Println(len(write.Points))
 
-	// res, err = cli.Write(write)
-	// fmt.Println(res, err)
+	res, err = cli.Write(write)
+	fmt.Println(res, err)
 
 	fmt.Println(err)
 }
