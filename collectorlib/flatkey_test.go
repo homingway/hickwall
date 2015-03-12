@@ -59,3 +59,35 @@ func Test_FlatMetricKeyAndTags_1(t *testing.T) {
 	// }
 	// t.Error("---")
 }
+
+func Test_FlatMetricKeyAndTags_NoTemplateError(t *testing.T) {
+	tpl := ""
+	key := "win.wmi.fs.d.cdfs.free_space.bytes\r\n"
+	tags := map[string]string{
+		"bu":   "hotel",
+		"ax":   "ax001",
+		"host": "host1",
+	}
+
+	res, err := FlatMetricKeyAndTags(tpl, key, tags)
+	t.Log(res, err)
+	if err == nil {
+		t.Error("--")
+	}
+}
+
+func Test_FlatMetricKeyAndTags_TemplateNoKeysError(t *testing.T) {
+	tpl := "hahaha"
+	key := "win.wmi.fs.d.cdfs.free_space.bytes\r\n"
+	tags := map[string]string{
+		"bu":   "hotel",
+		"ax":   "ax001",
+		"host": "host1",
+	}
+
+	res, err := FlatMetricKeyAndTags(tpl, key, tags)
+	t.Log(res, err)
+	if err == nil {
+		t.Error("--")
+	}
+}

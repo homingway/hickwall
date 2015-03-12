@@ -29,7 +29,14 @@ func (t FlatTags) String() string {
 }
 
 func FlatMetricKeyAndTags(tpl, key string, tags map[string]string) (string, error) {
+	if tpl == "" {
+		return "", fmt.Errorf("template is empty")
+	}
+
 	keys := utils.FindAllTemplateKeys(tpl)
+	if len(keys) == 0 {
+		return "", fmt.Errorf("template don't have any substitutions: %s", tpl)
+	}
 
 	_tags := map[string]string{}
 	for _, k := range keys {
