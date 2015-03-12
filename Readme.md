@@ -32,4 +32,11 @@ You need install [`tools/godep`][url_godep] first. which is a golang dependencie
 
 
 
+## Development
+
+currently we support both influxdb v0.9.0-rc7 and v0.8.8. while developing. you have to copy and paste `"github.com/influxdb/influxdb"` to `"github.com/influxdb/influxdb_088"` and then `checkout -b v0.8.8` in `influxdb_088` folder.
+
+
+
+
 [url_godep]: https://github.com/tools/godep "tools/godep"

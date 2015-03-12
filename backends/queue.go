@@ -7,7 +7,7 @@ import (
 	"github.com/oliveagle/go-collectors/datapoint"
 )
 
-func PushMd(q *boltq.BoltQ, md datapoint.MultiDataPoint) error {
+func MdPush(q *boltq.BoltQ, md datapoint.MultiDataPoint) error {
 	if len(md) == 0 {
 		return nil
 	}
@@ -25,7 +25,7 @@ func PushMd(q *boltq.BoltQ, md datapoint.MultiDataPoint) error {
 	return err
 }
 
-func PopMd(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
+func MdPop(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
 	dump, err := q.Pop()
 	if err != nil {
 		// fmt.Println("DequeueBatch Error: ", err)
@@ -36,7 +36,7 @@ func PopMd(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
 	return
 }
 
-func PopBottomMd(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
+func MdPopBottom(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
 	dump, err := q.PopBottom()
 	if err != nil {
 		// fmt.Println("DequeueBatch Error: ", err)

@@ -48,7 +48,7 @@ func init() {
 	}
 	backends["stdout"] = NewStdoutWriter(stdConf)
 
-	influxdbConf := InfluxdbWriterConf{
+	influxdbConf_v090 := InfluxdbWriterConf{
 		Version:        "v0.9.0-rc7",
 		Enabled:        true,
 		Max_batch_size: MAX_BATCH_SIZE,
@@ -68,7 +68,29 @@ func init() {
 		Backfill_cool_down_s:          5,
 		Merge_Requests:                false,
 	}
-	backends["influxdb-v0.9.0-rc7"] = NewInfluxdbWriter(influxdbConf)
+	backends["influxdb-0.9.0-rc7"] = NewInfluxdbWriter(influxdbConf_v090)
+
+	influxdbConf_v088 := InfluxdbWriterConf{
+		Version:        "v0.8.8",
+		Enabled:        true,
+		Max_batch_size: MAX_BATCH_SIZE,
+		Interval_ms:    1000,
+
+		Host:     "192.168.59.103:8086",
+		URL:      "http://192.168.59.103:8086/write",
+		Username: "root",
+		Password: "root",
+		Database: "metrics",
+
+		Backfill_enabled:    true,
+		Backfill_interval_s: 1,
+
+		Backfill_handsoff:             true,
+		Backfill_latency_threshold_ms: 10,
+		Backfill_cool_down_s:          5,
+		Merge_Requests:                false,
+	}
+	backends["influxdb-0.8.8"] = NewInfluxdbWriter(influxdbConf_v088)
 }
 
 func GetBackendByName(name string) (w TSWriter, b bool) {

@@ -69,8 +69,6 @@ func mockDataPoint() (points []client.Point) {
 func main() {
 	pretty.Println(config.APP_NAME)
 
-	// points := mockDataPoint()
-
 	mockDataPoint()
 
 	cli, _ := client.NewClient(influxdb_client_conf)

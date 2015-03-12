@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	nmetric_pat_s, _      = regexp.Compile(`\s+|-+|/+|\\+`)
+	nmetric_pat_s, _      = regexp.Compile(`\s+|-+|/+|\\+|_+|,|;`)
 	nmetric_pat_remove, _ = regexp.Compile(`[^\w-_.]`)
 )
 
@@ -20,6 +20,8 @@ func NormalizeMetricKey(metric string) string {
 
 	metric = nmetric_pat_remove.ReplaceAllString(metric, "")
 	// fmt.Printf("*%s*\n", metric)
+
+	metric = nmetric_pat_s.ReplaceAllString(metric, "_")
 
 	metric = strings.ToLower(strings.Trim(metric, "_"))
 	// fmt.Printf("*%s*\n", metric)

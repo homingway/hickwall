@@ -7,6 +7,7 @@
 #TODO: [done 2015Mar04] normalize tags
 #TODO: if collect data failed, now we can provide DEFAULT value from config. how about NO-DATA alert
 #   like zabbix ?
+#TODO: write time precision is limited to MS (milliseconds) only
 
 # these tags will be appended into metrics' tags field. 
 tags: {
@@ -62,17 +63,18 @@ log_file_maxrolls: 5
 # graphtie and influxdb version below 0.9 don't support tags.  So we need to flatten the metric key with tags
 # transport flat metric key format instruction:
 #  
-#  {key}        is the original metric key predefiend when the collector was created, which is a string. 
-#               you can only move its position back and forth. 
-#  {hostname}   hostname
-#  {tags}       is the tags field of the original metric object. which is like a dict in python with key-value pairs.
-#               if a metric point have a tags lets say: { host: "dev1", bu: "hotel" }, and you place `{tags}` in
-#               the option, the client will sort tags by key and join all value with "_", which with the previous
-#               example data, this string will be generated: "hotel_dev1"
-#  {tags.xxx}   you can also reference field of tags directly. once a field is referenced, it will be poped out, so
-#               all fields in {tags} will only appear once in generated flat metric key.  so if you have `{tgas.xxx}` 
-#               and `{tags}` in the option at the same time, then `{tags}` will only applys to the remaining tags 
-transport_flat_metric_key_format: "hotel.{tags.bu}.{hostname}.{key}.{tags}"
+#  {{.Key}}             is the original metric key predefiend when the collector was created, which is a string. 
+#                       you can only move its position back and forth. 
+#  {{.Tags}}            is the tags field of the original metric object. which is like a dict in python with key-value pairs.
+#                       if a metric point have a tags lets say: { host: "dev1", bu: "hotel" }, and you place `{{.Tags}}` in
+#                       the option, the client will sort tags by key and join all key and value with "_", which with the previous
+#                       example data, this string will be generated: "bu_hotel_host_dev1"
+#  {{.Tags_host}}       hostname, all metric will automatically add hostname into tags
+#  {{.Tags_xxx}}        you can also reference field of tags directly. once a field is referenced, it will be poped out, so
+#                       all fields in {tags} will only appear once in generated flat metric key.  so if you have `{{Tgas_xxx}}` 
+#                       and `{tags}` in the option at the same time, then `{tags}` will only applys to the remaining tags 
+# Note: {{.Lv2.Lv2}}         Multiple leveled tempalte is not allowed
+transport_flat_metric_key_format: "{{.Tags_bu}}.{{.Tags_host}}.{{.Key}}.{{.Tags}}"
 
 #TODO: config transport_backfill_enabled
 # when transport target host failed, the client will try to cache up requests into a file queue. once the target host
@@ -150,7 +152,7 @@ transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
 
 transport:
     - influxdb:
-        version: "v0.9.0-rc7"
+        version: "0.9.0-rc7"    
         enabled: true
         max_batch_size: 200
         interval_ms: 1000
@@ -169,7 +171,9 @@ transport:
         merge_reqeusts: false
 
     - influxdb:
-        version: "v0.8.8"
+        # because v0.8.8 don't support tags, so all tags will be flatten with
+        # metric key following above `transport_flat_metric_key_format`
+        version: "0.8.8"        #NTOE: no prefix 'v'
         enabled: true
         max_batch_size: 200
         interval_ms: 1000
@@ -179,7 +183,7 @@ transport:
         database: "metrics"
         retentionpolicy: "p1"
 
-        backfill_enabled: true
+        backfill_enabled: false
         backfill_interval_s: 1
         backfill_handsoff: true
         backfill_latency_threshold_ms: 10

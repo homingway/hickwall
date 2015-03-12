@@ -23,6 +23,7 @@ func init() {
 	builtin_collectors = append(builtin_collectors, builtin_win_wmi())
 }
 
+//TODO: we don't allow  multpile leveled template {{.A.B}}
 var (
 	win_wmi_pat_format, _ = regexp.Compile("\\/format:\\w+(.xsl)?")
 	win_wmi_pat_get, _    = regexp.Compile("\\bget\\b")

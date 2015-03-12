@@ -92,7 +92,7 @@ func (w *StdoutWriter) addMD2Buf(md datapoint.MultiDataPoint) {
 		if len(w.buf) >= w.conf.Max_batch_size {
 			// fmt.Println("make it a batch")
 			md1 := datapoint.MultiDataPoint(w.buf[:len(w.buf)])
-			PushMd(w.q, md1)
+			MdPush(w.q, md1)
 
 			w.buf = nil
 			// fmt.Println("w.buf = nil")
@@ -109,7 +109,7 @@ func (w *StdoutWriter) flushToQueue() {
 	defer w.lock.Unlock()
 	if len(w.buf) > 0 {
 		md := datapoint.MultiDataPoint(w.buf[:len(w.buf)])
-		PushMd(w.q, md)
+		MdPush(w.q, md)
 		w.buf = nil
 	}
 }
@@ -119,7 +119,7 @@ func (w *StdoutWriter) consume() {
 		return
 	}
 
-	md, err := PopMd(w.q)
+	md, err := MdPop(w.q)
 	if err != nil && err.Error() != "Queue is empty" {
 		log.Println(err)
 		return
@@ -130,7 +130,7 @@ func (w *StdoutWriter) consume() {
 
 	// when error happened during consume, md will be push back to queue again
 	if err != nil {
-		PushMd(w.q, md)
+		MdPush(w.q, md)
 	}
 }
 
@@ -142,7 +142,7 @@ func (w *StdoutWriter) backfill() {
 	if w.conf.Backfill_enabled == true && w.q.Size() > 0 {
 
 		// backfill when boltq is not empty
-		md, err := PopBottomMd(w.q)
+		md, err := MdPopBottom(w.q)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -154,7 +154,7 @@ func (w *StdoutWriter) backfill() {
 
 		if err != nil {
 			// push back to queue.
-			PushMd(w.q, md)
+			MdPush(w.q, md)
 		}
 	}
 }
