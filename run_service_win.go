@@ -6,7 +6,12 @@ import (
 	"code.google.com/p/winsvc/svc"
 	"fmt"
 	log "github.com/cihub/seelog"
+	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/backends"
+	"github.com/oliveagle/hickwall/collectors"
 	"time"
+
+	"github.com/oliveagle/hickwall/utils"
 )
 
 type myservice struct{}
@@ -16,18 +21,25 @@ func (this *myservice) Execute(args []string, r <-chan svc.ChangeRequest, change
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
 
-	fasttick := time.Tick(500 * time.Millisecond)
-	slowtick := time.Tick(2 * time.Second)
-	tick := fasttick
-
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
+
+	mdCh := make(chan *datapoint.MultiDataPoint)
+	collectors.RunAllCollectors(mdCh)
+	backends.RunBackends()
+	defer backends.CloseBackends()
+
+	utils.HttpPprofServe(6060)
 
 	// major loop for signal processing.
 loop:
 	for {
 		select {
-		case <-tick:
-			log.Info("beep")
+		case md, err := <-mdCh:
+			fmt.Println("MultiDataPoint: ", md, err)
+			for _, p := range *md {
+				fmt.Println(" point ---> ", p)
+			}
+			backends.WriteToBackends(*md)
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:
@@ -39,10 +51,10 @@ loop:
 				break loop
 			case svc.Pause:
 				changes <- svc.Status{State: svc.Paused, Accepts: cmdsAccepted}
-				tick = slowtick
+				log.Error("win.Pause not implemented yet")
 			case svc.Continue:
 				changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
-				tick = fasttick
+				log.Error("win.Continue not implemented yet")
 			default:
 				log.Error("unexpected control request #%d", c)
 			}

@@ -16,7 +16,6 @@ import (
 )
 
 //TODO, detect duplicated metric keys in configuration
-
 type collector_factory_func func(name string, conf interface{}) Collector
 
 var (
@@ -29,13 +28,11 @@ var (
 	metric_keys = make(map[string]bool)
 
 	DefaultFreq = time.Second * 1
-	timestamp   = time.Now().Unix()
-	tlock       sync.Mutex
 	AddTags     datapoint.TagSet
 )
 
 type Collector interface {
-	Run(chan<- *datapoint.DataPoint)
+	Run(chan<- *datapoint.MultiDataPoint)
 	Name() string
 	Init()
 }
@@ -100,25 +97,9 @@ func RemoveAllCustomizedCollectors() {
 	customized_collectors = nil
 }
 
-func init() {
-	go func() {
-		for t := range time.Tick(time.Second) {
-			tlock.Lock()
-			timestamp = t.Unix()
-			tlock.Unlock()
-		}
-	}()
-}
-
-func now() (t int64) {
-	tlock.Lock()
-	t = timestamp
-	tlock.Unlock()
-	return
-}
-
 // AddTS is the same as Add but lets you specify the timestamp
-func AddTS(md *datapoint.MultiDataPoint, name string, ts int64, value interface{}, t datapoint.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
+// func AddTS(md *datapoint.MultiDataPoint, name string, ts int64, value interface{}, t datapoint.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
+func AddTS(md *datapoint.MultiDataPoint, name string, ts time.Time, value interface{}, t datapoint.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
 	tags := t.Copy()
 	if rate != metadata.Unknown {
 		metadata.AddMeta(name, nil, "rate", rate, false)
@@ -149,11 +130,11 @@ func AddTS(md *datapoint.MultiDataPoint, name string, ts int64, value interface{
 // automatically added. If the value of the host key is the empty string, it
 // will be removed (use this to prevent the normal auto-adding of the host tag).
 func Add(md *datapoint.MultiDataPoint, name string, value interface{}, t datapoint.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
-	AddTS(md, name, now(), value, t, rate, unit, desc)
+	AddTS(md, name, time.Now(), value, t, rate, unit, desc)
 }
 
 type IntervalCollector struct {
-	F        func(states interface{}) (datapoint.MultiDataPoint, error)
+	F        func(states interface{}) (*datapoint.MultiDataPoint, error)
 	Interval time.Duration // default to DefaultFreq
 	Enable   func() bool
 
@@ -177,7 +158,8 @@ func (c *IntervalCollector) SetInterval(d time.Duration) {
 	c.Interval = d
 }
 
-func (c *IntervalCollector) Run(dpchan chan<- *datapoint.DataPoint) {
+// func (c *IntervalCollector) Run(dpchan chan<- *datapoint.DataPoint) {
+func (c *IntervalCollector) Run(dpchan chan<- *datapoint.MultiDataPoint) {
 	if c.Enable != nil {
 		go func() {
 			for {
@@ -208,9 +190,10 @@ func (c *IntervalCollector) Run(dpchan chan<- *datapoint.DataPoint) {
 				// slog.Errorf("%v: %v", c.Name(), err)
 				fmt.Errorf("%v: %v", c.Name(), err)
 			}
-			for _, dp := range md {
-				dpchan <- dp
-			}
+			dpchan <- md
+			// for _, dp := range md {
+			// 	dpchan <- dp
+			// }
 		}
 		<-next
 	}
@@ -241,5 +224,14 @@ func enableURL(url string) func() bool {
 		}
 		resp.Body.Close()
 		return resp.StatusCode == 200
+	}
+}
+
+func RunAllCollectors(mdCh chan<- *datapoint.MultiDataPoint) {
+	for _, c := range builtin_collectors {
+		go c.Run(mdCh)
+	}
+	for _, c := range customized_collectors {
+		go c.Run(mdCh)
 	}
 }

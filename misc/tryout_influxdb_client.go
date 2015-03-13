@@ -78,14 +78,20 @@ func main() {
 		Command:  "select * from data1",
 		Database: "metrics",
 	})
-	for _, r := range res.Results {
-		for _, s := range r.Series {
-			for _, v := range s.Values {
-				fmt.Printf("%v\n", v)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if res != nil {
+		for _, r := range res.Results {
+			for _, s := range r.Series {
+				for _, v := range s.Values {
+					fmt.Printf("%v\n", v)
+				}
+				fmt.Println("Count: ", len(s.Values))
 			}
-			fmt.Println("Count: ", len(s.Values))
 		}
 	}
+
 	// fmt.Println(res, err)
 	write := mockWrite()
 	// pretty.Println(write)

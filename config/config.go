@@ -30,9 +30,14 @@ type Config struct {
 	Log_file_maxsize    int
 	Log_file_maxrolls   int
 
+	Client_metric_enabled  bool
+	Client_metric_interval int
+
 	Transport_flat_metric_key_format string
 	Transport_backfill_enabled       bool
 	Transport_graphite_hosts         []string
+
+	Transport_influxdb []Transport_influxdb
 
 	Collector_win_pdh []Conf_win_pdh
 	Collector_win_wmi []Conf_win_wmi
@@ -71,6 +76,32 @@ type Conf_win_wmi_query_metric struct {
 	Tags       map[string]string
 	Meta       map[string]string //TODO: Meta
 	Default    interface{}
+}
+
+type Transport_influxdb struct {
+	Version        string
+	Enabled        bool
+	Interval_ms    int
+	Max_batch_size int
+
+	// Client Config
+	Host     string // for v0.8.8
+	URL      string // for v0.9.0
+	Username string
+	Password string
+	Database string
+
+	// Write Config
+	RetentionPolicy string
+	FlatTemplate    string
+
+	Backfill_enabled              bool
+	Backfill_interval_s           int
+	Backfill_handsoff             bool
+	Backfill_latency_threshold_ms int
+	Backfill_cool_down_s          int
+
+	Merge_Requests bool // try best to merge small group of points to no more than max_batch_size
 }
 
 type c_mysql_query struct {

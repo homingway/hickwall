@@ -20,7 +20,7 @@ func mockWrite() client.BatchPoints {
 func mockDataPoint() (points []client.Point) {
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	// tags := map[string]string{"bu": "hotel", "global": "tag", "host": "oliveaglec841"}
+	tags := map[string]string{"bu": "hotel", "global": "tag", "host": "oliveaglec841"}
 	for i := 0; i < 10; i++ {
 		name := fmt.Sprintf("data%d", i)
 		fields := map[string]interface{}{}
@@ -28,8 +28,8 @@ func mockDataPoint() (points []client.Point) {
 		fields["value"] = rand.Intn(100)
 
 		point := client.Point{
-			Name: name,
-			// Tags:      tags,
+			Name:      name,
+			Tags:      tags,
 			Timestamp: time.Now(),
 			Fields:    fields,
 			Precision: "s",
@@ -85,10 +85,11 @@ func try_090() {
 
 func try_088() {
 	iclient, err := backends.NewInfluxdbClient(map[string]interface{}{
-		"Host":     "192.168.59.103:8086",
-		"Username": "root",
-		"Password": "root",
-		"Database": "metrics",
+		"Host":         "192.168.59.103:8086",
+		"Username":     "root",
+		"Password":     "root",
+		"Database":     "metrics",
+		"FlatTemplate": "{{.Key}}.{{.Tags}}",
 	}, "0.8.8")
 	if err != nil {
 		fmt.Println("InfluxdbClient: Error: ", err)

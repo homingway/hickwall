@@ -8,6 +8,9 @@
 #TODO: if collect data failed, now we can provide DEFAULT value from config. how about NO-DATA alert
 #   like zabbix ?
 #TODO: write time precision is limited to MS (milliseconds) only
+#TODO: {{.Key}}.{{.Tags}}   if Tags is empty, key will have a trailing dot.  e.g.:  `metric1.`
+#TODO: 如果在进程中杀掉 hickwall, 不会自动重启，需要daemon进程监控并自动启动。 
+#TODO: 开启collectors和backends，内存有溢出。
 
 # these tags will be appended into metrics' tags field. 
 tags: {
@@ -18,6 +21,12 @@ tags: {
 #TODO: enable_metadata
 # only opentsdb support metadata
 enable_metadata: false
+
+# collect client performance metrics
+client_metric_enabled: true
+# collection interval in seconds
+client_metric_interval: 1
+
 
 #TODO: merge_metadata_to_tags
 # If enable metadata, but backend don't support metadata. this option will merge all metadata
@@ -150,12 +159,14 @@ transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
 #         username: "root"
 #         password: "root"
 
-transport:
-    - influxdb:
+transport_influxdb:
+    -
         version: "0.9.0-rc7"    
-        enabled: true
+        enabled: false
         max_batch_size: 200
         interval_ms: 1000
+        merge_reqeusts: false
+
         url: "http://192.168.59.103:8086/write"
         username: "root"
         password: "root"
@@ -168,28 +179,26 @@ transport:
         backfill_latency_threshold_ms: 10
         backfill_cool_down_s: 5
 
-        merge_reqeusts: false
-
-    - influxdb:
+    -
         # because v0.8.8 don't support tags, so all tags will be flatten with
         # metric key following above `transport_flat_metric_key_format`
-        version: "0.8.8"        #NTOE: no prefix 'v'
+        version: "v0.8.8"
         enabled: true
         max_batch_size: 200
         interval_ms: 1000
-        url: "http://192.168.59.103:8086/write"
+        merge_reqeusts: false
+
+        host: "192.168.59.103:8086"    # v0.8.8 why to config db host
         username: "root"
         password: "root"
         database: "metrics"
-        retentionpolicy: "p1"
+        FlatTemplate: "{{.Key}}.{{.Tags}}"
 
-        backfill_enabled: false
+        backfill_enabled: true
         backfill_interval_s: 1
         backfill_handsoff: true
         backfill_latency_threshold_ms: 10
         backfill_cool_down_s: 5
-
-        merge_reqeusts: false
 
 # TODO: support amqp transport
 # transport_amqp_enabled: false
@@ -277,177 +286,177 @@ collector_win_pdh:
 # But in most cases, only `int` and `float` can be aggregated. Internally, all numbers
 # will be converted into float64
 # TODO: graphite aggregator like aggregation ??
-collector_aggregation:
-    - 
-        # TickDriven
-        # single source and simple calc
-        Interval: 60
-        source: {
-            "A": "win.phd.memory.available_bytes"
-        }
-        aggregation: "A / 1024 / 1024"
-        metric: "win.pdh.memory.available.mb"
-        inherit_tags: "A"
-        tags: {
-            "new_tag": "aggregation"
-        }
-        # Merge(A.Tags).Merge(tags)
-        inherit_meta: "A"
-        meta: {
-            "unit": "MegaBytes",
-            "interval": "60s"
-        }
+# collector_aggregation:
+#     - 
+#         # TickDriven
+#         # single source and simple calc
+#         Interval: 60
+#         source: {
+#             "A": "win.phd.memory.available_bytes"
+#         }
+#         aggregation: "A / 1024 / 1024"
+#         metric: "win.pdh.memory.available.mb"
+#         inherit_tags: "A"
+#         tags: {
+#             "new_tag": "aggregation"
+#         }
+#         # Merge(A.Tags).Merge(tags)
+#         inherit_meta: "A"
+#         meta: {
+#             "unit": "MegaBytes",
+#             "interval": "60s"
+#         }
 
-    - 
-        # aggregated on tags
-        Interval: 60
-        source: {
-            "A": "win.pdh.memory.available.mb"
-        }
+#     - 
+#         # aggregated on tags
+#         Interval: 60
+#         source: {
+#             "A": "win.pdh.memory.available.mb"
+#         }
 
-        # because we are aggregated on tags. so tags been aggregated will not been merged
-        source_tags: 
-            - "bu"
+#         # because we are aggregated on tags. so tags been aggregated will not been merged
+#         source_tags: 
+#             - "bu"
 
-        aggregation: "Sum(A)"
-        metric: "win.pdh.memory.available.mb.{{.bu}}"
-        inherit_meta: "A"
+#         aggregation: "Sum(A)"
+#         metric: "win.pdh.memory.available.mb.{{.bu}}"
+#         inherit_meta: "A"
 
-    - 
-        # TickDriven
-        # source can be generated from other aggregations
-        # single source and predefined aggregation functions with tick period
-        source: {
-            "A": "win.pdh.memory.available.mb"
-        }
-        aggregation: "Average(WindowTick(A, 5))"
-        metric: "win.pdh.memory.available.mb.avg.5tick"
+#     - 
+#         # TickDriven
+#         # source can be generated from other aggregations
+#         # single source and predefined aggregation functions with tick period
+#         source: {
+#             "A": "win.pdh.memory.available.mb"
+#         }
+#         aggregation: "Average(WindowTick(A, 5))"
+#         metric: "win.pdh.memory.available.mb.avg.5tick"
 
-    - 
-        # single source with '*'
-        source: {
-            "A": "win.wmi.fs.*.size.bytes"
-        }
+#     - 
+#         # single source with '*'
+#         source: {
+#             "A": "win.wmi.fs.*.size.bytes"
+#         }
 
-        # for `Sum` aggregation function
+#         # for `Sum` aggregation function
 
-        # s1     s2     s3     s4     s5
-        # --------------------------------
-        # A1.1   A1.2   A1.3   A1.4   A1.5
-        # -      A2.1   -      A2.2   - 
-        # -      -      A3.1   -      -
+#         # s1     s2     s3     s4     s5
+#         # --------------------------------
+#         # A1.1   A1.2   A1.3   A1.4   A1.5
+#         # -      A2.1   -      A2.2   - 
+#         # -      -      A3.1   -      -
 
-        # s1 = A1.1
-        # s2 = A1.2 + A2.1
-        # s3 = A1.3 + A2.1 + A3.1
+#         # s1 = A1.1
+#         # s2 = A1.2 + A2.1
+#         # s3 = A1.3 + A2.1 + A3.1
 
-        # S = Last(A1) + Last(A2) + Last(A3)
+#         # S = Last(A1) + Last(A2) + Last(A3)
 
-        aggregation: "Sum(A) / 1024 / 1024"
-        metric: "win.wmi.fs.total_size.mb"
-        # if drop_source == true, source metric data will not be sent to transport middleware.
-        drop_source: true
+#         aggregation: "Sum(A) / 1024 / 1024"
+#         metric: "win.wmi.fs.total_size.mb"
+#         # if drop_source == true, source metric data will not be sent to transport middleware.
+#         drop_source: true
 
-    - 
-        # TODO: multiple source value may not arrived at the same time. 
+#     - 
+#         # TODO: multiple source value may not arrived at the same time. 
 
-        # multiple source and simple calc
-        source: {
-            "A": "win.phd.memory.available_bytes",
-            "B": "win.wmi.mem.totalphysicalmemory"
-        }
+#         # multiple source and simple calc
+#         source: {
+#             "A": "win.phd.memory.available_bytes",
+#             "B": "win.wmi.mem.totalphysicalmemory"
+#         }
 
-        # for `Percent` aggregation function, value will only be avaible if the last 
-        # data source have valid data tick comes in.
-        # `A` is srouce A, `B` is source B, `P` is Percent
+#         # for `Percent` aggregation function, value will only be avaible if the last 
+#         # data source have valid data tick comes in.
+#         # `A` is srouce A, `B` is source B, `P` is Percent
 
-        # A A A A A A A 
-        # - - - - B - - 
-        # - - - - P P P
+#         # A A A A A A A 
+#         # - - - - B - - 
+#         # - - - - P P P
 
-        # TODO: [done 2015mar05]how long we have to keep data `B`, forever in stats file
+#         # TODO: [done 2015mar05]how long we have to keep data `B`, forever in stats file
 
-        # TODO: persist program states forever.
-        # Last Data point B will be persist forever.
-        aggregation: "Percent(A, Last(B))"  
+#         # TODO: persist program states forever.
+#         # Last Data point B will be persist forever.
+#         aggregation: "Percent(A, Last(B))"  
 
-        metric: "win.pdh.memory.available.pct"
-        # Merge(B.Tags).Merge(A.Tags)
-        inherit_tags: "B,A" 
+#         metric: "win.pdh.memory.available.pct"
+#         # Merge(B.Tags).Merge(A.Tags)
+#         inherit_tags: "B,A" 
 
-    - 
-        # single source and perdefined aggregation functions with minute period
+#     - 
+#         # single source and perdefined aggregation functions with minute period
 
-        # TODO: aggregation on Minute Time Window
-        # Note: aggregation on Minute time window is a little bit tricky. data
-        # will not be generated once a new data point comes in. coz we may not
-        # know if the new data point is the last data tick within the unit(Minute, Day, ...)
-        #  of this time window. So we have to wait the time unit to close. then 
-        # we can calculate and emit the data.
+#         # TODO: aggregation on Minute Time Window
+#         # Note: aggregation on Minute time window is a little bit tricky. data
+#         # will not be generated once a new data point comes in. coz we may not
+#         # know if the new data point is the last data tick within the unit(Minute, Day, ...)
+#         #  of this time window. So we have to wait the time unit to close. then 
+#         # we can calculate and emit the data.
 
-        # `Average(WindowMinute(A, 3))` calculation process is shown as below.
-        # m1 ... m5 represent five minutes. `[- -]` represent the minute has
-        # two time span, the first half minute, and the second half minute.
-        # `@` represent to a data tick comes in.  `|` and beneath represent
-        # a aggregation happened at that time.
+#         # `Average(WindowMinute(A, 3))` calculation process is shown as below.
+#         # m1 ... m5 represent five minutes. `[- -]` represent the minute has
+#         # two time span, the first half minute, and the second half minute.
+#         # `@` represent to a data tick comes in.  `|` and beneath represent
+#         # a aggregation happened at that time.
 
-        #  m1    m2    m3    m4    m5
-        # [- -] [- -] [- -] [- -] [- -]
-        #  @     @       @
-        #                    |
-        #                    Average(m1, m2, m3)
-        #                    @ 
-        #                          |
-        #                          Average(m2, m3, m4)     
-        #                            @
-        # [- -] [- -] [- -] [- -] [- -]
+#         #  m1    m2    m3    m4    m5
+#         # [- -] [- -] [- -] [- -] [- -]
+#         #  @     @       @
+#         #                    |
+#         #                    Average(m1, m2, m3)
+#         #                    @ 
+#         #                          |
+#         #                          Average(m2, m3, m4)     
+#         #                            @
+#         # [- -] [- -] [- -] [- -] [- -]
 
-        source: {
-            "A": "win.pdh.memory.available.mb"
-        }
-        aggregation: "Average(WindowMinute(A, 5))"
-        metric: "win.pdh.memory.available.mb.avg.5min"
+#         source: {
+#             "A": "win.pdh.memory.available.mb"
+#         }
+#         aggregation: "Average(WindowMinute(A, 5))"
+#         metric: "win.pdh.memory.available.mb.avg.5min"
 
-    -
-        # single source, exists
-        source: {
-            "A": "win.wmi.service.iis"
-        }
-        Interval: 60
-        aggregation: "Exists(Last(A))"
-        aggregation: "Exists(Last(WindowTick(A, 100)))"
-        aggregation: "Exists(Last(WindowHour(A, 24)))"
-        metric: "win.wmi.service.iis.installed"
+#     -
+#         # single source, exists
+#         source: {
+#             "A": "win.wmi.service.iis"
+#         }
+#         Interval: 60
+#         aggregation: "Exists(Last(A))"
+#         aggregation: "Exists(Last(WindowTick(A, 100)))"
+#         aggregation: "Exists(Last(WindowHour(A, 24)))"
+#         metric: "win.wmi.service.iis.installed"
 
-    - 
-        # TickDriven
-        # single source and delta
-        source: {
-            "A": "win.phd.app.visits"
-        }
-        # delta can only applied on Window.size == 2
-        aggregation: "Delta(WindowTick(A,2))"
-        metric: "win.pdh.app.visits.delta.tick"
-    - 
-        # TickDriven
-        # single source and delta
-        source: {
-            "A": "win.phd.app.visits"
-        }
-        # delta can only applied on Window.size == 2
-        aggregation: "Delta(WindowMinute(A,2))"
-        metric: "win.pdh.app.visits.delta.minute"
+#     - 
+#         # TickDriven
+#         # single source and delta
+#         source: {
+#             "A": "win.phd.app.visits"
+#         }
+#         # delta can only applied on Window.size == 2
+#         aggregation: "Delta(WindowTick(A,2))"
+#         metric: "win.pdh.app.visits.delta.tick"
+#     - 
+#         # TickDriven
+#         # single source and delta
+#         source: {
+#             "A": "win.phd.app.visits"
+#         }
+#         # delta can only applied on Window.size == 2
+#         aggregation: "Delta(WindowMinute(A,2))"
+#         metric: "win.pdh.app.visits.delta.minute"
 
-    - 
-        # single source, delta
-        source: {
-            "A": "win.pdh.app.visits.delta.minute"
-        }
-        aggregation: "Average(WindowMinute(A, 5))"
-        metric: "win.pdh.app.visits.delta.avg.5m"
+#     - 
+#         # single source, delta
+#         source: {
+#             "A": "win.pdh.app.visits.delta.minute"
+#         }
+#         aggregation: "Average(WindowMinute(A, 5))"
+#         metric: "win.pdh.app.visits.delta.avg.5m"
 
-        # if drop_source == true, source metric data will not be sent to transport middleware
-        drop_source: true
+#         # if drop_source == true, source metric data will not be sent to transport middleware
+#         drop_source: true
 
 
 

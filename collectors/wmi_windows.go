@@ -412,7 +412,7 @@ func get_fields_of_query(query config.Conf_win_wmi_query) []string {
 	return results
 }
 
-func c_win_wmi(states interface{}) (datapoint.MultiDataPoint, error) {
+func c_win_wmi(states interface{}) (*datapoint.MultiDataPoint, error) {
 	var md datapoint.MultiDataPoint
 	var st state_win_wmi
 
@@ -481,5 +481,5 @@ func c_win_wmi(states interface{}) (datapoint.MultiDataPoint, error) {
 	}
 
 	fmt.Println("\r\n")
-	return md, nil
+	return &md, nil
 }

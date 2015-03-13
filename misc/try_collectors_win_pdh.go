@@ -24,7 +24,7 @@ func main() {
 	fmt.Println(" ++ customized_collectors:  ", cc)
 	fmt.Println(" ++ builtin_collectors: ", cs)
 
-	ch := make(chan *datapoint.DataPoint)
+	ch := make(chan *datapoint.MultiDataPoint)
 
 	go cs[0].Run(ch)
 	go cc[0].Run(ch)
@@ -36,9 +36,14 @@ loop:
 	for {
 		select {
 		case dp, err := <-ch:
+			fmt.Println("MultiDataPoint: ", dp, err)
 			// case <-ch:
-			fmt.Println(" point ---> ", dp, err)
+			// fmt.Println(" point ---> ", dp, err)
 			// fmt.Println("-------------------")
+			// pretty.Println(dp)
+			for _, p := range *dp {
+				fmt.Println(" point ---> ", p)
+			}
 		case <-delay:
 			// change config on the fly
 			// cs[0].Init()

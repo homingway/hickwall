@@ -2,34 +2,37 @@ package main
 
 import (
 	"fmt"
+	"github.com/kr/pretty"
 	"github.com/oliveagle/go-collectors/datapoint"
 	. "github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/config"
 	"time"
-
-	"github.com/kr/pretty"
 )
 
 func main() {
 	pretty.Println(config.APP_NAME)
 
-	// pretty.Println(config.Conf)
-
-	cs := GetBuiltinCollectorByName("builtin_win_wmi")
-
-	AddCustomizedCollectorByName("win_wmi", "cc[0]collector", config.Conf.Collector_win_wmi[0])
+	// cs := GetBuiltinCollectorByName("builtin_win_wmi")
+	cs := GetBuiltinCollectors()
 	cc := GetCustomizedCollectors()
 
-	fmt.Println(" ++ builtin_collector: ", &cs)
+	fmt.Println(" ++ builtin_collector: ", cs)
 	fmt.Println(" ++ customized_collectors:  ", cc)
 
 	ch := make(chan *datapoint.MultiDataPoint)
 
+	for _, c := range cs {
+		go c.Run(ch)
+	}
+	for _, c := range cc {
+		go c.Run(ch)
+	}
+
 	// go cs.Run(ch)
-	go cc[0].Run(ch)
+	// go cc[0].Run(ch)
 	// go cc[1].Run(ch)
 
-	done := time.After(time.Second * 60)
+	done := time.After(time.Second * 3)
 	delay := time.After(time.Second * 1)
 loop:
 	for {

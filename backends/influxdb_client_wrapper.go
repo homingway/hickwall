@@ -5,7 +5,9 @@ import (
 	client090 "github.com/influxdb/influxdb/client"
 	"github.com/influxdb/influxdb/influxql"
 	client088 "github.com/influxdb/influxdb_088/client"
+	"github.com/oliveagle/hickwall/collectorlib"
 	// "github.com/kr/pretty"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -80,7 +82,7 @@ func NewInfluxdbClient_v090_rc7(conf map[string]interface{}) (*InfluxdbClient_v0
 	}
 	url_str, ok := tmp_conf["url"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: url")
+		return nil, fmt.Errorf("version 0.9.0-rc, config missing: URL")
 	}
 	host_url, err := url.Parse(url_str.(string))
 	if err != nil {
@@ -89,17 +91,17 @@ func NewInfluxdbClient_v090_rc7(conf map[string]interface{}) (*InfluxdbClient_v0
 
 	username, ok := tmp_conf["username"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: username")
+		return nil, fmt.Errorf("version 0.9.0-rc, config missing: Username")
 	}
 
 	password, ok := tmp_conf["password"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: password")
+		return nil, fmt.Errorf("version 0.9.0-rc, config missing: Password")
 	}
 
 	useragent, ok := tmp_conf["useragent"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: useragent")
+		return nil, fmt.Errorf("version 0.9.0-rc, config missing: UserAgent")
 	}
 
 	c := client090.Config{
@@ -127,6 +129,7 @@ type InfluxdbClient_v088 struct {
 	host       string
 	username   string
 	password   string
+	flat_tpl   string
 }
 
 func (c *InfluxdbClient_v088) Version() string {
@@ -159,10 +162,13 @@ func (c *InfluxdbClient_v088) Ping() (time.Duration, string, error) {
 	req.Header.Set("User-Agent", "hickwall client")
 
 	resp, err := c.httpClient.Do(req)
+
 	if err != nil {
 		return 0, "", err
 	}
 	version := resp.Header.Get("X-Influxdb-Version")
+	defer resp.Body.Close()
+
 	return time.Since(now), version, nil
 }
 
@@ -191,7 +197,14 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 
 	for _, p := range bp.Points {
 		s := client088.Series{}
-		s.Name = p.Name
+
+		name, err := collectorlib.FlatMetricKeyAndTags(c.flat_tpl, p.Name, p.Tags)
+		if err != nil {
+			log.Println("FlatMetricKeyAndTags Failed!", err)
+			return nil, err
+		}
+		s.Name = name
+
 		point := []interface{}{}
 
 		// time, first
@@ -205,6 +218,9 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 		}
 
 		s.Points = append(s.Points, point)
+
+		// fmt.Println(s)
+		// log.Println("influxdb_v0.8.8: Write: ", s)
 
 		series = append(series, &s)
 	}
@@ -296,22 +312,27 @@ func NewInfluxdbClient_v088(conf map[string]interface{}) (*InfluxdbClient_v088, 
 
 	host, ok := tmp_conf["host"]
 	if ok != true || host == "" {
-		return nil, fmt.Errorf("version 0.8.8, config missing: host")
+		return nil, fmt.Errorf("version 0.8.8, config missing: Host")
 	}
 
 	username, ok := tmp_conf["username"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.8.8, config missing: username")
+		return nil, fmt.Errorf("version 0.8.8, config missing: Username")
 	}
 
 	password, ok := tmp_conf["password"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.8.8, config missing: password")
+		return nil, fmt.Errorf("version 0.8.8, config missing: Password")
 	}
 
 	database, ok := tmp_conf["database"]
 	if ok != true || database == "" {
-		return nil, fmt.Errorf("version 0.8.8, config missing: database")
+		return nil, fmt.Errorf("version 0.8.8, config missing: Database")
+	}
+
+	flattemplate, ok := tmp_conf["flattemplate"]
+	if ok != true {
+		return nil, fmt.Errorf("version 0.8.8, config missing: FlatTemplate")
 	}
 
 	issecure, ok := tmp_conf["issecure"]
@@ -343,5 +364,6 @@ func NewInfluxdbClient_v088(conf map[string]interface{}) (*InfluxdbClient_v088, 
 		password:   password.(string),
 		host:       host.(string),
 		httpClient: &http.Client{},
+		flat_tpl:   flattemplate.(string),
 	}, nil
 }

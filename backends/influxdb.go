@@ -3,12 +3,14 @@ package backends
 import (
 	"fmt"
 	"github.com/influxdb/influxdb/client"
+	"github.com/oliveagle/hickwall/config"
 	// client088 "github.com/influxdb/influxdb_088/client"
 	"github.com/oliveagle/hickwall/utils"
 	// "github.com/kr/pretty"
 	"github.com/oliveagle/boltq"
 	"github.com/oliveagle/go-collectors/datapoint"
 	"log"
+	// "os"
 	"regexp"
 	"sync"
 	"time"
@@ -30,7 +32,8 @@ type InfluxdbWriter struct {
 	mdCh    chan datapoint.MultiDataPoint
 	buf     datapoint.MultiDataPoint
 
-	conf InfluxdbWriterConf
+	// conf InfluxdbWriterConf
+	conf config.Transport_influxdb
 	q    *boltq.BoltQ
 
 	iclient InfluxdbClient
@@ -61,6 +64,7 @@ type InfluxdbWriterConf struct {
 
 	// Write Config
 	RetentionPolicy string
+	FlatTemplate    string
 
 	Backfill_enabled              bool
 	Backfill_interval_s           int
@@ -71,20 +75,23 @@ type InfluxdbWriterConf struct {
 	Merge_Requests bool // try best to merge small group of points to no more than max_batch_size
 }
 
-func NewInfluxdbWriter(conf InfluxdbWriterConf) *InfluxdbWriter {
+func NewInfluxdbWriter(conf config.Transport_influxdb) *InfluxdbWriter {
 
 	version := influxdbParseVersionFromString(conf.Version)
 
 	iclient, err := NewInfluxdbClient(map[string]interface{}{
-		"Host":      conf.Host,
-		"URL":       conf.URL,
-		"Username":  conf.Username,
-		"Password":  conf.Password,
-		"UserAgent": "",
-		"Database":  conf.Database,
+		"Host":         conf.Host,
+		"URL":          conf.URL,
+		"Username":     conf.Username,
+		"Password":     conf.Password,
+		"UserAgent":    "",
+		"Database":     conf.Database,
+		"FlatTemplate": conf.FlatTemplate,
 	}, version)
 	if err != nil {
-		log.Panicln("cannot create influxdb client: ", err)
+		log.Panicln("cannot create influxdb client: %v", err)
+		// log.Printf("cannot create influxdb client: %v", err)
+		// os.Exit(1)
 	}
 	// fmt.Println("InfluxdbClient:", iclient, err)
 
@@ -92,6 +99,8 @@ func NewInfluxdbWriter(conf InfluxdbWriterConf) *InfluxdbWriter {
 	q, err := boltq.NewBoltQ("backend_influxdb.queue", MAX_QUEUE_SIZE, boltq.POP_ON_FULL)
 	if err != nil {
 		log.Panicf("cannot open backend_influxdb.queue: %v", err)
+		// log.Printf("cannot open backend_influxdb.queue: %v", err)
+		// os.Exit(1)
 	}
 
 	return &InfluxdbWriter{
@@ -342,14 +351,14 @@ func (w *InfluxdbWriter) backfill() {
 func (w *InfluxdbWriter) writeMd(md datapoint.MultiDataPoint) error {
 	points := []client.Point{}
 	for _, p := range md {
-		t, err := client.EpochToTime(p.Timestamp, "n")
-		if err != nil {
-			log.Panicln(err)
-		}
+		// t, err := client.EpochToTime(p.Timestamp, "n")
+		// if err != nil {
+		// 	log.Panicln(err)
+		// }
 		// log.Println(t)
 		points = append(points, client.Point{
 			Name:      p.Metric,
-			Timestamp: t,
+			Timestamp: p.Timestamp,
 			Fields: map[string]interface{}{
 				"Value": p.Value,
 			},

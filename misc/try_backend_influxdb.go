@@ -22,7 +22,7 @@ func main() {
 	// defer backends.CloseBackends()
 
 	tick := time.Tick(time.Millisecond * 1000)
-	done := time.Tick(time.Second * 60)
+	done := time.Tick(time.Second * 6)
 
 loop:
 	for {
@@ -33,8 +33,11 @@ loop:
 				rand.Seed(time.Now().UTC().UnixNano())
 				p := datapoint.DataPoint{
 					Metric:    fmt.Sprintf("metric1.%d", i),
-					Timestamp: time.Now().UnixNano(),
+					Timestamp: time.Now(),
 					Value:     rand.Float64(),
+					Tags: map[string]string{
+						"bu": "hotel",
+					},
 				}
 				md := datapoint.MultiDataPoint{&p}
 				backend.Write(md)
