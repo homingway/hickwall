@@ -197,7 +197,8 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 
 	for _, p := range bp.Points {
 		s := client088.Series{}
-
+		// s.Name = p.Name
+		// TODO:  influxdb_client_wrapper.go:201  collectorlib.FlatMetricKeyAndTags 这里有溢出，注释掉就好了，但是功能上需要。
 		name, err := collectorlib.FlatMetricKeyAndTags(c.flat_tpl, p.Name, p.Tags)
 		if err != nil {
 			log.Println("FlatMetricKeyAndTags Failed!", err)

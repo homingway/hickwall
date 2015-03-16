@@ -14,5 +14,5 @@ func Test_DataPoint_MarshalJSON(t *testing.T) {
 
 	v, err := d.MarshalJSON()
 	t.Logf("%s, %v\n", v, err)
-	t.Error("--")
+	// t.Error("--")
 }

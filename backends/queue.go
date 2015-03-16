@@ -12,6 +12,7 @@ func MdPush(q *boltq.BoltQ, md datapoint.MultiDataPoint) error {
 		return nil
 	}
 
+	// TODO: 内存有溢出，json.Marshal(md)
 	dump, err := json.Marshal(md)
 	if err != nil {
 		// fmt.Println("EnqueueBatch Error: ", err)

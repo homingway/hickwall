@@ -256,6 +256,8 @@ collector_win_pdh:
             - 
                 query: "\\Memory\\Available Bytes"
                 metric: "win.pdh.memory.available_bytes"
+            # -
+            #     query: "\\Process(python)"
 
     - 
         interval: 2

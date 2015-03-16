@@ -24,11 +24,23 @@ func (this *myservice) Execute(args []string, r <-chan svc.ChangeRequest, change
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	mdCh := make(chan *datapoint.MultiDataPoint)
+
 	collectors.RunAllCollectors(mdCh)
 	backends.RunBackends()
 	defer backends.CloseBackends()
 
 	utils.HttpPprofServe(6060)
+
+	tick := time.Tick(time.Second * time.Duration(1))
+	go func() {
+		for {
+			select {
+			case <-tick:
+				md, _ := collectors.C_hickwall(nil)
+				mdCh <- md
+			}
+		}
+	}()
 
 	// major loop for signal processing.
 loop:

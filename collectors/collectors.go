@@ -15,6 +15,11 @@ import (
 	"time"
 )
 
+// func init() {
+
+// 	md, _ := c_hickwall(nil)
+// }
+
 //TODO, detect duplicated metric keys in configuration
 type collector_factory_func func(name string, conf interface{}) Collector
 
