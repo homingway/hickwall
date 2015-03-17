@@ -18,8 +18,7 @@ func printCmdRes(str string, err error) {
 	// }
 }
 
-func (this *Service) IsAnInteractiveSession() (bool, error) {
-	log.Debug("IsAnInteractiveSessioin")
+func IsAnInteractiveSession() (bool, error) {
 	return false, nil
 }
 

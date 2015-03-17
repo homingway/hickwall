@@ -24,8 +24,6 @@ type TSWriter interface {
 
 func init() {
 
-	fmt.Println("config: ", config.Conf.Transport_influxdb)
-
 	stdConf := StdoutWriterConf{
 		Enabled:           true,
 		Max_batch_size:    MAX_BATCH_SIZE,

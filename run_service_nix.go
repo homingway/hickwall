@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func runService(name string, idDebug bool) (string, error) {
+func runService(idDebug bool) (string, error) {
 	// Set up channel on which to send signal notifications.
 	// We must use a buffered channel or risk missing the signal
 	// if we're not ready to receive when the signal is sent.

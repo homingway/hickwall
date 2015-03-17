@@ -161,7 +161,7 @@ func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 }
 
 func init() {
-	fmt.Println("Initializing Configuration")
+	// fmt.Println("Initializing Configuration")
 
 	// viper.SetConfigType("toml")
 	//viper.SetConfigType("yml")

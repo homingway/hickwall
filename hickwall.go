@@ -9,8 +9,6 @@ import (
 	"github.com/oliveagle/hickwall/servicelib"
 	"os"
 	// "strings"
-
-	// "github.com/kr/pretty"
 )
 
 var err error
@@ -83,19 +81,17 @@ func main() {
 		},
 	}
 
-	srv := servicelib.NewService(config.APP_NAME, config.APP_DESC)
-
 	if len(os.Args) >= 2 {
 		app.Run(os.Args)
 	} else {
-		isIntSess, err := srv.IsAnInteractiveSession()
+		isIntSess, err := servicelib.IsAnInteractiveSession()
 		if err != nil {
 			log.Error("failed to determine if we are running in an interactive session or not: %v", err)
 			return
 		}
 		if !isIntSess {
 			fmt.Println("Running ... ")
-			runService(config.APP_NAME, false)
+			runService(false)
 			return
 		}
 	}
