@@ -5,6 +5,7 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/servicelib"
+	"os"
 )
 
 func CmdServiceStatus(c *cli.Context) {
@@ -22,6 +23,20 @@ func CmdServiceStatus(c *cli.Context) {
 		log.Error(err)
 	} else {
 		log.Infof("service %s is %s\n", HelperService.Name(), servicelib.StateToString(state))
+	}
+}
+
+func CmdServiceStatusCode(c *cli.Context) {
+	// log.Debug("check service statuscode", PrimaryService.Name())
+	state, err := PrimaryService.Status()
+	if err != nil {
+		// log.Error(err)
+		// fmt.Println(0)
+		os.Exit(0)
+	} else {
+		// log.Infof("service %s is %s\n", PrimaryService.Name(), servicelib.StateToString(state))
+		// fmt.Println(int(state))
+		os.Exit(int(state))
 	}
 }
 

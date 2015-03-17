@@ -58,6 +58,12 @@ func main() {
 					Action:    command.CmdServiceStatus,
 				},
 				{
+					Name:      "statuscode",
+					ShortName: "",
+					Usage:     "statuscode",
+					Action:    command.CmdServiceStatusCode,
+				},
+				{
 					Name:   "install",
 					Usage:  "install service",
 					Action: command.CmdServiceInstall,
