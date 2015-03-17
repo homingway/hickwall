@@ -77,6 +77,12 @@ func (this *Service) InstallService() error {
 		// log.Errorf("SetupEventLogSource() failed: %s", err)
 		return fmt.Errorf("SetupEventLogSource() failed: %s", err)
 	}
+
+	err = this.ConfigServiceAutoStart()
+	if err != nil {
+		// log.Error("Failed to create service: ", this.name, exepath, this.desc, err)
+		return err
+	}
 	return nil
 }
 
@@ -166,6 +172,34 @@ func (this *Service) PauseService() error {
 func (this *Service) ContinueService() error {
 	// log.Debug("ServiceManager.ContinueService\r\n")
 	return controlService(this.name, svc.Continue, svc.Running)
+}
+
+func (this *Service) ConfigServiceAutoStart() error {
+	m, err := mgr.Connect()
+	if err != nil {
+		return err
+	}
+	defer m.Disconnect()
+	// log.Debug("Connected mgr\r\n")
+
+	s, err := m.OpenService(this.name)
+	if err != nil {
+		return fmt.Errorf("could not access service: %v", err)
+	}
+	defer s.Close()
+
+	c, err := s.Config()
+	if err != nil {
+		return fmt.Errorf("could not get service config: %v", err)
+	}
+
+	// make service automatically start
+	c.StartType = mgr.StartAutomatic
+	err = s.UpdateConfig(c)
+	if err != nil {
+		return fmt.Errorf("could not update service config: %v", err)
+	}
+	return nil
 }
 
 func controlService(name string, c svc.Cmd, to svc.State) error {
