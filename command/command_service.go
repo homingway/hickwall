@@ -27,15 +27,11 @@ func CmdServiceStatus(c *cli.Context) {
 }
 
 func CmdServiceStatusCode(c *cli.Context) {
-	// log.Debug("check service statuscode", PrimaryService.Name())
+	// inno setup need to know service running state.
 	state, err := PrimaryService.Status()
 	if err != nil {
-		// log.Error(err)
-		// fmt.Println(0)
 		os.Exit(0)
 	} else {
-		// log.Infof("service %s is %s\n", PrimaryService.Name(), servicelib.StateToString(state))
-		// fmt.Println(int(state))
 		os.Exit(int(state))
 	}
 }

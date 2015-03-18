@@ -3,8 +3,8 @@
 AppName=hickwall
 AppVersion=0.1.0
 DefaultDirName={pf}\hickwall
-;DefaultGroupName=hickwall
-DisableProgramGroupPage=yes
+DefaultGroupName=hickwall
+;DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\hickwall.exe
 Compression=lzma2
 SolidCompression=yes
@@ -14,11 +14,16 @@ SolidCompression=yes
 Source: "hickwall.exe"; DestDir: "{app}"; Permissions: users-readexec; Flags: overwritereadonly replacesameversion touch
 Source: "config.yml.example"; DestDir: "{app}"
 Source: "Readme.md"; DestDir: "{app}"
+Source: "start.bat"; DestDir: "{app}"
+Source: "stop.bat"; DestDir: "{app}"
 
-;[Icons]
-;Name: "{group}\hickwall"; Filename: "{app}\hickwall.exe"
+[Icons]
+Name: "{group}\start hickwall"; Filename: "{app}\start.bat"; WorkingDir: "{app}"
+Name: "{group}\stop hickwall"; Filename: "{app}\stop.bat"; WorkingDir: "{app}"
+Name: "{group}\uninstall"; Filename: "{uninstallexe}";
+
 [Run]
-Filename: "{app}\hickwall.exe"; Parameters: "service install"; Flags: runhidden; AfterInstall: AfterInstall
+Filename: "{app}\hickwall.exe"; Parameters: "service install"; Flags: runhidden; AfterInstall: TheAfterInstall
 
 [UninstallRun]
 Filename: "{sys}\taskkill.exe"; Parameters: "/F /FI 'IMAGENAME eq hickwall*'"; Flags: runhidden 
@@ -53,7 +58,7 @@ begin
     begin
       //MsgBox('isrunning: ' #13#13 'true 1' , mbInformation, MB_OK)
       //if not Exec(FileName, 'service stop', WorkingDir, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-      if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "IMAGENAME eq hickwall*"', WorkingDir, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "IMAGENAME eq hickwall.exe*"', WorkingDir, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
       begin
         //handle failure
         MsgBox('PrepareToInstall' #13#13 'stop service failed ' + IntToStr(ResultCode), mbInformation, MB_OK)
@@ -63,10 +68,12 @@ begin
 end;
 
 
-procedure AfterInstall();
+procedure TheAfterInstall();
 var
   ResultCode: Integer;
 begin
+  //MsgBox('isrunning: ' #13#13 'after install' , mbInformation, MB_OK)
+ 
   if IsRunningBeforeInstall = True then
   begin
     //MsgBox('isrunning: ' #13#13 'true 2' , mbInformation, MB_OK)

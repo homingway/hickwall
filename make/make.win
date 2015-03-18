@@ -14,6 +14,8 @@ echo "temp dir: " $TMP_DIR
 ISCC=$HOME/bin/ISCC.exe
 
 cp win.iss $TMP_DIR/
+cp start.bat $TMP_DIR/
+cp stop.bat $TMP_DIR/
 
 cd "$SCRIPT_ROOT\\.."
 
