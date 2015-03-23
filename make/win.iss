@@ -14,12 +14,14 @@ SolidCompression=yes
 Source: "hickwall.exe"; DestDir: "{app}"; Permissions: users-readexec; Flags: overwritereadonly replacesameversion touch
 Source: "config.yml.example"; DestDir: "{app}"
 Source: "Readme.md"; DestDir: "{app}"
+Source: "Readme.html"; DestDir: "{app}"; Flags: isreadme
 Source: "start.bat"; DestDir: "{app}"
 Source: "stop.bat"; DestDir: "{app}"
 
 [Icons]
 Name: "{group}\start hickwall"; Filename: "{app}\start.bat"; WorkingDir: "{app}"
 Name: "{group}\stop hickwall"; Filename: "{app}\stop.bat"; WorkingDir: "{app}"
+Name: "{group}\Readme.html"; Filename: "{app}\Readme.html"
 Name: "{group}\uninstall"; Filename: "{uninstallexe}";
 
 [Run]

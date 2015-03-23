@@ -40,10 +40,9 @@ func (this *Service) RemoveService() error {
 	return err
 }
 
-func (this *Service) Status() error {
+func (this *Service) Status() (State, error) {
 	log.Error("ServiceManagement.Status not supported")
-
-	return nil
+	return Unknown, fmt.Errorf("ServerMangement.Status not supported")
 }
 
 func (this *Service) StartService() error {
