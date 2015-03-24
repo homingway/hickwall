@@ -12,8 +12,7 @@ import (
 
 func main() {
 	pretty.Println(config.APP_NAME)
-
-	// pretty.Println(config.Conf)
+	config.Init()
 
 	cs := GetBuiltinCollectors()
 

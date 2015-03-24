@@ -12,7 +12,11 @@ const (
 )
 
 func addConfigPath() {
+	config_path = append(config_path, fmt.Sprintf("/etc/%s/", APP_NAME))
+	config_path = append(config_path, ".")
+
 	viper.SetConfigName("config")
-	viper.AddConfigPath(fmt.Sprintf("/etc/%s/", APP_NAME))
-	viper.AddConfigPath(".")
+	for _, path := range config_path {
+		viper.AddConfigPath(path)
+	}
 }

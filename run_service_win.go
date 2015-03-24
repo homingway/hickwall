@@ -3,6 +3,7 @@
 package main
 
 import (
+	"code.google.com/p/winsvc/eventlog"
 	"code.google.com/p/winsvc/svc"
 	"fmt"
 	log "github.com/cihub/seelog"
@@ -10,6 +11,7 @@ import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
+	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
 	"time"
@@ -18,15 +20,15 @@ import (
 func start_service_if_stopped(service *servicelib.Service) {
 	state, err := service.Status()
 	if err != nil {
-		log.Errorf("CmdServiceStatus: %v", err)
+		log.Errorf("CmdServiceStatus: %v\n", err)
 		return
 	}
 	if state == servicelib.Stopped {
-		log.Errorf("service %s is stopped! trying to start service again", service.Name())
+		log.Infof("service %s is stopped! trying to start service again", service.Name())
 
 		err := service.StartService()
 		if err != nil {
-			log.Error("start service failed: ", err)
+			log.Info("start service failed: ", err)
 		} else {
 			log.Info("service started. ")
 		}
@@ -37,7 +39,8 @@ func start_service_if_stopped(service *servicelib.Service) {
 
 type serviceHandler struct{}
 
-func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+func runAsPrimaryService(elog *eventlog.Log, args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+	elog.Info(1, "runAsPrimaryService -- 1 --")
 	log.Info("runAsPrimaryService -- 1 --")
 
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
@@ -83,16 +86,16 @@ loop:
 				time.Sleep(100 * time.Millisecond)
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
-				log.Error("svc.Stop or svc.Shutdown is triggered")
+				log.Info("svc.Stop or svc.Shutdown is triggered")
 				break loop
 			case svc.Pause:
 				changes <- svc.Status{State: svc.Paused, Accepts: cmdsAccepted}
-				log.Error("win.Pause not implemented yet")
+				log.Info("win.Pause not implemented yet")
 			case svc.Continue:
 				changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
-				log.Error("win.Continue not implemented yet")
+				log.Info("win.Continue not implemented yet")
 			default:
-				log.Error("unexpected control request #%d", c)
+				log.Info("unexpected control request #%d", c)
 			}
 		}
 	}
@@ -101,7 +104,7 @@ loop:
 	return
 }
 
-func runAsHelperService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+func runAsHelperService(elog *eventlog.Log, args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	log.Info("runAsHelperService -- 2 --")
 
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
@@ -125,10 +128,10 @@ loop:
 				time.Sleep(100 * time.Millisecond)
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
-				log.Error("svc.Stop or svc.Shutdown is triggered")
+				log.Info("svc.Stop or svc.Shutdown is triggered")
 				break loop
 			default:
-				log.Error("unexpected control request #%d", c)
+				log.Info("unexpected control request #%d", c)
 			}
 		}
 	}
@@ -139,22 +142,37 @@ loop:
 }
 
 func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	log.Info("serviceHandler.Execute: args:", args)
+	elog, err := eventlog.Open("hickwall")
+	if err != nil {
+		log.Error("Cannot open eventlog: hickwall")
+		return
+	}
+	defer elog.Close()
+	elog.Info(1, "serviceHandler.Execute")
+
+	err = config.Init()
+	if err != nil {
+		elog.Error(3, fmt.Sprintf("config.Init Failed: %v", err))
+		return
+	}
+	elog.Info(1, "Config.Init")
+
+	log.Error("serviceHandler.Execute: args:", args)
 
 	if len(args) > 0 {
 		svc_name := args[0]
 		if svc_name == "hickwall" {
-			return runAsPrimaryService(args, r, changes)
+			return runAsPrimaryService(elog, args, r, changes)
 		} else {
-			return runAsHelperService(args, r, changes)
+			return runAsHelperService(elog, args, r, changes)
 		}
 	}
 
-	return runAsPrimaryService(args, r, changes)
+	return runAsPrimaryService(elog, args, r, changes)
 }
 func runService(isDebug bool) {
 	err := svc.Run(command.PrimaryService.Name(), &serviceHandler{})
 	if err != nil {
-		log.Debugf("runService: failed: %v\r\n", err)
+		log.Error("runService: failed: %v\r\n", err)
 	}
 }

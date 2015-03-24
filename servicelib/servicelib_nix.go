@@ -13,9 +13,6 @@ import (
 
 func printCmdRes(str string, err error) {
 	fmt.Println(str)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
 }
 
 func IsAnInteractiveSession() (bool, error) {
@@ -26,7 +23,6 @@ func (this *Service) InstallService() error {
 	log.Debug("ServiceManager.InstallService")
 
 	str, err := this.Install()
-	// log.Debug("InstallService: %s, err: %v\n", str, err)
 	printCmdRes(str, err)
 	return err
 }
@@ -35,7 +31,6 @@ func (this *Service) RemoveService() error {
 	log.Debug("ServiceManager.RemoveService")
 
 	str, err := this.Remove()
-	// log.Debug("RemoveService: %s, err: %v", str, err)
 	printCmdRes(str, err)
 	return err
 }
@@ -49,7 +44,6 @@ func (this *Service) StartService() error {
 	log.Debug("ServiceManager.StartService")
 
 	str, err := this.Start()
-	// log.Debug("StartService: %s, err: %v", str, err)
 	printCmdRes(str, err)
 	return err
 }
@@ -70,6 +64,5 @@ func (this *Service) PauseService() error {
 
 func (this *Service) ContinueService() error {
 	log.Error("ServiceManager.ContinueService not supported ")
-
 	return nil
 }

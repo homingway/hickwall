@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/oliveagle/hickwall/utils"
-	// "github.com/oliveagle/stringio"
 	"sort"
-	// "text/template"
 	"strings"
 )
 

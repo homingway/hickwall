@@ -17,7 +17,7 @@ func CmdServiceStatus(c *cli.Context) {
 		log.Infof("service %s is %s\n", PrimaryService.Name(), servicelib.StateToString(state))
 	}
 	// -----------------------------------
-	log.Debugf("check service status: ", HelperService.Name())
+	log.Debugf("check service status: %s\n", HelperService.Name())
 	state, err = HelperService.Status()
 	if err != nil {
 		log.Error(err)

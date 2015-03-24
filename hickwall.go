@@ -15,9 +15,6 @@ var err error
 
 func main() {
 
-	// pretty.Println(config.Conf)
-	// os.Exit(1)
-
 	defer log.Flush()
 
 	app := cli.NewApp()

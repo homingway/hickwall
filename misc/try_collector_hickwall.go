@@ -4,16 +4,10 @@ import (
 	"fmt"
 	"github.com/oliveagle/go-collectors/datapoint"
 	. "github.com/oliveagle/hickwall/collectors"
-	"github.com/oliveagle/hickwall/config"
 	"time"
-
-	"github.com/kr/pretty"
 )
 
 func main() {
-	pretty.Println(config.APP_NAME)
-
-	// pretty.Println(config.Conf)
 
 	cs := GetBuiltinCollectorByName("builtin_hickwall_client")
 	if cs != nil {

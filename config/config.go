@@ -2,9 +2,8 @@ package config
 
 import (
 	"fmt"
-	// "github.com/kr/pretty"
 	"github.com/spf13/viper"
-	"os"
+	"log"
 	"reflect"
 )
 
@@ -15,7 +14,8 @@ const (
 	APP_DESC  = "monitoring system"
 )
 
-// Design Principle: Flat is better than nasted!
+var config_path []string
+
 type Config struct {
 	Tags map[string]string
 
@@ -160,9 +160,7 @@ func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 	return
 }
 
-func init() {
-	// fmt.Println("Initializing Configuration")
-
+func Init() error {
 	// viper.SetConfigType("toml")
 	//viper.SetConfigType("yml")
 
@@ -170,19 +168,15 @@ func init() {
 	addConfigPath()
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Println("No configuration file loaded - using defaults")
+		// log.Println("No configuration file loaded - using defaults")
+		return fmt.Errorf("No configuration file loaded. config.yml")
 	}
 
 	// Marshal values
 	err = viper.Marshal(&Conf)
 	if err != nil {
-		fmt.Printf("Error: unable to parse Configuration: %v", err)
-		os.Exit(1)
+		log.Fatalln("Error: unable to parse Configuration: %v", err)
 	}
-
-	// fmt.Println("-------- after marshal --------------")
-	// pretty.Println(&Conf)
-	// os.Exit(1)
 
 	// place all setDefault here -----------------
 	// First we have to find out which config item is not been set in config.toml
@@ -193,13 +187,6 @@ func init() {
 	Conf.setDefaultByKey("Logfile", "/var/log/hickwall/hickwall.log")
 
 	// fmt.Println("-------- after setdefault --------------")
-	// pretty.Println(Conf)
 	ConfigLogger()
-	// logger, err := log.LoggerFromConfigAsFile("seelog.xml")
-	// if err != nil {
-	// 	fmt.Println("Error: cannot load log config file: ", err)
-	// 	return
-	// }
-	// log.ReplaceLogger(logger)
-
+	return nil
 }

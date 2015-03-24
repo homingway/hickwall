@@ -3,7 +3,7 @@
 package config
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/spf13/viper"
 )
 
@@ -13,6 +13,5 @@ const (
 
 func addConfigPath() {
 	viper.SetConfigName("config")
-	viper.AddConfigPath(fmt.Sprintf("c:\\hickwall\\%s", APP_NAME))
 	viper.AddConfigPath(".")
 }
