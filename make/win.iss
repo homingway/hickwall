@@ -28,7 +28,7 @@ Name: "{group}\uninstall"; Filename: "{uninstallexe}";
 Filename: "{app}\hickwall.exe"; Parameters: "service install"; Flags: runhidden; AfterInstall: TheAfterInstall
 
 [UninstallRun]
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /FI 'IMAGENAME eq hickwall*'"; Flags: runhidden 
+Filename: "{sys}\taskkill.exe"; Parameters: "/F /FI 'IMAGENAME eq hickwall.exe*'"; Flags: runhidden 
 Filename: "{app}\hickwall.exe"; Parameters: "service stop"; Flags: runhidden
 Filename: "{app}\hickwall.exe"; Parameters: "service remove"; Flags: runhidden
 

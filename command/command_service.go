@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/servicelib"
 	"os"
+	"sync"
 )
 
 func CmdServiceStatus(c *cli.Context) {
@@ -93,22 +94,41 @@ func CmdServiceStart(c *cli.Context) {
 }
 
 func CmdServiceStop(c *cli.Context) {
-	log.Debug("stopping service: ", PrimaryService.Name())
-	err := PrimaryService.StopService()
-	if err != nil {
-		log.Error(err)
-	} else {
-		log.Infof("service %s stopped", PrimaryService.Name())
-	}
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		log.Debug("stopping service: ", PrimaryService.Name())
+		err := PrimaryService.StopService()
+		if err != nil {
+			log.Error(err)
+		} else {
+			log.Infof("service %s stopped", PrimaryService.Name())
+		}
+	}()
 
 	// -----------------------------------
-	log.Debug("stopping service: ", HelperService.Name())
-	err = HelperService.StopService()
-	if err != nil {
-		log.Error(err)
-	} else {
-		log.Infof("service %s stopped", HelperService.Name())
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		log.Debug("stopping service: ", HelperService.Name())
+		err := HelperService.StopService()
+		if err != nil {
+			log.Error(err)
+		} else {
+			log.Infof("service %s stopped", HelperService.Name())
+		}
+	}()
+
+	wg.Wait()
+}
+
+func CmdServiceRestart(c *cli.Context) {
+	CmdServiceStop(c)
+	CmdServiceStart(c)
 }
 
 func CmdServicePause(c *cli.Context) {

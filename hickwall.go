@@ -80,6 +80,11 @@ func main() {
 					Usage:  "stop service",
 					Action: command.CmdServiceStop,
 				},
+				{
+					Name:   "restart",
+					Usage:  "restart service",
+					Action: command.CmdServiceRestart,
+				},
 			},
 		},
 	}
