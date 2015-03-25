@@ -8,10 +8,7 @@ import (
 )
 
 const (
-	VERSION   = "v0.0.1"
-	CONF_NAME = "config"
-	APP_NAME  = "hickwall"
-	APP_DESC  = "monitoring system"
+	VERSION = "v0.0.1"
 )
 
 var config_path []string

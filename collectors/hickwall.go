@@ -28,7 +28,7 @@ import (
 // }
 
 // hickwall process metrics, only runtime stats
-func C_hickwall(states interface{}) (*datapoint.MultiDataPoint, error) {
+func C_hickwall(states interface{}) (datapoint.MultiDataPoint, error) {
 	var md datapoint.MultiDataPoint
 	var m runtime.MemStats
 
@@ -48,5 +48,5 @@ func C_hickwall(states interface{}) (*datapoint.MultiDataPoint, error) {
 	Add(&md, "hickwall.client.mem.GC.LastGC", m.LastGC, tags, "", "", "")
 	Add(&md, "hickwall.client.mem.GC.NumGC", m.NumGC, tags, "", "", "")
 	Add(&md, "hickwall.client.mem.GC.EnableGC", m.EnableGC, tags, "", "", "")
-	return &md, nil
+	return md, nil
 }

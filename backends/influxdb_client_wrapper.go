@@ -7,7 +7,8 @@ import (
 	client088 "github.com/influxdb/influxdb_088/client"
 	"github.com/oliveagle/hickwall/collectorlib"
 	// "github.com/kr/pretty"
-	"log"
+	log "github.com/cihub/seelog"
+	// "log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -59,8 +60,6 @@ func (c *InfluxdbClient_v090_rc7) Ping() (time.Duration, string, error) {
 }
 
 func (c *InfluxdbClient_v090_rc7) Write(bp client090.BatchPoints) (*client090.Results, error) {
-	// fmt.Println(bp)
-	// pretty.Println(bp)
 	return c.client.Write(bp)
 }
 
@@ -173,6 +172,7 @@ func (c *InfluxdbClient_v088) Ping() (time.Duration, string, error) {
 }
 
 func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Results, error) {
+	log.Debug("InfluxdbClient_v088.Write")
 	// v0.9.0-rc7 [
 	//  {
 	//      Name: "a",
@@ -201,7 +201,7 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 		// TODO:  influxdb_client_wrapper.go:201  collectorlib.FlatMetricKeyAndTags 这里有溢出，注释掉就好了，但是功能上需要。
 		name, err := collectorlib.FlatMetricKeyAndTags(c.flat_tpl, p.Name, p.Tags)
 		if err != nil {
-			log.Println("FlatMetricKeyAndTags Failed!", err)
+			log.Error("FlatMetricKeyAndTags Failed!", err)
 			return nil, err
 		}
 		s.Name = name
@@ -220,8 +220,7 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 
 		s.Points = append(s.Points, point)
 
-		// fmt.Println(s)
-		// log.Println("influxdb_v0.8.8: Write: ", s)
+		log.Debugf("write: %v", s)
 
 		series = append(series, &s)
 	}
@@ -229,7 +228,11 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 	// pretty.Println(series)
 
 	err := c.client.WriteSeriesWithTimePrecision(series, "ms")
-	// fmt.Println(err)
+	if err != nil {
+		log.Errorf("InfluxdbClient_v088.Write.WriteSeriesWithTimePrecision Error: %v", err)
+	} else {
+		log.Debug("InfluxdbClient_v088.Write Done No Error")
+	}
 
 	return nil, err
 }

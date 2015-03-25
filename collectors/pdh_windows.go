@@ -3,13 +3,9 @@
 package collectors
 
 import (
-	// "fmt"
 	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/go-collectors/pdh"
-	// "github.com/oliveagle/hickwall/collectorlib"
-	// "github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/config"
-	// log "github.com/cihub/seelog"
 	"time"
 )
 
@@ -102,7 +98,7 @@ type state_win_pdh struct {
 	map_queries map[string]config.Conf_win_pdh_query
 }
 
-func c_win_pdh(states interface{}) (*datapoint.MultiDataPoint, error) {
+func c_win_pdh(states interface{}) (datapoint.MultiDataPoint, error) {
 	var md datapoint.MultiDataPoint
 	var st state_win_pdh
 
@@ -118,12 +114,9 @@ func c_win_pdh(states interface{}) (*datapoint.MultiDataPoint, error) {
 
 		for _, pd := range data {
 			query := queries[pd.Query]
+
 			Add(&md, query.Metric, pd.Value, query.Tags, "", "", "")
 		}
 	}
-
-	// Add(&md, "this.is.metric.key.string", " # the string value # ", nil, "", "", "")
-	// Add(&md, "this.is.metric.key.int", 1, nil, "", "", "")
-
-	return &md, nil
+	return md, nil
 }

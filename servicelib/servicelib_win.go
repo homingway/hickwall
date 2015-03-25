@@ -102,7 +102,7 @@ func (this *Service) RemoveService() error {
 func (this *Service) StartService(args ...string) error {
 	_, err := queryService(this.name, func(s *mgr.Service, l *eventlog.Log) (State, error) {
 		l.Info(1, "Starting Service")
-
+		// tested and checked svc source code, args doesn't work. don't know why.
 		err := s.Start(args)
 		if err != nil {
 			l.Error(3, fmt.Sprintf("could not start service: %v", err))
@@ -197,12 +197,14 @@ func queryService(name string, fn func(s *mgr.Service, l *eventlog.Log) (State, 
 
 	m, err := mgr.Connect()
 	if err != nil {
+		l.Error(3, fmt.Sprintf("cannot connect to mgr: %v", err))
 		return State(Unknown), err
 	}
 	defer m.Disconnect()
 
 	s, err := m.OpenService(name)
 	if err != nil {
+		l.Error(3, fmt.Sprintf("cannot open service: %v", err))
 		return State(Unknown), fmt.Errorf("service %s is not installed", name)
 	}
 	defer s.Close()

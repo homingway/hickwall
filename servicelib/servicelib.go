@@ -6,7 +6,6 @@ package servicelib
 import (
 	"fmt"
 	"github.com/oliveagle/daemon"
-	"github.com/oliveagle/hickwall/config"
 	"os"
 	"path/filepath"
 )
@@ -19,7 +18,6 @@ type IService interface {
 	StopService() error
 	PauseService() error
 	ContinueService() error
-	Version() error
 	Name() string
 }
 
@@ -57,14 +55,14 @@ func StateToString(s State) string {
 	}
 }
 
-func HandleCmd(isrv IService, cmd string) (err error) {
+func HandleCmd(isrv IService, cmd string, args ...string) (err error) {
 	switch cmd {
 	case "install":
 		err = isrv.InstallService()
 	case "remove":
 		err = isrv.RemoveService()
 	case "start":
-		err = isrv.StartService()
+		err = isrv.StartService(args...)
 	case "stop":
 		err = isrv.StopService()
 	case "pause":
@@ -73,8 +71,6 @@ func HandleCmd(isrv IService, cmd string) (err error) {
 		err = isrv.ContinueService()
 	case "status":
 		_, err = isrv.Status()
-	case "version":
-		err = isrv.Version()
 	default:
 		err = fmt.Errorf("invalid command %s", cmd)
 	}
@@ -120,11 +116,6 @@ func NewService(name, desc string) *Service {
 		os.Exit(1)
 	}
 	return &Service{srv, name, desc}
-}
-
-func (this *Service) Version() (err error) {
-	fmt.Println("Version: ", config.VERSION)
-	return err
 }
 
 func (this *Service) Name() string {

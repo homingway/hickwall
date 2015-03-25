@@ -3,6 +3,7 @@ package collectors
 import (
 	// "fmt"
 	"fmt"
+	// log "github.com/cihub/seelog"
 	// "github.com/kr/pretty"
 	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/go-collectors/metadata"
@@ -37,7 +38,7 @@ var (
 )
 
 type Collector interface {
-	Run(chan<- *datapoint.MultiDataPoint)
+	Run(chan<- datapoint.MultiDataPoint)
 	Name() string
 	Init()
 }
@@ -127,6 +128,7 @@ func AddTS(md *datapoint.MultiDataPoint, name string, ts time.Time, value interf
 		Value:     value,
 		Tags:      tags,
 	}
+	// log.Debugf("DataPoint: %v", d)
 	*md = append(*md, &d)
 }
 
@@ -139,7 +141,7 @@ func Add(md *datapoint.MultiDataPoint, name string, value interface{}, t datapoi
 }
 
 type IntervalCollector struct {
-	F        func(states interface{}) (*datapoint.MultiDataPoint, error)
+	F        func(states interface{}) (datapoint.MultiDataPoint, error)
 	Interval time.Duration // default to DefaultFreq
 	Enable   func() bool
 
@@ -163,8 +165,7 @@ func (c *IntervalCollector) SetInterval(d time.Duration) {
 	c.Interval = d
 }
 
-// func (c *IntervalCollector) Run(dpchan chan<- *datapoint.DataPoint) {
-func (c *IntervalCollector) Run(dpchan chan<- *datapoint.MultiDataPoint) {
+func (c *IntervalCollector) Run(dpchan chan<- datapoint.MultiDataPoint) {
 	if c.Enable != nil {
 		go func() {
 			for {
@@ -181,24 +182,16 @@ func (c *IntervalCollector) Run(dpchan chan<- *datapoint.MultiDataPoint) {
 		if interval == 0 {
 			interval = DefaultFreq
 		}
-		// pretty.Println("c.Init: ", c)
-		// fmt.Println("c.Run ", c)
 
 		next := time.After(interval)
 		if c.Enabled() {
-			// fmt.Println("Enabled")
 
 			md, err := c.F(c.states)
-			// fmt.Println(md, err)
 
 			if err != nil {
-				// slog.Errorf("%v: %v", c.Name(), err)
 				fmt.Errorf("%v: %v", c.Name(), err)
 			}
 			dpchan <- md
-			// for _, dp := range md {
-			// 	dpchan <- dp
-			// }
 		}
 		<-next
 	}
@@ -232,7 +225,7 @@ func enableURL(url string) func() bool {
 	}
 }
 
-func RunAllCollectors(mdCh chan<- *datapoint.MultiDataPoint) {
+func RunAllCollectors(mdCh chan<- datapoint.MultiDataPoint) {
 	for _, c := range builtin_collectors {
 		go c.Run(mdCh)
 	}

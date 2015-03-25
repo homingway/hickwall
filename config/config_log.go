@@ -250,9 +250,8 @@ func ConfigLogger() error {
 		console_level:   Conf.Log_console_level,
 		file_level:      Conf.Log_file_level,
 		file_path:       Conf.Log_file_filepath,
-		// maxsize:         Conf.Log_file_maxsize * 1024 * 1024,
-		maxsize:  Conf.Log_file_maxsize * 1024,
-		maxrolls: Conf.Log_file_maxrolls,
+		maxsize:         Conf.Log_file_maxsize * 1024 * 1024,
+		maxrolls:        Conf.Log_file_maxrolls,
 	}
 
 	config_str, err := gen_config(formats_args, outputs_args)
@@ -267,6 +266,6 @@ func ConfigLogger() error {
 		return err
 	}
 	log.ReplaceLogger(Logger)
-	log.Info(config_str)
+	// log.Debug(config_str)
 	return nil
 }

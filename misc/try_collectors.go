@@ -5,21 +5,19 @@ import (
 	"github.com/kr/pretty"
 	"github.com/oliveagle/go-collectors/datapoint"
 	. "github.com/oliveagle/hickwall/collectors"
-	"github.com/oliveagle/hickwall/config"
 	"time"
 )
 
 func main() {
-	pretty.Println(config.APP_NAME)
+	pretty.Println("")
 
-	// cs := GetBuiltinCollectorByName("builtin_win_wmi")
 	cs := GetBuiltinCollectors()
 	cc := GetCustomizedCollectors()
 
 	fmt.Println(" ++ builtin_collector: ", cs)
 	fmt.Println(" ++ customized_collectors:  ", cc)
 
-	ch := make(chan *datapoint.MultiDataPoint)
+	ch := make(chan datapoint.MultiDataPoint)
 
 	for _, c := range cs {
 		go c.Run(ch)
@@ -43,7 +41,7 @@ loop:
 			// fmt.Println(" point ---> ", dp, err)
 			// fmt.Println("-------------------")
 			// pretty.Println(dp)
-			for _, p := range *dp {
+			for _, p := range dp {
 				fmt.Println(" point ---> ", p)
 			}
 		case <-delay:

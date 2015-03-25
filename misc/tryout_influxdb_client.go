@@ -67,7 +67,7 @@ func mockDataPoint() (points []client.Point) {
 }
 
 func main() {
-	pretty.Println(config.APP_NAME)
+	pretty.Println("")
 
 	mockDataPoint()
 

@@ -54,10 +54,10 @@ log_console_format: "%Time [%LEV] %Msg%n"
 
 #TODO: different log path on different OS
 # log_file_filepath: "/var/log/hickwall/hickwall.log"
-log_file_filepath: "c:\\Program Files (x86)\\hickwall\\hickwall.log"
+log_file_filepath: "c:\\var\\log\\hickwall\\hickwall.log"
 
 log_file_level: "debug"
-log_file_format: "%Date %Time [%Level] %RelFile %Msg%n"
+log_file_format: "%Date %Time [%Level] %File:%Line(%FuncShort) %Msg%n"
 #log_file_format: "%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %RelFile %Msg%n"
 
 # calculated in Mb

@@ -5,22 +5,19 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/command"
-	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/servicelib"
 	"os"
-	// "strings"
 )
 
 var err error
 
 func main() {
-
 	defer log.Flush()
 
 	app := cli.NewApp()
-	app.Name = config.APP_NAME
-	app.Usage = config.APP_DESC
-	app.Version = config.VERSION
+	app.Name = "hickwall"
+	app.Usage = "monitoring system"
+	app.Version = "v0.0.1"
 
 	app.Commands = []cli.Command{
 		//TODO: configuration test, reload
@@ -87,7 +84,26 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:      "version",
+			ShortName: "v",
+			Usage:     "show version info",
+			Action: func(c *cli.Context) {
+				fmt.Printf("%s version: %s\n", app.Name, app.Version)
+			},
+		},
+		{
+			Name:      "daemon",
+			ShortName: "d",
+			Usage:     "run as daemon",
+			Action: func(c *cli.Context) {
+				fmt.Println("Running as Daemon")
+				runService(false)
+			},
+		},
 	}
+
+	// app.Run(os.Args)
 
 	if len(os.Args) >= 2 {
 		app.Run(os.Args)

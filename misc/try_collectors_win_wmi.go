@@ -11,8 +11,7 @@ import (
 )
 
 func main() {
-	pretty.Println(config.APP_NAME)
-	config.Init()
+	pretty.Println("")
 
 	// pretty.Println(config.Conf)
 

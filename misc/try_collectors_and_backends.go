@@ -15,7 +15,7 @@ import (
 func main() {
 	utils.HttpPprofServe(6060)
 
-	pretty.Println(config.APP_NAME)
+	pretty.Println("")
 
 	fmt.Println(backends.GetBackendList())
 

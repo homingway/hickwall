@@ -121,7 +121,7 @@ func runAsPrimaryService(elog *eventlog.Log, args []string, r <-chan svc.ChangeR
 
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
-	mdCh := make(chan *datapoint.MultiDataPoint)
+	mdCh := make(chan datapoint.MultiDataPoint)
 
 	collectors.RunAllCollectors(mdCh)
 	backends.RunBackends()
@@ -138,7 +138,7 @@ func runAsPrimaryService(elog *eventlog.Log, args []string, r <-chan svc.ChangeR
 				md, _ := collectors.C_hickwall(nil)
 				mdCh <- md
 				// log_rush()
-				log.Info("hahahah running")
+				// log.Info("hahahah running")
 			}
 		}
 	}()
@@ -147,12 +147,11 @@ func runAsPrimaryService(elog *eventlog.Log, args []string, r <-chan svc.ChangeR
 loop:
 	for {
 		select {
-		case md, err := <-mdCh:
-			fmt.Println("MultiDataPoint: ", md, err)
-			for _, p := range *md {
-				fmt.Println(" point ---> ", p)
+		case md, _ := <-mdCh:
+			for _, p := range md {
+				log.Debug(" point ---> ", p)
 			}
-			backends.WriteToBackends(*md)
+			backends.WriteToBackends(md)
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:
@@ -161,12 +160,10 @@ loop:
 				time.Sleep(100 * time.Millisecond)
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
-				// log.Info("svc.Stop or svc.Shutdown is triggered")
 				elog.Info(1, "svc.Stop or svc.Shutdown is triggered")
 				break loop
 			case svc.Pause:
 				changes <- svc.Status{State: svc.Paused, Accepts: cmdsAccepted}
-				// log.Info("win.Pause not implemented yet")
 				elog.Info(1, "svc.Pause not implemented yet")
 			case svc.Continue:
 				changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
@@ -230,7 +227,7 @@ func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, c
 	}
 	defer elog.Close()
 
-	elog.Info(1, "serviceHandler.Execute")
+	elog.Info(1, fmt.Sprintf("serviceHandler.Execute: %v", args))
 
 	if len(args) > 0 {
 		svc_name := args[0]
@@ -249,6 +246,7 @@ func runService(isDebug bool) {
 	if err == nil {
 		defer elog.Close()
 	}
+	elog.Info(1, "runService is called")
 
 	err = svc.Run(command.PrimaryService.Name(), &serviceHandler{})
 	if err != nil && elog != nil {

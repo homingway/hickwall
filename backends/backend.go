@@ -2,10 +2,11 @@ package backends
 
 import (
 	"fmt"
+	log "github.com/cihub/seelog"
 	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/hickwall/config"
 	"strings"
-	"time"
+	// "time"
 )
 
 var (
@@ -23,23 +24,25 @@ type TSWriter interface {
 }
 
 func init() {
+	config.Init()
 
-	stdConf := StdoutWriterConf{
-		Enabled:           true,
-		Max_batch_size:    MAX_BATCH_SIZE,
-		Interval:          time.Millisecond * time.Duration(1000),
-		Backfill_enabled:  true,
-		Backfill_interval: time.Millisecond * time.Duration(200),
-	}
-	backends["stdout"] = NewStdoutWriter(stdConf)
+	// stdConf := StdoutWriterConf{
+	// 	Enabled:           true,
+	// 	Max_batch_size:    MAX_BATCH_SIZE,
+	// 	Interval:          time.Millisecond * time.Duration(1000),
+	// 	Backfill_enabled:  true,
+	// 	Backfill_interval: time.Millisecond * time.Duration(200),
+	// }
+	// backends["stdout"] = NewStdoutWriter(stdConf)
+	// log.Debug("initialized transport backend stdout")
 
 	// influxdb backends
 	for _, iconf := range config.Conf.Transport_influxdb {
-		backends[fmt.Sprintf(
-			"influxdb-%s",
-			influxdbParseVersionFromString(iconf.Version),
-		)] = NewInfluxdbWriter(iconf)
+		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
+		backends[bkname] = NewInfluxdbWriter(iconf)
+		// log.Debug("initialized transport backend ", bkname)
 	}
+
 }
 
 func GetBackendList() (res []string) {
@@ -61,27 +64,31 @@ func GetBackendByNameVersion(name, version string) (w TSWriter, b bool) {
 }
 
 func WriteToBackends(md datapoint.MultiDataPoint) {
-	for _, backend := range backends {
+	for key, backend := range backends {
 		if backend.Enabled() == true {
+			log.Debug("Backend.Write.Endabled: ", key)
 			backend.Write(md)
+		} else {
+			log.Debug("Backend.Write.Disabled: ", key)
 		}
 	}
 }
 
 func CloseBackends() {
-	for _, backend := range backends {
+	for key, backend := range backends {
 		backend.Close()
+		log.Debug("Closed Backend ", key)
 	}
 }
 
 func RunBackends() {
 	for key, backend := range backends {
-		fmt.Printf("backend: %s ", key)
 		if backend.Enabled() == true {
-			fmt.Println("Running")
+			log.Debug("Backend is Running: ", key)
 			go backend.Run()
 		} else {
-			fmt.Println("Not Running")
+			log.Debug("Backend is Not Running: ", key)
+
 		}
 	}
 }
