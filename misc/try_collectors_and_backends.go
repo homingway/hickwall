@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/kr/pretty"
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/hickwall/backends"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/config"
 	"time"
@@ -19,7 +19,7 @@ func main() {
 
 	fmt.Println(backends.GetBackendList())
 
-	ch := make(chan *datapoint.MultiDataPoint)
+	ch := make(chan collectorlib.MultiDataPoint)
 
 	collectors.RunAllCollectors(ch)
 	backends.RunBackends()
@@ -30,12 +30,12 @@ func main() {
 loop:
 	for {
 		select {
-		case dp, err := <-ch:
-			fmt.Println("MultiDataPoint: ", dp, err)
-			for _, p := range *dp {
+		case md, err := <-ch:
+			fmt.Println("MultiDataPoint: ", md, err)
+			for _, p := range md {
 				fmt.Println(" point ---> ", p)
 			}
-			backends.WriteToBackends(*dp)
+			backends.WriteToBackends(md)
 		case <-delay:
 			// fmt.Println("-------------------")
 			// change config on the fly

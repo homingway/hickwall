@@ -8,7 +8,7 @@ import (
 	"github.com/oliveagle/hickwall/utils"
 	// "github.com/kr/pretty"
 	"github.com/oliveagle/boltq"
-	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"log"
 	// "os"
 	"regexp"
@@ -29,8 +29,8 @@ type InfluxdbWriter struct {
 	version string
 	tick    <-chan time.Time
 	tickBkf <-chan time.Time
-	mdCh    chan datapoint.MultiDataPoint
-	buf     datapoint.MultiDataPoint
+	mdCh    chan collectorlib.MultiDataPoint
+	buf     collectorlib.MultiDataPoint
 
 	// conf InfluxdbWriterConf
 	conf config.Transport_influxdb
@@ -112,10 +112,10 @@ func NewInfluxdbWriter(conf config.Transport_influxdb) *InfluxdbWriter {
 		// mdCh must a buffered channel. and if buffer is full. should not write
 		// otherwise, program will block. other Tick  within the same goruntime
 		// will also be blocked.
-		// mdCh: make(chan datapoint.MultiDataPoint, conf.Max_batch_size),
+		// mdCh: make(chan collectorlib.MultiDataPoint, conf.Max_batch_size),
 		// we are using `go w.addMD2Buf`, blocking is ok. but it's still better have a buf
-		mdCh:    make(chan datapoint.MultiDataPoint, conf.Max_batch_size),
-		buf:     datapoint.MultiDataPoint{},
+		mdCh:    make(chan collectorlib.MultiDataPoint, conf.Max_batch_size),
+		buf:     collectorlib.MultiDataPoint{},
 		q:       q,
 		iclient: iclient,
 	}
@@ -129,7 +129,7 @@ func (w *InfluxdbWriter) Close() {
 	w.flushToQueue()
 }
 
-func (w *InfluxdbWriter) Write(md datapoint.MultiDataPoint) {
+func (w *InfluxdbWriter) Write(md collectorlib.MultiDataPoint) {
 	if w.Enabled() == true {
 		w.mdCh <- md
 	}
@@ -215,7 +215,7 @@ func (w *InfluxdbWriter) Run() {
 // --------------------------------------------------------------------
 
 // internal buf, which holds metrics for a very short period. such as 1 second.
-func (w *InfluxdbWriter) addMD2Buf(md datapoint.MultiDataPoint) {
+func (w *InfluxdbWriter) addMD2Buf(md collectorlib.MultiDataPoint) {
 	if w.Enabled() == false {
 		return
 	}
@@ -228,7 +228,7 @@ func (w *InfluxdbWriter) addMD2Buf(md datapoint.MultiDataPoint) {
 		// log.Println("len(w.buf): ", len(w.buf))
 		if len(w.buf) >= w.conf.Max_batch_size {
 			// log.Println("make it a batch")
-			md1 := datapoint.MultiDataPoint(w.buf[:len(w.buf)])
+			md1 := collectorlib.MultiDataPoint(w.buf[:len(w.buf)])
 			// log.Println("addMD2Buf: md: ------------ len: ", len(md1))
 			MdPush(w.q, md1)
 
@@ -247,7 +247,7 @@ func (w *InfluxdbWriter) flushToQueue() {
 	defer w.lock_buf.Unlock()
 
 	if len(w.buf) > 0 {
-		md := datapoint.MultiDataPoint(w.buf[:len(w.buf)])
+		md := collectorlib.MultiDataPoint(w.buf[:len(w.buf)])
 		// log.Println("flushToQueue: md: ------------ len: ", len(md))
 		MdPush(w.q, md)
 		w.buf = nil
@@ -270,7 +270,7 @@ func (w *InfluxdbWriter) consume() {
 		return
 	}
 
-	var md datapoint.MultiDataPoint
+	var md collectorlib.MultiDataPoint
 	var err error
 	if w.conf.Merge_Requests == true {
 		md, err = MdPopMany(w.q, w.conf.Max_batch_size)
@@ -320,7 +320,7 @@ func (w *InfluxdbWriter) backfill() {
 	if w.conf.Backfill_enabled == true && w.q.Size() > 0 {
 		// backfill when boltq is not empty
 
-		var md datapoint.MultiDataPoint
+		var md collectorlib.MultiDataPoint
 		var err error
 		if w.conf.Merge_Requests == true {
 			md, err = MdPopManyBottom(w.q, w.conf.Max_batch_size)
@@ -348,7 +348,7 @@ func (w *InfluxdbWriter) backfill() {
 	}
 }
 
-func (w *InfluxdbWriter) writeMd(md datapoint.MultiDataPoint) error {
+func (w *InfluxdbWriter) writeMd(md collectorlib.MultiDataPoint) error {
 	points := []client.Point{}
 	for _, p := range md {
 		// t, err := client.EpochToTime(p.Timestamp, "n")

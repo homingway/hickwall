@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/hickwall/backends"
+	"github.com/oliveagle/hickwall/collectorlib"
 
 	"fmt"
 	"math/rand"
@@ -12,12 +12,12 @@ import (
 func main() {
 
 	fmt.Println("--")
-	// p := datapoint.DataPoint{
+	// p := collectorlib.DataPoint{
 	// 	Metric:    "metric1",
 	// 	Timestamp: time.Now().UnixNano(),
 	// 	Value:     1,
 	// }
-	// md := datapoint.MultiDataPoint{&p}
+	// md := collectorlib.MultiDataPoint{&p}
 	// fmt.Println(md)
 
 	// backend, _ := backends.GetBackendByName("stdout")
@@ -38,12 +38,12 @@ loop:
 		case <-tick:
 			// backend.Write(md)
 			rand.Seed(time.Now().UnixNano())
-			p := datapoint.DataPoint{
+			p := collectorlib.DataPoint{
 				Metric:    "metric1",
 				Timestamp: time.Now(),
 				Value:     rand.Intn(100),
 			}
-			md := datapoint.MultiDataPoint{&p}
+			md := collectorlib.MultiDataPoint{&p}
 			backends.WriteToBackends(md)
 		case <-done:
 			break loop

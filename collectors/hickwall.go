@@ -1,7 +1,7 @@
 package collectors
 
 import (
-	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"runtime"
 	// "time"
@@ -28,8 +28,8 @@ import (
 // }
 
 // hickwall process metrics, only runtime stats
-func C_hickwall(states interface{}) (datapoint.MultiDataPoint, error) {
-	var md datapoint.MultiDataPoint
+func C_hickwall(states interface{}) (collectorlib.MultiDataPoint, error) {
+	var md collectorlib.MultiDataPoint
 	var m runtime.MemStats
 
 	tags := AddTags.Copy().Merge(config.Conf.Tags)

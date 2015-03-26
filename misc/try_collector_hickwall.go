@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/collectorlib"
 	. "github.com/oliveagle/hickwall/collectors"
 	"time"
 )
@@ -14,7 +14,7 @@ func main() {
 
 		fmt.Println(" ++ builtin_collectors: ", cs)
 
-		ch := make(chan *datapoint.MultiDataPoint)
+		ch := make(chan collectorlib.MultiDataPoint)
 
 		go cs.Run(ch)
 
@@ -24,7 +24,7 @@ func main() {
 			select {
 			case md, err := <-ch:
 				fmt.Println("MultiDataPoint: ", md, err)
-				for _, p := range *md {
+				for _, p := range md {
 					fmt.Println(" point ---> ", p)
 				}
 			case <-done:

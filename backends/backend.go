@@ -3,7 +3,7 @@ package backends
 import (
 	"fmt"
 	log "github.com/cihub/seelog"
-	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"strings"
 	// "time"
@@ -17,7 +17,7 @@ var (
 )
 
 type TSWriter interface {
-	Write(datapoint.MultiDataPoint)
+	Write(collectorlib.MultiDataPoint)
 	Run()
 	Close()
 	Enabled() bool
@@ -63,7 +63,7 @@ func GetBackendByNameVersion(name, version string) (w TSWriter, b bool) {
 	return
 }
 
-func WriteToBackends(md datapoint.MultiDataPoint) {
+func WriteToBackends(md collectorlib.MultiDataPoint) {
 	for key, backend := range backends {
 		if backend.Enabled() == true {
 			log.Debug("Backend.Write.Endabled: ", key)

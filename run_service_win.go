@@ -7,8 +7,8 @@ import (
 	"code.google.com/p/winsvc/svc"
 	"fmt"
 	log "github.com/cihub/seelog"
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/hickwall/backends"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
 	"github.com/oliveagle/hickwall/config"
@@ -121,7 +121,7 @@ func runAsPrimaryService(elog *eventlog.Log, args []string, r <-chan svc.ChangeR
 
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
-	mdCh := make(chan datapoint.MultiDataPoint)
+	mdCh := make(chan collectorlib.MultiDataPoint)
 
 	collectors.RunAllCollectors(mdCh)
 	backends.RunBackends()

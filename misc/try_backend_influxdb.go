@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/hickwall/backends"
+	"github.com/oliveagle/hickwall/collectorlib"
 
 	"fmt"
 	"math/rand"
@@ -31,7 +31,7 @@ loop:
 			fmt.Println(" <- tick ----------------------")
 			for i := 0; i < 10; i++ {
 				rand.Seed(time.Now().UTC().UnixNano())
-				p := datapoint.DataPoint{
+				p := collectorlib.DataPoint{
 					Metric:    fmt.Sprintf("metric1.%d", i),
 					Timestamp: time.Now(),
 					Value:     rand.Float64(),
@@ -39,7 +39,7 @@ loop:
 						"bu": "hotel",
 					},
 				}
-				md := datapoint.MultiDataPoint{&p}
+				md := collectorlib.MultiDataPoint{&p}
 				backend.Write(md)
 			}
 			// backends.WriteToBackends(md)

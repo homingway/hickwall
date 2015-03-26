@@ -29,7 +29,7 @@ func NormalizeTag(tag string) string {
 func NormalizeTags(tags map[string]string) map[string]string {
 	tmp := map[string]string{}
 	for key, value := range tags {
-		tmp[key] = NormalizeTag(value)
+		tmp[NormalizeTag(key)] = NormalizeTag(value)
 	}
 	return tmp
 }

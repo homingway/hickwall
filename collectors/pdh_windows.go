@@ -3,8 +3,8 @@
 package collectors
 
 import (
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/go-collectors/pdh"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"time"
 )
@@ -98,8 +98,8 @@ type state_win_pdh struct {
 	map_queries map[string]config.Conf_win_pdh_query
 }
 
-func c_win_pdh(states interface{}) (datapoint.MultiDataPoint, error) {
-	var md datapoint.MultiDataPoint
+func c_win_pdh(states interface{}) (collectorlib.MultiDataPoint, error) {
+	var md collectorlib.MultiDataPoint
 	var st state_win_pdh
 
 	if states != nil {

@@ -93,3 +93,18 @@ func Test_normalize_tags(t *testing.T) {
 	}
 	// t.Error("---")
 }
+
+func Test_normalize_tags_1(t *testing.T) {
+	// path
+	tags := map[string]string{
+		" win.wmi. c:\\path\\to\\file": " win.wmi. c:\\path\\to\\file",
+		"t2": " win.wmi. c:\\path\\to\\file",
+	}
+
+	res := NormalizeTags(tags)
+	t.Logf("*%s*", res)
+	if len(res) != 2 {
+		t.Error("failed")
+	}
+	// t.Error("---")
+}

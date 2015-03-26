@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/kr/pretty"
-	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/collectorlib"
 	. "github.com/oliveagle/hickwall/collectors"
 	"time"
 )
@@ -17,7 +17,7 @@ func main() {
 	fmt.Println(" ++ builtin_collector: ", cs)
 	fmt.Println(" ++ customized_collectors:  ", cc)
 
-	ch := make(chan datapoint.MultiDataPoint)
+	ch := make(chan collectorlib.MultiDataPoint)
 
 	for _, c := range cs {
 		go c.Run(ch)

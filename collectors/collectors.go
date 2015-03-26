@@ -5,9 +5,9 @@ import (
 	"fmt"
 	// log "github.com/cihub/seelog"
 	// "github.com/kr/pretty"
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/go-collectors/metadata"
 	"github.com/oliveagle/go-collectors/util"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"net/http"
 	"os"
 	"reflect"
@@ -34,11 +34,11 @@ var (
 	metric_keys = make(map[string]bool)
 
 	DefaultFreq = time.Second * 1
-	AddTags     datapoint.TagSet
+	AddTags     collectorlib.TagSet
 )
 
 type Collector interface {
-	Run(chan<- datapoint.MultiDataPoint)
+	Run(chan<- collectorlib.MultiDataPoint)
 	Name() string
 	Init()
 }
@@ -104,8 +104,7 @@ func RemoveAllCustomizedCollectors() {
 }
 
 // AddTS is the same as Add but lets you specify the timestamp
-// func AddTS(md *datapoint.MultiDataPoint, name string, ts int64, value interface{}, t datapoint.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
-func AddTS(md *datapoint.MultiDataPoint, name string, ts time.Time, value interface{}, t datapoint.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
+func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
 	tags := t.Copy()
 	if rate != metadata.Unknown {
 		metadata.AddMeta(name, nil, "rate", rate, false)
@@ -113,35 +112,35 @@ func AddTS(md *datapoint.MultiDataPoint, name string, ts time.Time, value interf
 	if unit != metadata.None {
 		metadata.AddMeta(name, nil, "unit", unit, false)
 	}
-	if desc != "" {
-		metadata.AddMeta(name, tags, "desc", desc, false)
-	}
+	// if desc != "" {
+	// 	metadata.AddMeta(name, tags, "desc", desc, false)
+	// }
 	if host, present := tags["host"]; !present {
 		tags["host"] = util.Hostname
 	} else if host == "" {
 		delete(tags, "host")
 	}
 	tags = AddTags.Copy().Merge(tags)
-	d := datapoint.DataPoint{
+	d := collectorlib.DataPoint{
 		Metric:    name,
 		Timestamp: ts,
 		Value:     value,
 		Tags:      tags,
 	}
 	// log.Debugf("DataPoint: %v", d)
-	*md = append(*md, &d)
+	*md = append(*md, d)
 }
 
 // Add appends a new data point with given metric name, value, and tags. Tags
 // may be nil. If tags is nil or does not contain a host key, it will be
 // automatically added. If the value of the host key is the empty string, it
 // will be removed (use this to prevent the normal auto-adding of the host tag).
-func Add(md *datapoint.MultiDataPoint, name string, value interface{}, t datapoint.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
+func Add(md *collectorlib.MultiDataPoint, name string, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
 	AddTS(md, name, time.Now(), value, t, rate, unit, desc)
 }
 
 type IntervalCollector struct {
-	F        func(states interface{}) (datapoint.MultiDataPoint, error)
+	F        func(states interface{}) (collectorlib.MultiDataPoint, error)
 	Interval time.Duration // default to DefaultFreq
 	Enable   func() bool
 
@@ -165,7 +164,7 @@ func (c *IntervalCollector) SetInterval(d time.Duration) {
 	c.Interval = d
 }
 
-func (c *IntervalCollector) Run(dpchan chan<- datapoint.MultiDataPoint) {
+func (c *IntervalCollector) Run(dpchan chan<- collectorlib.MultiDataPoint) {
 	if c.Enable != nil {
 		go func() {
 			for {
@@ -225,7 +224,7 @@ func enableURL(url string) func() bool {
 	}
 }
 
-func RunAllCollectors(mdCh chan<- datapoint.MultiDataPoint) {
+func RunAllCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
 	for _, c := range builtin_collectors {
 		go c.Run(mdCh)
 	}

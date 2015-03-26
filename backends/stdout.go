@@ -3,7 +3,7 @@ package backends
 import (
 	"fmt"
 	"github.com/oliveagle/boltq"
-	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"log"
 	"sync"
 	"time"
@@ -12,8 +12,8 @@ import (
 type StdoutWriter struct {
 	tick    <-chan time.Time
 	tickBkf <-chan time.Time
-	mdCh    chan datapoint.MultiDataPoint
-	buf     datapoint.MultiDataPoint
+	mdCh    chan collectorlib.MultiDataPoint
+	buf     collectorlib.MultiDataPoint
 	lock    sync.RWMutex
 	conf    StdoutWriterConf
 	q       *boltq.BoltQ
@@ -39,8 +39,8 @@ func NewStdoutWriter(conf StdoutWriterConf) *StdoutWriter {
 		conf:    conf,
 		tick:    time.Tick(conf.Interval),
 		tickBkf: time.Tick(conf.Backfill_interval),
-		mdCh:    make(chan datapoint.MultiDataPoint),
-		buf:     datapoint.MultiDataPoint{},
+		mdCh:    make(chan collectorlib.MultiDataPoint),
+		buf:     collectorlib.MultiDataPoint{},
 		q:       q,
 	}
 }
@@ -53,7 +53,7 @@ func (w *StdoutWriter) Close() {
 	w.flushToQueue()
 }
 
-func (w *StdoutWriter) Write(md datapoint.MultiDataPoint) {
+func (w *StdoutWriter) Write(md collectorlib.MultiDataPoint) {
 	if w.Enabled() == true {
 		w.mdCh <- md
 	}
@@ -78,7 +78,7 @@ func (w *StdoutWriter) Run() {
 // --------------------------------------------------------------------
 
 // internal buf, which holds metrics for a very short period. such as 1 second.
-func (w *StdoutWriter) addMD2Buf(md datapoint.MultiDataPoint) {
+func (w *StdoutWriter) addMD2Buf(md collectorlib.MultiDataPoint) {
 	if w.Enabled() == false {
 		return
 	}
@@ -91,7 +91,7 @@ func (w *StdoutWriter) addMD2Buf(md datapoint.MultiDataPoint) {
 		// fmt.Println("len(w.buf): ", len(w.buf))
 		if len(w.buf) >= w.conf.Max_batch_size {
 			// fmt.Println("make it a batch")
-			md1 := datapoint.MultiDataPoint(w.buf[:len(w.buf)])
+			md1 := collectorlib.MultiDataPoint(w.buf[:len(w.buf)])
 			MdPush(w.q, md1)
 
 			w.buf = nil
@@ -108,7 +108,7 @@ func (w *StdoutWriter) flushToQueue() {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	if len(w.buf) > 0 {
-		md := datapoint.MultiDataPoint(w.buf[:len(w.buf)])
+		md := collectorlib.MultiDataPoint(w.buf[:len(w.buf)])
 		MdPush(w.q, md)
 		w.buf = nil
 	}

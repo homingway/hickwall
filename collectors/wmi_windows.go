@@ -2,7 +2,6 @@ package collectors
 
 import (
 	"fmt"
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/utils"
@@ -254,8 +253,8 @@ func get_fields_of_query(query config.Conf_win_wmi_query) []string {
 	return results
 }
 
-func c_win_wmi(states interface{}) (datapoint.MultiDataPoint, error) {
-	var md datapoint.MultiDataPoint
+func c_win_wmi(states interface{}) (collectorlib.MultiDataPoint, error) {
+	var md collectorlib.MultiDataPoint
 	var st state_win_wmi
 
 	if states != nil {

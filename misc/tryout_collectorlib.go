@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/oliveagle/go-collectors/datapoint"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"time"
 )
 
-func MockF() (datapoint.MultiDataPoint, error) {
-	var md datapoint.MultiDataPoint
+func MockF() (collectorlib.MultiDataPoint, error) {
+	var md collectorlib.MultiDataPoint
 	collectorlib.Add(&md, "test_collector.metric1", 1, nil, "", "", "")
 	return md, nil
 }
@@ -36,7 +35,7 @@ func main() {
 
 	fmt.Println("ic.Name: ", ic.Name())
 
-	ch := make(chan *datapoint.DataPoint)
+	ch := make(chan collectorlib.DataPoint)
 	go ic.Run(ch)
 
 	conf2 := MockConfig{Interval: time.Millisecond * 200}

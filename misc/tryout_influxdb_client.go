@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/kr/pretty"
-	// "github.com/oliveagle/go-collectors/datapoint"
-	// . "github.com/oliveagle/hickwall/collectors"
 	"github.com/influxdb/influxdb/client"
+	"github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/config"
 	"math/rand"
 	// "strings"

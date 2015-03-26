@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/oliveagle/boltq"
-	"github.com/oliveagle/go-collectors/datapoint"
+	"github.com/oliveagle/hickwall/collectorlib"
 )
 
-func MdPush(q *boltq.BoltQ, md datapoint.MultiDataPoint) error {
+func MdPush(q *boltq.BoltQ, md collectorlib.MultiDataPoint) error {
 	if len(md) == 0 {
 		return nil
 	}
@@ -26,7 +26,7 @@ func MdPush(q *boltq.BoltQ, md datapoint.MultiDataPoint) error {
 	return err
 }
 
-func MdPop(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
+func MdPop(q *boltq.BoltQ) (md collectorlib.MultiDataPoint, err error) {
 	dump, err := q.Pop()
 	if err != nil {
 		// fmt.Println("DequeueBatch Error: ", err)
@@ -37,7 +37,7 @@ func MdPop(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
 	return
 }
 
-func MdPopBottom(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
+func MdPopBottom(q *boltq.BoltQ) (md collectorlib.MultiDataPoint, err error) {
 	dump, err := q.PopBottom()
 	if err != nil {
 		// fmt.Println("DequeueBatch Error: ", err)
@@ -48,11 +48,11 @@ func MdPopBottom(q *boltq.BoltQ) (md datapoint.MultiDataPoint, err error) {
 	return
 }
 
-func MdPopMany(q *boltq.BoltQ, points_cnt_limit int) (md datapoint.MultiDataPoint, err error) {
+func MdPopMany(q *boltq.BoltQ, points_cnt_limit int) (md collectorlib.MultiDataPoint, err error) {
 
 	cnt := 0
 	err = q.PopMany(func(v []byte) bool {
-		tmp_md := datapoint.MultiDataPoint{}
+		tmp_md := collectorlib.MultiDataPoint{}
 		err = json.Unmarshal(v, &tmp_md)
 		if err != nil {
 			return false
@@ -75,11 +75,11 @@ func MdPopMany(q *boltq.BoltQ, points_cnt_limit int) (md datapoint.MultiDataPoin
 	return
 }
 
-func MdPopManyBottom(q *boltq.BoltQ, points_cnt_limit int) (md datapoint.MultiDataPoint, err error) {
+func MdPopManyBottom(q *boltq.BoltQ, points_cnt_limit int) (md collectorlib.MultiDataPoint, err error) {
 
 	cnt := 0
 	err = q.PopManyBottom(func(v []byte) bool {
-		tmp_md := datapoint.MultiDataPoint{}
+		tmp_md := collectorlib.MultiDataPoint{}
 		err = json.Unmarshal(v, &tmp_md)
 		if err != nil {
 			return false
