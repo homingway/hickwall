@@ -3,8 +3,8 @@
 package collectors
 
 import (
-	"github.com/oliveagle/go-collectors/pdh"
 	"github.com/oliveagle/hickwall/collectorlib"
+	"github.com/oliveagle/hickwall/collectors/pdh"
 	"github.com/oliveagle/hickwall/config"
 	"time"
 )

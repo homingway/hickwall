@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/oliveagle/go-collectors/util"
+	"github.com/oliveagle/hickwall/collectorlib"
 	"regexp"
 	"strings"
 	"time"
@@ -52,7 +52,7 @@ func WmiQueryCmdLineV4(query string) []map[string]string {
 		record := map[string]string{}
 
 		lines := []string{}
-		util.ReadCommand(func(line string) error {
+		collectorlib.ReadCommand(func(line string) error {
 			// lines = append(lines, line)
 			if len(lines) < 3 {
 				lines = append(lines, line)
@@ -117,7 +117,7 @@ loop:
 		select {
 		case <-tick:
 			// for performance, should not use go func() here
-			util.ReadCommand(func(line string) error {
+			collectorlib.ReadCommand(func(line string) error {
 				// fmt.Println(line)
 				fmt.Printf(".")
 				return nil
@@ -150,4 +150,6 @@ func main() {
 		// 	fmt.Println(item)
 		// }
 	}
+
+	fmt.Println(collectorlib.Hostname)
 }

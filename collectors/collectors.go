@@ -5,9 +5,8 @@ import (
 	"fmt"
 	// log "github.com/cihub/seelog"
 	// "github.com/kr/pretty"
-	"github.com/oliveagle/go-collectors/metadata"
-	"github.com/oliveagle/go-collectors/util"
 	"github.com/oliveagle/hickwall/collectorlib"
+	"github.com/oliveagle/hickwall/collectorlib/metadata"
 	"net/http"
 	"os"
 	"reflect"
@@ -116,7 +115,7 @@ func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value int
 	// 	metadata.AddMeta(name, tags, "desc", desc, false)
 	// }
 	if host, present := tags["host"]; !present {
-		tags["host"] = util.Hostname
+		tags["host"] = collectorlib.Hostname
 	} else if host == "" {
 		delete(tags, "host")
 	}
