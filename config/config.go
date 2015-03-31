@@ -157,12 +157,7 @@ func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 	return
 }
 
-func Init() error {
-	// viper.SetConfigType("toml")
-	//viper.SetConfigType("yml")
-
-	// read config file
-	addConfigPath()
+func LoadConfigFile() error {
 	err := viper.ReadInConfig()
 	if err != nil {
 		// log.Println("No configuration file loaded - using defaults")
@@ -175,15 +170,44 @@ func Init() error {
 		log.Fatalln("Error: unable to parse Configuration: %v", err)
 	}
 
+	Conf.setDefaultByKey("port", ":9977")
+	Conf.setDefaultByKey("Logfile", "/var/log/hickwall/hickwall.log")
+
+	// // fmt.Println("-------- after setdefault --------------")
+	ConfigLogger()
+
+	return nil
+}
+
+func init() {
+	// viper.SetConfigType("toml")
+	//viper.SetConfigType("yml")
+
+	// read config file
+	addConfigPath()
+
+	LoadConfigFile()
+
+	// err := viper.ReadInConfig()
+	// if err != nil {
+	// 	// log.Println("No configuration file loaded - using defaults")
+	// 	return fmt.Errorf("No configuration file loaded. config.yml")
+	// }
+
+	// Marshal values
+	// err = viper.Marshal(&Conf)
+	// if err != nil {
+	// 	log.Fatalln("Error: unable to parse Configuration: %v", err)
+	// }
+
 	// place all setDefault here -----------------
 	// First we have to find out which config item is not been set in config.toml
 	// then we only set default values to these missing items.
 
 	//TODO: remove port :9977
-	Conf.setDefaultByKey("port", ":9977")
-	Conf.setDefaultByKey("Logfile", "/var/log/hickwall/hickwall.log")
+	// Conf.setDefaultByKey("port", ":9977")
+	// Conf.setDefaultByKey("Logfile", "/var/log/hickwall/hickwall.log")
 
-	// fmt.Println("-------- after setdefault --------------")
-	ConfigLogger()
-	return nil
+	// // fmt.Println("-------- after setdefault --------------")
+	// ConfigLogger()
 }

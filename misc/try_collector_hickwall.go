@@ -16,6 +16,8 @@ func main() {
 
 		ch := make(chan collectorlib.MultiDataPoint)
 
+		fmt.Println("Enabled: ", cs.Enabled())
+
 		go cs.Run(ch)
 
 		done := time.After(time.Second * 3)

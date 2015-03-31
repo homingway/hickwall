@@ -23,7 +23,7 @@ tags: {
 enable_metadata: false
 
 # collect client performance metrics
-client_metric_enabled: true
+client_metric_enabled: false
 # collection interval in seconds
 client_metric_interval: 1
 
@@ -131,11 +131,11 @@ transport_backfill_cool_down_sec: 120
 transport_merge_request: true
 
 # graphtie transport only support plain text protocol, and will automatically flatten metric key
-transport_graphite_enabled: true
+# transport_graphite_enabled: true
 # send data to graphtie with this interval in seconds
-transport_graphite_interval: 60
+# transport_graphite_interval: 60
 # transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
-transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
+# transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
 
 # if influxdb version smaller than `0.9`, the client will automatically flatten metric key.
 # transport_influxdb_enabled: true

@@ -6,7 +6,7 @@ import (
 	"code.google.com/p/winsvc/eventlog"
 	"code.google.com/p/winsvc/svc"
 	"fmt"
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectors"
@@ -110,7 +110,7 @@ func log_rush() {
 
 func runAsPrimaryService(elog *eventlog.Log, args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 
-	err = config.Init()
+	err = config.LoadConfigFile()
 	if err != nil {
 		elog.Error(3, fmt.Sprintf("config.Init Failed: %v", err))
 		return
@@ -135,8 +135,8 @@ func runAsPrimaryService(elog *eventlog.Log, args []string, r <-chan svc.ChangeR
 			select {
 			case <-tick:
 				go start_service_if_stopped(elog, command.HelperService)
-				md, _ := collectors.C_hickwall(nil)
-				mdCh <- md
+				// md, _ := collectors.C_hickwall(nil)
+				// mdCh <- md
 				// log_rush()
 				// log.Info("hahahah running")
 			}

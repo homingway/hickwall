@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"time"
 
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 )
 
 var (

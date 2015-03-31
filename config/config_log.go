@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 	"github.com/oliveagle/stringio"
 	"os"
 	"path/filepath"

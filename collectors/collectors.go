@@ -3,7 +3,7 @@ package collectors
 import (
 	// "fmt"
 	"fmt"
-	// log "github.com/cihub/seelog"
+	// log "github.com/oliveagle/seelog"
 	// "github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectorlib/metadata"
@@ -40,6 +40,7 @@ type Collector interface {
 	Run(chan<- collectorlib.MultiDataPoint)
 	Name() string
 	Init()
+	Enabled() bool
 }
 
 /*

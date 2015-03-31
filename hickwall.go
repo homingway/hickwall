@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/command"
 	"github.com/oliveagle/hickwall/servicelib"

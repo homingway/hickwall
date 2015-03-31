@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 
 	"github.com/oliveagle/go-metrics"
 	"net"

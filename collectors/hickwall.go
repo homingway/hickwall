@@ -1,31 +1,31 @@
 package collectors
 
 import (
+	"fmt"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"runtime"
-	// "time"
+	"time"
 )
 
-// func init() {
+func init() {
 
-// 	interval := time.Duration(1) * time.Second
-// 	if config.Conf.Client_metric_interval > 0 {
-// 		interval = time.Duration(config.Conf.Client_metric_interval) * time.Second
-// 	}
-// 	// fmt.Println("interval :", interval)
+	interval := time.Duration(1) * time.Second
+	if config.Conf.Client_metric_interval > 0 {
+		interval = time.Duration(config.Conf.Client_metric_interval) * time.Second
+	}
 
-// 	builtin_collectors = append(builtin_collectors, &IntervalCollector{
-// 		F: c_hickwall,
-// 		Enable: func() bool {
-// 			// fmt.Println("config.Conf.Client_metric_enabled: ", config.Conf.Client_metric_enabled)
-// 			return config.Conf.Client_metric_enabled
-// 		},
-// 		name:     "builtin_hickwall_client",
-// 		states:   nil,
-// 		Interval: interval,
-// 	})
-// }
+	builtin_collectors = append(builtin_collectors, &IntervalCollector{
+		F: C_hickwall,
+		Enable: func() bool {
+			fmt.Println("c_hickwall: enabled: ", config.Conf.Client_metric_enabled)
+			return config.Conf.Client_metric_enabled
+		},
+		name:     "builtin_hickwall_client",
+		states:   nil,
+		Interval: interval,
+	})
+}
 
 // hickwall process metrics, only runtime stats
 func C_hickwall(states interface{}) (collectorlib.MultiDataPoint, error) {

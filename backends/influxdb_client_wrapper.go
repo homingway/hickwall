@@ -7,7 +7,7 @@ import (
 	client088 "github.com/influxdb/influxdb_088/client"
 	"github.com/oliveagle/hickwall/collectorlib"
 	// "github.com/kr/pretty"
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 	// "log"
 	"net/http"
 	"net/url"

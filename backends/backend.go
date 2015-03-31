@@ -2,7 +2,7 @@ package backends
 
 import (
 	"fmt"
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"strings"
@@ -24,8 +24,6 @@ type TSWriter interface {
 }
 
 func init() {
-	config.Init()
-
 	// stdConf := StdoutWriterConf{
 	// 	Enabled:           true,
 	// 	Max_batch_size:    MAX_BATCH_SIZE,

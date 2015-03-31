@@ -5,8 +5,7 @@ package servicelib
 import (
 	"fmt"
 	// "github.com/oliveagle/hickwall/config"
-	// log "github.com/cihub/seelog"
-	log "github.com/cihub/seelog"
+	log "github.com/oliveagle/seelog"
 	// "github.com/op/go-logging"
 	// "github.com/VividCortex/robustly"
 )
