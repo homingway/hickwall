@@ -2,7 +2,10 @@ package collectorlib
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -112,4 +115,39 @@ func ReadLine(fname string, line func(string) error) error {
 		}
 	}
 	return scanner.Err()
+}
+
+var (
+	pat_parse_interval = regexp.MustCompile(`(\d+)(\w+)`)
+)
+
+func ParseInterval(interval string) (d time.Duration, err error) {
+
+	matches := pat_parse_interval.FindStringSubmatch(interval)
+	if len(matches) != 3 {
+		err = fmt.Errorf("invalid format: %s", interval)
+		return
+	}
+	d1, err := strconv.Atoi(matches[1])
+	if err != nil {
+		err = fmt.Errorf("invalid format: %s", interval)
+		return
+	}
+	if d1 <= 0 {
+		err = fmt.Errorf("interval should greater than zero: %s", interval)
+		return
+	}
+	d2 := strings.ToLower(matches[2])
+	switch d2 {
+	case "s":
+		d = time.Duration(d1) * time.Second
+	case "m":
+		d = time.Duration(d1) * time.Minute
+	case "h":
+		d = time.Duration(d1) * time.Hour
+	default:
+		err = fmt.Errorf("unsupported interval unit: %s", d2)
+	}
+
+	return
 }
