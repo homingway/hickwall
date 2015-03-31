@@ -23,13 +23,19 @@ func TestParseInterval_InvalidFormat(t *testing.T) {
 
 	_, err = ParseInterval("0m")
 	if err == nil {
-		t.Error("should raise error")
+		t.Error("should raise error 0m")
+	}
+
+	_, err = ParseInterval("-1m")
+	if err == nil {
+		t.Error("should raise error -1m")
 	}
 
 	d, err := ParseInterval("1w")
 	if err == nil {
-		t.Error("should raise error")
+		t.Error("should raise error 1w")
 	}
+
 	if d != 0 {
 		t.Log(d)
 		t.Error("-")
