@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"text/template"
+	"time"
 )
 
 func main() {
@@ -28,4 +29,6 @@ func main() {
 	}
 
 	fmt.Println(buf.String())
+
+	fmt.Println(time.Now().Unix())
 }

@@ -22,7 +22,7 @@ func main() {
 	fmt.Println(" ++ customized_collectors:  ", cc)
 	fmt.Println(" ++ builtin_collectors: ", cs)
 
-	ch := make(chan *collectorlib.MultiDataPoint)
+	ch := make(chan collectorlib.MultiDataPoint)
 
 	go cs[0].Run(ch)
 	go cc[0].Run(ch)
@@ -39,7 +39,7 @@ loop:
 			// fmt.Println(" point ---> ", dp, err)
 			// fmt.Println("-------------------")
 			// pretty.Println(dp)
-			for _, p := range *dp {
+			for _, p := range dp {
 				fmt.Println(" point ---> ", p)
 			}
 		case <-delay:

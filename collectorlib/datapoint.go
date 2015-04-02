@@ -14,10 +14,11 @@ type MultiDataPoint []DataPoint
 var bigMaxInt64 = big.NewInt(math.MaxInt64)
 
 type DataPoint struct {
-	Metric    string      `json:"metric"`
-	Timestamp time.Time   `json:"timestamp"`
-	Value     interface{} `json:"value"`
-	Tags      TagSet      `json:"tags"`
+	Metric    string            `json:"metric"`
+	Timestamp time.Time         `json:"timestamp"`
+	Value     interface{}       `json:"value"`
+	Tags      TagSet            `json:"tags"`
+	Meta      map[string]string `json:"meta"`
 }
 
 func (d *DataPoint) MarshalJSON() ([]byte, error) {
@@ -25,15 +26,17 @@ func (d *DataPoint) MarshalJSON() ([]byte, error) {
 	d.Clean()
 
 	return json.Marshal(struct {
-		Metric    string      `json:"metric"`
-		Timestamp time.Time   `json:"timestamp"`
-		Value     interface{} `json:"value"`
-		Tags      TagSet      `json:"tags"`
+		Metric    string            `json:"metric"`
+		Timestamp time.Time         `json:"timestamp"`
+		Value     interface{}       `json:"value"`
+		Tags      TagSet            `json:"tags"`
+		Meta      map[string]string `json:"meta"`
 	}{
 		d.Metric,
 		d.Timestamp,
 		d.Value,
 		d.Tags,
+		d.Meta,
 	})
 }
 

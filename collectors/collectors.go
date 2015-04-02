@@ -104,17 +104,17 @@ func RemoveAllCustomizedCollectors() {
 }
 
 // AddTS is the same as Add but lets you specify the timestamp
-func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
+func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
 	tags := t.Copy()
 	if rate != metadata.Unknown {
 		metadata.AddMeta(name, nil, "rate", rate, false)
 	}
-	if unit != metadata.None {
+	if unit != "" {
 		metadata.AddMeta(name, nil, "unit", unit, false)
 	}
-	// if desc != "" {
-	// 	metadata.AddMeta(name, tags, "desc", desc, false)
-	// }
+	if desc != "" {
+		metadata.AddMeta(name, tags, "desc", desc, false)
+	}
 	if host, present := tags["host"]; !present {
 		tags["host"] = collectorlib.Hostname
 	} else if host == "" {
@@ -135,7 +135,7 @@ func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value int
 // may be nil. If tags is nil or does not contain a host key, it will be
 // automatically added. If the value of the host key is the empty string, it
 // will be removed (use this to prevent the normal auto-adding of the host tag).
-func Add(md *collectorlib.MultiDataPoint, name string, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit metadata.Unit, desc string) {
+func Add(md *collectorlib.MultiDataPoint, name string, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
 	AddTS(md, name, time.Now(), value, t, rate, unit, desc)
 }
 

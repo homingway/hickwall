@@ -10,6 +10,7 @@
 #TODO: write time precision is limited to MS (milliseconds) only
 #TODO: {{.Key}}.{{.Tags}}   if Tags is empty, key will have a trailing dot.  e.g.:  `metric1.`
 #TODO: make all collector config can be changed at runtime.
+# TODO: refactory all interval configuration
 
 # these tags will be appended into metrics' tags field. 
 tags: {
@@ -130,34 +131,17 @@ transport_backfill_cool_down_sec: 120
 # backup online again. the network traffic will be a lot greater than normal in some cases. 
 transport_merge_request: true
 
-# graphtie transport only support plain text protocol, and will automatically flatten metric key
-transport_graphite_enabled: true
-# send data to graphtie with this interval in seconds
-transport_graphite_interval: 60
-# transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
-transport_graphite_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
 
-# if influxdb version smaller than `0.9`, the client will automatically flatten metric key.
-# transport_influxdb_enabled: true
-# send data to influxdb with this interval in seconds
-# transport_influxdb_interval: 10
-# transport_influxdb_version: "0.8.8"
-# transport_influxdb_hosts: ["127.0.0.1:8086", "127.0.0.1:8087"]
-# transport_influxdb_database: "metrics"
-# transport_influxdb_username: "root"
-# transport_influxdb_password: "root"
+transport_graphite:
+    -
+        # metadata is nort supported with graphite backend
+        enabled: false
+        max_batch_size: 100
+        interval: 1s
+        merge_requests: false
 
-# transport_backends:
-#     - graphtie:
-#         enabled: true
-#         interval: 60
-#         hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
-#     - influxdb:
-#         enabled: true
-#         version: "0.8.8"
-#         database: "metrics"
-#         username: "root"
-#         password: "root"
+        hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
+        FlatTemplate: "{{.Key}}.{{.Tags}}"
 
 transport_influxdb:
     -
@@ -171,6 +155,8 @@ transport_influxdb:
         username: "root"
         password: "root"
         database: "metrics"
+        meta_database: "metrics_meta"
+
         retentionpolicy: "p1"
 
         backfill_enabled: true
@@ -192,6 +178,8 @@ transport_influxdb:
         username: "root"
         password: "root"
         database: "metrics"
+        meta_database: "metrics_meta"
+
         FlatTemplate: "{{.Key}}.{{.Tags}}"
 
         backfill_enabled: true
@@ -545,6 +533,16 @@ collector_win_wmi:
             #             value_from: "FileSystem"
             #             metric: "win.wmi.fs.{{.Name}}.filesystem"
 
+#TODO: collector_cmd:
+
+collector_cmd:
+    - 
+        cmd: 
+            - 'c:\python27\python.exe'
+            - 'D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\hickwall\misc\collector_cmd.py'
+        # interval: s - seconds, m - minutes, h - hours
+        interval: 1s
+
 # TODO: collector_mysql_query
 # collector_mysql_query:
 #     - 
@@ -629,9 +627,6 @@ collector_win_wmi:
 #         #   ping.time_mdev   {"some": "test2", "host": "www.12306.com"}  2.192
 #         #   ping.lost_pct    {"some": "test2", "host": "www.12306.com"}  0.0
 
-
-# collecotr_linux:
-# collector_darwin:
 
 # plugin_cmd:
 #     - 

@@ -547,6 +547,16 @@ collector_win_wmi:
             #             value_from: "FileSystem"
             #             metric: "win.wmi.fs.{{.Name}}.filesystem"
 
+
+collector_cmd:
+    -
+        cmd:
+            - 'c:\python27\python.exe'
+            - 'D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\hickwall\misc\collector_cmd.py'
+        # interval: s - seconds, m - minutes, h - hours
+        # TODO: refactory all interval configuration
+        interval: 1s
+
 # TODO: collector_mysql_query
 # collector_mysql_query:
 #     - 

@@ -14,4 +14,5 @@ const (
 func addConfigPath() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
+	viper.AddConfigPath("..")
 }

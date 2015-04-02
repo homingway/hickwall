@@ -42,6 +42,8 @@ type Config struct {
 	Collector_mysql_query []c_mysql_query
 
 	Collector_ping []c_ping
+
+	Collector_cmd []Conf_cmd
 }
 
 type Conf_win_pdh struct {
@@ -73,6 +75,12 @@ type Conf_win_wmi_query_metric struct {
 	Tags       map[string]string
 	Meta       map[string]string //TODO: Meta
 	Default    interface{}
+}
+
+type Conf_cmd struct {
+	Cmd      []string
+	Interval string
+	Tags     map[string]string
 }
 
 type Transport_influxdb struct {
