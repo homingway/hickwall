@@ -47,6 +47,8 @@ type InfluxdbWriter struct {
 	is_host_alive  bool
 
 	ping_time_avg int64
+
+	backfill_cool_down time.Duration
 }
 
 //TODO: use config.Transport_influxdb instead
@@ -71,7 +73,7 @@ type InfluxdbWriterConf struct {
 	Backfill_interval             string
 	Backfill_handsoff             bool
 	Backfill_latency_threshold_ms int
-	Backfill_cool_down_s          int
+	Backfill_cool_down            string
 
 	Merge_Requests bool // try best to merge small group of points to no more than max_batch_size
 }
@@ -113,8 +115,14 @@ func NewInfluxdbWriter(conf config.Transport_influxdb) (*InfluxdbWriter, error) 
 
 	bk_interval, err := collectorlib.ParseInterval(conf.Backfill_interval)
 	if err != nil {
-		log.Errorf("cannot parse interval of influxdb backend: %s - %v", conf.Backfill_interval, err)
+		log.Errorf("cannot parse backfill_interval of influxdb backend: %s - %v", conf.Backfill_interval, err)
 		bk_interval = default_interval
+	}
+
+	backfill_cool_down, err := collectorlib.ParseInterval(conf.Backfill_cool_down)
+	if err != nil {
+		log.Errorf("cannot parse backfill_cool_down of influxdb backend: %s - %v", conf.Backfill_cool_down, err)
+		backfill_cool_down = default_interval
 	}
 
 	return &InfluxdbWriter{
@@ -128,10 +136,11 @@ func NewInfluxdbWriter(conf config.Transport_influxdb) (*InfluxdbWriter, error) 
 		// will also be blocked.
 		// mdCh: make(chan collectorlib.MultiDataPoint, conf.Max_batch_size),
 		// we are using `go w.addMD2Buf`, blocking is ok. but it's still better have a buf
-		mdCh:    make(chan collectorlib.MultiDataPoint, conf.Max_batch_size),
-		buf:     collectorlib.MultiDataPoint{},
-		q:       q,
-		iclient: iclient,
+		mdCh:               make(chan collectorlib.MultiDataPoint, conf.Max_batch_size),
+		buf:                collectorlib.MultiDataPoint{},
+		q:                  q,
+		iclient:            iclient,
+		backfill_cool_down: backfill_cool_down,
 	}, nil
 }
 
@@ -325,10 +334,10 @@ func (w *InfluxdbWriter) backfill() {
 
 	// cool down if ping_time_avg break the threshold
 	// if w.ping_time_avg >
-	if w.conf.Backfill_handsoff == true && w.conf.Backfill_latency_threshold_ms >= 1 && w.conf.Backfill_cool_down_s > 0 && w.ping_time_avg > int64(w.conf.Backfill_latency_threshold_ms) {
-		log.Debugf(" - backfill is cooling down for %d seconds ----- I'M HOT -----", w.conf.Backfill_cool_down_s)
-		time.Sleep(time.Second * time.Duration(w.conf.Backfill_cool_down_s))
-		log.Debugf(" - backfill is cooling down for %d seconds ----- I'M COOL -----", w.conf.Backfill_cool_down_s)
+	if w.conf.Backfill_handsoff == true && w.conf.Backfill_latency_threshold_ms >= 1 && w.backfill_cool_down > 0 && w.ping_time_avg > int64(w.conf.Backfill_latency_threshold_ms) {
+		log.Debugf(" - backfill is cooling down for %d duration ----- I'M HOT -----", w.backfill_cool_down)
+		time.Sleep(w.backfill_cool_down)
+		log.Debugf(" - backfill is cooling down for %d duration ----- I'M COOL -----", w.backfill_cool_down)
 	}
 
 	if w.conf.Backfill_enabled == true && w.q.Size() > 0 {

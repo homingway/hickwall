@@ -104,7 +104,7 @@ type Transport_influxdb struct {
 	Backfill_interval             string
 	Backfill_handsoff             bool
 	Backfill_latency_threshold_ms int
-	Backfill_cool_down_s          int
+	Backfill_cool_down            string
 
 	Merge_Requests bool // try best to merge small group of points to no more than max_batch_size
 }
