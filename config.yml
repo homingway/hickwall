@@ -148,7 +148,7 @@ transport_influxdb:
         version: "0.9.0-rc7"    
         enabled: false
         max_batch_size: 200
-        interval_ms: 1000
+        interval: 1s
         merge_reqeusts: false
 
         url: "http://192.168.59.103:8086/write"
@@ -171,7 +171,7 @@ transport_influxdb:
         version: "v0.8.8"
         enabled: true
         max_batch_size: 200
-        interval_ms: 1000
+        interval: 1s
         merge_reqeusts: false
 
         host: "192.168.59.103:8086"    # v0.8.8 why to config db host

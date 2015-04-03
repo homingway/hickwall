@@ -86,7 +86,7 @@ type Conf_cmd struct {
 type Transport_influxdb struct {
 	Version        string
 	Enabled        bool
-	Interval_ms    int
+	Interval       string
 	Max_batch_size int
 
 	// Client Config

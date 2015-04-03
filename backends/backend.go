@@ -2,11 +2,10 @@ package backends
 
 import (
 	"fmt"
-	log "github.com/oliveagle/seelog"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
+	log "github.com/oliveagle/seelog"
 	"strings"
-	// "time"
 )
 
 var (
@@ -37,8 +36,12 @@ func init() {
 	// influxdb backends
 	for _, iconf := range config.Conf.Transport_influxdb {
 		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
-		backends[bkname] = NewInfluxdbWriter(iconf)
-		// log.Debug("initialized transport backend ", bkname)
+		bk, err := NewInfluxdbWriter(iconf)
+		if err != nil {
+			log.Criticalf("create backend failed: %v ", err)
+			continue
+		}
+		backends[bkname] = bk
 	}
 
 }

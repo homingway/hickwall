@@ -9,7 +9,7 @@ import (
 	// "github.com/kr/pretty"
 	"github.com/oliveagle/boltq"
 	"github.com/oliveagle/hickwall/collectorlib"
-	"log"
+	log "github.com/oliveagle/seelog"
 	// "os"
 	"regexp"
 	"sync"
@@ -49,10 +49,11 @@ type InfluxdbWriter struct {
 	ping_time_avg int64
 }
 
+//TODO: use config.Transport_influxdb instead
 type InfluxdbWriterConf struct {
 	Version        string
 	Enabled        bool
-	Interval_ms    int
+	Interval       string
 	Max_batch_size int
 
 	// Client Config
@@ -75,7 +76,9 @@ type InfluxdbWriterConf struct {
 	Merge_Requests bool // try best to merge small group of points to no more than max_batch_size
 }
 
-func NewInfluxdbWriter(conf config.Transport_influxdb) *InfluxdbWriter {
+func NewInfluxdbWriter(conf config.Transport_influxdb) (*InfluxdbWriter, error) {
+
+	var default_interval = time.Duration(5) * time.Second
 
 	version := influxdbParseVersionFromString(conf.Version)
 
@@ -89,24 +92,29 @@ func NewInfluxdbWriter(conf config.Transport_influxdb) *InfluxdbWriter {
 		"FlatTemplate": conf.FlatTemplate,
 	}, version)
 	if err != nil {
-		log.Panicln("cannot create influxdb client: %v", err)
-		// log.Printf("cannot create influxdb client: %v", err)
-		// os.Exit(1)
+		err = fmt.Errorf("cannot create influxdb client: %v", err)
+		log.Critical(err)
+		return nil, err
 	}
-	// fmt.Println("InfluxdbClient:", iclient, err)
 
 	//TODO: boltq name should be configurable or automatic generated based on writer's name
 	q, err := boltq.NewBoltQ("backend_influxdb.queue", MAX_QUEUE_SIZE, boltq.POP_ON_FULL)
 	if err != nil {
-		log.Panicf("cannot open backend_influxdb.queue: %v", err)
-		// log.Printf("cannot open backend_influxdb.queue: %v", err)
-		// os.Exit(1)
+		err = fmt.Errorf("cannot open backend_influxdb.queue: %v", err)
+		log.Critical(err)
+		return nil, err
+	}
+
+	interval, err := collectorlib.ParseInterval(conf.Interval)
+	if err != nil {
+		log.Errorf("cannot parse interval of influxdb backend: %s - %v", conf.Interval, err)
+		interval = default_interval
 	}
 
 	return &InfluxdbWriter{
 		version: version,
 		conf:    conf,
-		tick:    time.Tick(time.Millisecond * time.Duration(conf.Interval_ms)),
+		tick:    time.Tick(interval),
 		tickBkf: time.Tick(time.Second * time.Duration(conf.Backfill_interval_s)),
 
 		// mdCh must a buffered channel. and if buffer is full. should not write
@@ -118,7 +126,7 @@ func NewInfluxdbWriter(conf config.Transport_influxdb) *InfluxdbWriter {
 		buf:     collectorlib.MultiDataPoint{},
 		q:       q,
 		iclient: iclient,
-	}
+	}, nil
 }
 
 func (w *InfluxdbWriter) Enabled() bool {
@@ -157,7 +165,7 @@ func (w *InfluxdbWriter) Ping() {
 					if v != "" {
 						ver := influxdbParseVersionFromString(v)
 						if w.iclient.IsCompatibleVersion(ver) == false {
-							log.Printf("Error: remote host is incompatible: %s, backend expected version: %s", ver, w.version)
+							log.Debugf("Error: remote host is incompatible: %s, backend expected version: %s", ver, w.version)
 							err_cnt += failing_pint_cnt
 							w.ping_time_avg = 999999999
 							w.is_host_alive = false
@@ -176,17 +184,17 @@ func (w *InfluxdbWriter) Ping() {
 					err_cnt = 0
 					tick = fasttick
 					w.is_host_alive = true
-					log.Printf("Fast-PING: resp_time: %v, influxdb ver: %s, q Len: %d, buf size: %d, pingAvg: %d", t, v, w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("Fast-PING: resp_time: %v, influxdb ver: %s, q Len: %d, buf size: %d, pingAvg: %d", t, v, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 				if err_cnt > 0 && err_cnt <= failing_pint_cnt {
-					log.Printf("Fast-PING: influxdb host is failling %d, q Len: %d, buf size: %d, pingAvg: %d", err_cnt, w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("Fast-PING: influxdb host is failling %d, q Len: %d, buf size: %d, pingAvg: %d", err_cnt, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 				if err_cnt > failing_pint_cnt {
 					w.is_host_alive = false
 					tick = slowtick
-					log.Printf("SLOW-PING: Wait for influxdb host back online again! q Len: %d, buf size: %d, pingAvg: %d", w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("SLOW-PING: Wait for influxdb host back online again! q Len: %d, buf size: %d, pingAvg: %d", w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 			}
@@ -225,15 +233,15 @@ func (w *InfluxdbWriter) addMD2Buf(md collectorlib.MultiDataPoint) {
 
 	for _, p := range md {
 		w.buf = append(w.buf, p)
-		// log.Println("len(w.buf): ", len(w.buf))
+		// log.Debug("len(w.buf): ", len(w.buf))
 		if len(w.buf) >= w.conf.Max_batch_size {
-			// log.Println("make it a batch")
+			// log.Debug("make it a batch")
 			md1 := collectorlib.MultiDataPoint(w.buf[:len(w.buf)])
-			// log.Println("addMD2Buf: md: ------------ len: ", len(md1))
+			// log.Debug("addMD2Buf: md: ------------ len: ", len(md1))
 			MdPush(w.q, md1)
 
 			w.buf = nil
-			// log.Println("w.buf = nil")
+			// log.Debug("w.buf = nil")
 		}
 	}
 }
@@ -248,7 +256,7 @@ func (w *InfluxdbWriter) flushToQueue() {
 
 	if len(w.buf) > 0 {
 		md := collectorlib.MultiDataPoint(w.buf[:len(w.buf)])
-		// log.Println("flushToQueue: md: ------------ len: ", len(md))
+		// log.Debug("flushToQueue: md: ------------ len: ", len(md))
 		MdPush(w.q, md)
 		w.buf = nil
 	}
@@ -279,19 +287,19 @@ func (w *InfluxdbWriter) consume() {
 	}
 
 	if err != nil {
-		log.Println(err)
+		log.Debug(err)
 		return
 	}
 
 	// Do something
-	log.Printf(" * md len:%d [influxdb] consuming: boltQ len: %d , mdCh len: %d, buf size: %d\n", len(md), w.q.Size(), len(w.mdCh), len(w.buf))
+	log.Debugf(" * md len:%d [influxdb] consuming: boltQ len: %d , mdCh len: %d, buf size: %d\n", len(md), w.q.Size(), len(w.mdCh), len(w.buf))
 
 	err = w.writeMd(md)
 	w.check1()
 
 	// when error happened during consume, md will be push back to queue again
 	if err != nil {
-		log.Printf(" !!! md len:%d -consume- failed, pushback md", len(md))
+		log.Debugf(" !!! md len:%d -consume- failed, pushback md", len(md))
 		MdPush(w.q, md)
 	}
 
@@ -312,9 +320,9 @@ func (w *InfluxdbWriter) backfill() {
 	// cool down if ping_time_avg break the threshold
 	// if w.ping_time_avg >
 	if w.conf.Backfill_handsoff == true && w.conf.Backfill_latency_threshold_ms >= 1 && w.conf.Backfill_cool_down_s > 0 && w.ping_time_avg > int64(w.conf.Backfill_latency_threshold_ms) {
-		log.Printf(" - backfill is cooling down for %d seconds ----- I'M HOT -----", w.conf.Backfill_cool_down_s)
+		log.Debugf(" - backfill is cooling down for %d seconds ----- I'M HOT -----", w.conf.Backfill_cool_down_s)
 		time.Sleep(time.Second * time.Duration(w.conf.Backfill_cool_down_s))
-		log.Printf(" - backfill is cooling down for %d seconds ----- I'M COOL -----", w.conf.Backfill_cool_down_s)
+		log.Debugf(" - backfill is cooling down for %d seconds ----- I'M COOL -----", w.conf.Backfill_cool_down_s)
 	}
 
 	if w.conf.Backfill_enabled == true && w.q.Size() > 0 {
@@ -329,12 +337,12 @@ func (w *InfluxdbWriter) backfill() {
 		}
 
 		if err != nil {
-			log.Println(err)
+			log.Debug(err)
 			return
 		}
 
 		// do something with backfilling
-		log.Printf(" - md len:%d [influxdb] backfilling:, boltQ len: %d\n", len(md), w.q.Size())
+		log.Debugf(" - md len:%d [influxdb] backfilling:, boltQ len: %d\n", len(md), w.q.Size())
 		// push back to queue.
 
 		err = w.writeMd(md)
@@ -342,7 +350,7 @@ func (w *InfluxdbWriter) backfill() {
 
 		if err != nil {
 			// push back to queue.
-			log.Printf(" !!! md len:%d -backfill- failed, pushback md", len(md))
+			log.Debugf(" !!! md len:%d -backfill- failed, pushback md", len(md))
 			MdPush(w.q, md)
 		}
 	}
@@ -355,7 +363,7 @@ func (w *InfluxdbWriter) writeMd(md collectorlib.MultiDataPoint) error {
 		// if err != nil {
 		// 	log.Panicln(err)
 		// }
-		// log.Println(t)
+		// log.Debug(t)
 		points = append(points, client.Point{
 			Name:      p.Metric,
 			Timestamp: p.Timestamp,
@@ -365,7 +373,7 @@ func (w *InfluxdbWriter) writeMd(md collectorlib.MultiDataPoint) error {
 			Tags: p.Tags, //TODO: Tags
 		})
 	}
-	// log.Println(points)
+	// log.Debug(points)
 	write := client.BatchPoints{
 		Database:        w.conf.Database,
 		RetentionPolicy: w.conf.RetentionPolicy,
@@ -373,11 +381,11 @@ func (w *InfluxdbWriter) writeMd(md collectorlib.MultiDataPoint) error {
 	}
 	res, err := w.iclient.Write(write)
 	if err != nil {
-		log.Println(" -E- writeMD failed: ", err)
+		log.Debug(" -E- writeMD failed: ", err)
 		return err
 	}
 	if res != nil && res.Err != nil {
-		log.Println(" -E- writeMD failed: res.Err: ", res.Err)
+		log.Debug(" -E- writeMD failed: res.Err: ", res.Err)
 		return fmt.Errorf("res.Err: %s", res.Err)
 	}
 	return err
@@ -403,7 +411,7 @@ func (w *InfluxdbWriter) check1() {
 				for _, v := range s.Values {
 					// pretty.Println(v)
 					if len(v) == 2 {
-						log.Printf("-check- queried metric1.1 value Count: %v\n", v[1])
+						log.Debugf("-check- queried metric1.1 value Count: %v\n", v[1])
 					}
 				}
 			}
