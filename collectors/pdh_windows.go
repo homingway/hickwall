@@ -7,6 +7,8 @@ import (
 	"github.com/oliveagle/hickwall/collectors/pdh"
 	"github.com/oliveagle/hickwall/config"
 	"time"
+
+	log "github.com/oliveagle/seelog"
 )
 
 func init() {
@@ -49,7 +51,7 @@ func builtin_win_pdh() Collector {
 		Metric: "hickwall.client.mem.try_string_overflow.working_set"})
 
 	conf := config.Conf_win_pdh{
-		Interval: 2,
+		Interval: "2s",
 		Queries:  queries,
 	}
 
@@ -59,14 +61,22 @@ func builtin_win_pdh() Collector {
 func factory_win_pdh(name string, conf interface{}) Collector {
 	var states state_win_pdh
 	var cf config.Conf_win_pdh
+	var default_interval = time.Duration(1) * time.Second
 
 	if conf != nil {
 		cf = conf.(config.Conf_win_pdh)
 		// fmt.Println("factory_win_pdh: ", cf)
 		// pretty.Println("factory_win_pdh:", cf)
 
+		interval, err := collectorlib.ParseInterval(cf.Interval)
+		if err != nil {
+			log.Errorf("cannot parse interval of collector_pdh: %s - %v", cf.Interval, err)
+			interval = default_interval
+		}
+		states.Interval = interval
+
 		states.hPdh = pdh.NewPdhCollector()
-		states.Interval = time.Duration(cf.Interval) * time.Second
+
 		states.map_queries = make(map[string]config.Conf_win_pdh_query)
 
 		for _, query_obj := range cf.Queries {

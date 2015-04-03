@@ -48,7 +48,7 @@ type Config struct {
 
 type Conf_win_pdh struct {
 	Tags     map[string]string
-	Interval int
+	Interval string
 	Queries  []Conf_win_pdh_query
 }
 

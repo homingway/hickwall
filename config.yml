@@ -223,7 +223,7 @@ collector_default_interval: 1
 
 collector_win_pdh:
     - 
-        interval: 2
+        interval: 2s
         tags: {
             "bu": "train"
         }
@@ -237,7 +237,7 @@ collector_win_pdh:
                 metric: "win.pdh.memory.available_bytes"
 
     - 
-        interval: 2
+        interval: 2s
         tags: {
             "bu": "train"
         }
@@ -269,7 +269,7 @@ collector_aggregation:
     - 
         # TickDriven
         # single source and simple calc
-        Interval: 60
+        Interval: 60s
         source: {
             "A": "win.phd.memory.available_bytes"
         }
@@ -288,7 +288,7 @@ collector_aggregation:
 
     - 
         # aggregated on tags
-        Interval: 60
+        Interval: 60s
         source: {
             "A": "win.pdh.memory.available.mb"
         }
@@ -401,7 +401,7 @@ collector_aggregation:
         source: {
             "A": "win.wmi.service.iis"
         }
-        Interval: 60
+        Interval: 60s
         aggregation: "Exists(Last(A))"
         aggregation: "Exists(Last(WindowTick(A, 100)))"
         aggregation: "Exists(Last(WindowHour(A, 24)))"
