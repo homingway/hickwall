@@ -28,7 +28,7 @@ type Config struct {
 	Log_file_maxrolls   int
 
 	Client_metric_enabled  bool
-	Client_metric_interval int
+	Client_metric_interval string
 
 	Transport_flat_metric_key_format string
 	Transport_backfill_enabled       bool

@@ -25,7 +25,7 @@ enable_metadata: false
 # collect client performance metrics
 client_metric_enabled: true
 # collection interval in seconds
-client_metric_interval: 1
+client_metric_interval: 2s
 
 #TODO: merge_metadata_to_tags
 # If enable metadata, but backend don't support metadata. this option will merge all metadata

@@ -171,7 +171,7 @@ func factory_win_wmi(name string, conf interface{}) Collector {
 
 		interval, err := collectorlib.ParseInterval(cf.Interval)
 		if err != nil {
-			log.Errorf("cannot parse interval of collector_cmd: %s - %v", cf.Interval, err)
+			log.Errorf("cannot parse interval of collector_wmi: %s - %v", cf.Interval, err)
 			interval = default_interval
 		}
 		states.Interval = interval

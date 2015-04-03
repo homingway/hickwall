@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
+	log "github.com/oliveagle/seelog"
 	"runtime"
 	"time"
 )
@@ -11,8 +12,12 @@ import (
 func init() {
 
 	interval := time.Duration(1) * time.Second
-	if config.Conf.Client_metric_interval > 0 {
-		interval = time.Duration(config.Conf.Client_metric_interval) * time.Second
+	if config.Conf.Client_metric_interval != "" {
+		ival, err := collectorlib.ParseInterval(config.Conf.Client_metric_interval)
+		if err != nil {
+			log.Errorf("cannot parse interval of client_metric_interval: %s - %v", config.Conf.Client_metric_interval, err)
+		}
+		interval = ival
 	}
 
 	builtin_collectors = append(builtin_collectors, &IntervalCollector{
