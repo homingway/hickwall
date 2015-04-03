@@ -29,8 +29,7 @@ func main() {
 	go cc[0].Run(ch)
 	// go cc[1].Run(ch)
 
-	done := time.After(time.Second * 60)
-	delay := time.After(time.Second * 1)
+	done := time.After(time.Second * 6)
 loop:
 	for {
 		select {
@@ -40,14 +39,9 @@ loop:
 			// fmt.Println(" point ---> ", dp, err)
 			// fmt.Println("-------------------")
 			// pretty.Println(dp)
-			for _, p := range *dp {
+			for _, p := range dp {
 				fmt.Println(" point ---> ", p)
 			}
-		case <-delay:
-			// fmt.Println("-------------------")
-			// change config on the fly
-			// cs[0].Init()
-			// cs[0].(*IntervalCollector).SetInterval(time.Millisecond * 200)
 		case <-done:
 			break loop
 		}

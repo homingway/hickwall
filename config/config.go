@@ -61,7 +61,7 @@ type Conf_win_pdh_query struct {
 
 type Conf_win_wmi struct {
 	Tags     map[string]string
-	Interval int
+	Interval string
 	Queries  []Conf_win_wmi_query
 }
 type Conf_win_wmi_query struct {

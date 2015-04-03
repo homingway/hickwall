@@ -8,6 +8,8 @@ import (
 
 	"github.com/mattn/go-ole"
 	"github.com/mattn/go-ole/oleutil"
+
+	log "github.com/oliveagle/seelog"
 	"regexp"
 	"strings"
 	"time"
@@ -152,7 +154,7 @@ func builtin_win_wmi() Collector {
 	// TODO: rsaInstalled
 
 	conf := config.Conf_win_wmi{
-		Interval: 3600, // 1 hour
+		Interval: "60m",
 		Queries:  queries,
 	}
 
@@ -162,10 +164,18 @@ func builtin_win_wmi() Collector {
 func factory_win_wmi(name string, conf interface{}) Collector {
 	var states state_win_wmi
 	var cf config.Conf_win_wmi
+	var default_interval = time.Duration(60) * time.Minute
 
 	if conf != nil {
 		cf = conf.(config.Conf_win_wmi)
-		states.Interval = time.Duration(cf.Interval) * time.Second
+
+		interval, err := collectorlib.ParseInterval(cf.Interval)
+		if err != nil {
+			log.Errorf("cannot parse interval of collector_cmd: %s - %v", cf.Interval, err)
+			interval = default_interval
+		}
+		states.Interval = interval
+
 		states.queries = []config.Conf_win_wmi_query{}
 
 		for _, query_obj := range cf.Queries {

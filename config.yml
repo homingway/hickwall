@@ -452,7 +452,7 @@ collector_aggregation:
 # limitations. Internally, all queries with in this collector will be executed sequencially.
 collector_win_wmi:
     - 
-        interval: 2
+        interval: 2s
         tags: {
             "bu": "train",
             "prodution": "中文"
