@@ -34,6 +34,9 @@ var (
 
 	DefaultFreq = time.Second * 1
 	AddTags     collectorlib.TagSet
+
+	timestamp = time.Now()
+	tlock     sync.Mutex
 )
 
 type Collector interface {
@@ -41,6 +44,23 @@ type Collector interface {
 	Name() string
 	Init()
 	Enabled() bool
+}
+
+func init() {
+	go func() {
+		for t := range time.Tick(time.Second) {
+			tlock.Lock()
+			timestamp = t
+			tlock.Unlock()
+		}
+	}()
+}
+
+func now() (t time.Time) {
+	tlock.Lock()
+	t = timestamp
+	tlock.Unlock()
+	return
 }
 
 /*
@@ -136,7 +156,7 @@ func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value int
 // automatically added. If the value of the host key is the empty string, it
 // will be removed (use this to prevent the normal auto-adding of the host tag).
 func Add(md *collectorlib.MultiDataPoint, name string, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
-	AddTS(md, name, time.Now(), value, t, rate, unit, desc)
+	AddTS(md, name, now(), value, t, rate, unit, desc)
 }
 
 type IntervalCollector struct {
