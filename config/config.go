@@ -101,7 +101,7 @@ type Transport_influxdb struct {
 	FlatTemplate    string
 
 	Backfill_enabled              bool
-	Backfill_interval_s           int
+	Backfill_interval             string
 	Backfill_handsoff             bool
 	Backfill_latency_threshold_ms int
 	Backfill_cool_down_s          int

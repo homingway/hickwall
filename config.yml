@@ -160,7 +160,7 @@ transport_influxdb:
         retentionpolicy: "p1"
 
         backfill_enabled: true
-        backfill_interval_s: 1
+        backfill_interval: 1s
         backfill_handsoff: true
         backfill_latency_threshold_ms: 10
         backfill_cool_down_s: 5
@@ -183,7 +183,7 @@ transport_influxdb:
         FlatTemplate: "{{.Key}}.{{.Tags}}"
 
         backfill_enabled: true
-        backfill_interval_s: 1
+        backfill_interval: 1s
         backfill_handsoff: true
         backfill_latency_threshold_ms: 10
         backfill_cool_down_s: 5

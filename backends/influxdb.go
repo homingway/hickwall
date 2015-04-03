@@ -68,7 +68,7 @@ type InfluxdbWriterConf struct {
 	FlatTemplate    string
 
 	Backfill_enabled              bool
-	Backfill_interval_s           int
+	Backfill_interval             string
 	Backfill_handsoff             bool
 	Backfill_latency_threshold_ms int
 	Backfill_cool_down_s          int
@@ -111,11 +111,17 @@ func NewInfluxdbWriter(conf config.Transport_influxdb) (*InfluxdbWriter, error) 
 		interval = default_interval
 	}
 
+	bk_interval, err := collectorlib.ParseInterval(conf.Backfill_interval)
+	if err != nil {
+		log.Errorf("cannot parse interval of influxdb backend: %s - %v", conf.Backfill_interval, err)
+		bk_interval = default_interval
+	}
+
 	return &InfluxdbWriter{
 		version: version,
 		conf:    conf,
 		tick:    time.Tick(interval),
-		tickBkf: time.Tick(time.Second * time.Duration(conf.Backfill_interval_s)),
+		tickBkf: time.Tick(bk_interval),
 
 		// mdCh must a buffered channel. and if buffer is full. should not write
 		// otherwise, program will block. other Tick  within the same goruntime
