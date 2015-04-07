@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/influxdb/influxdb/client"
 	"github.com/kr/pretty"
-	"github.com/oliveagle/hickwall/config"
+	// "github.com/oliveagle/hickwall/config"
 	"math/rand"
 	// "strings"
 	"net/url"

@@ -39,7 +39,7 @@ loop:
 						"bu": "hotel",
 					},
 				}
-				md := collectorlib.MultiDataPoint{&p}
+				md := collectorlib.MultiDataPoint{p}
 				backend.Write(md)
 			}
 			// backends.WriteToBackends(md)

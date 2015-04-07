@@ -43,7 +43,7 @@ loop:
 				Timestamp: time.Now(),
 				Value:     rand.Intn(100),
 			}
-			md := collectorlib.MultiDataPoint{&p}
+			md := collectorlib.MultiDataPoint{p}
 			backends.WriteToBackends(md)
 		case <-done:
 			break loop

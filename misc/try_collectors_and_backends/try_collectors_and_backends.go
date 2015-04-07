@@ -6,7 +6,7 @@ import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectors"
-	"github.com/oliveagle/hickwall/config"
+	// "github.com/oliveagle/hickwall/config"
 	"time"
 
 	"github.com/oliveagle/hickwall/utils"
