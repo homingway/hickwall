@@ -10,7 +10,8 @@ SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 APP_ROOT="$SCRIPT_ROOT/.."
 APP_NAME="hickwall"
 BUILD_CMD="bash make/loop_goos_goarch.sh"
-GOIMG="golang"
+#GOIMG="golang"
+GOIMG="golang:1.4.2-cross"
 GOPATH="/oledev/gocodez/"
 
 docker run --rm \
