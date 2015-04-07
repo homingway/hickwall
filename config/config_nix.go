@@ -12,7 +12,7 @@ const (
 )
 
 func addConfigPath() {
-	config_path = append(config_path, fmt.Sprintf("/etc/%s/", APP_NAME))
+	config_path = append(config_path, fmt.Sprintf("/etc/%s/", "hickwall"))
 	config_path = append(config_path, ".")
 
 	viper.SetConfigName("config")

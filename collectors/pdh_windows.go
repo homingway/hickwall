@@ -326,10 +326,10 @@ func (p *PdhCollector) CollectData() []*PdhDataPoint {
 				}
 				data = append(data, &pd)
 			} else {
-				log.Printf("invalid data: CSTATUS: %x", perf.CStatus)
+				log.Debugf("invalid data: CSTATUS: %x", perf.CStatus)
 			}
 		} else {
-			log.Printf("invalid path: CSTATUS: %x Path: %s", cstatus, key)
+			log.Debugf("invalid path: CSTATUS: %x Path: %s", cstatus, key)
 		}
 	}
 	return data
@@ -399,7 +399,7 @@ func factory_win_pdh(name string, conf interface{}) Collector {
 		}
 		states.Interval = interval
 
-		states.hPdh = pdh.NewPdhCollector()
+		states.hPdh = NewPdhCollector()
 
 		states.map_queries = make(map[string]config.Conf_win_pdh_query)
 
@@ -428,7 +428,7 @@ type state_win_pdh struct {
 	Interval time.Duration
 
 	// internal use only
-	hPdh        *pdh.PdhCollector
+	hPdh        *PdhCollector
 	map_queries map[string]config.Conf_win_pdh_query
 }
 
