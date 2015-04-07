@@ -1,7 +1,0 @@
-#include "wpdh.hpp"
-
-int main(){
-    puts("c++ print this line! \n");
-
-    getcpuload();
-}

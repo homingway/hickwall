@@ -1,18 +1,17 @@
 // +build windows
+// have to put pdh.go codez into this file to do cross compile from linux.
+// don't know way
 
 package collectors
 
 import (
 	"github.com/oliveagle/hickwall/collectorlib"
-	// "github.com/oliveagle/hickwall/collectors/pdh"
 	"github.com/oliveagle/hickwall/config"
 	"time"
 
 	log "github.com/oliveagle/seelog"
 
-	// "log"
 	"syscall"
-	"time"
 	"unsafe"
 )
 
@@ -367,13 +366,13 @@ func builtin_win_pdh() Collector {
 		Query:  "\\Process(hickwall)\\Working Set",
 		Metric: "hickwall.client.mem.working_set"})
 
-	// try to find out memory leak source and solution.
-	queries = append(queries, config.Conf_win_pdh_query{
-		Query:  "\\Process(try_string_overflow)\\Working Set - Private",
-		Metric: "hickwall.client.mem.try_string_overflow.private_working_set"})
-	queries = append(queries, config.Conf_win_pdh_query{
-		Query:  "\\Process(try_string_overflow)\\Working Set",
-		Metric: "hickwall.client.mem.try_string_overflow.working_set"})
+	// // try to find out memory leak source and solution.
+	// queries = append(queries, config.Conf_win_pdh_query{
+	// 	Query:  "\\Process(try_string_overflow)\\Working Set - Private",
+	// 	Metric: "hickwall.client.mem.try_string_overflow.private_working_set"})
+	// queries = append(queries, config.Conf_win_pdh_query{
+	// 	Query:  "\\Process(try_string_overflow)\\Working Set",
+	// 	Metric: "hickwall.client.mem.try_string_overflow.working_set"})
 
 	conf := config.Conf_win_pdh{
 		Interval: "2s",
