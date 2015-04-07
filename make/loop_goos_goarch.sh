@@ -15,4 +15,4 @@ for GOOS in darwin linux; do
 done
 
 # windows only support 386 version. don't know way amd64 cannot be compiled.
-GOOS=windows GOARCH=386 go build -v -o bin/hickwall-$GOOS-$GOARCH.exe
+GOOS=windows GOARCH=386 go build -v -o bin/hickwall-windows-386.exe

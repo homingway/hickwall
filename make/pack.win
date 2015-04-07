@@ -22,6 +22,16 @@ cd "$SCRIPT_ROOT\\.."
 DST=$(pwd)/bin/$FILENAME
 
 
+#go build . && \
+  #cp hickwall.exe $TMP_DIR/ && \
+  #cp config.yml.example.win $TMP_DIR/config.yml.example && \
+  #cp Readme.md $TMP_DIR/ && \
+  #cp Readme.html $TMP_DIR/ && \
+  #cd $TMP_DIR && \
+  #$ISCC win.iss && \
+  #cp Output/setup.exe $DST && \
+  #echo "copied setup into $DST"
+
 go build . && \
   cp hickwall.exe $TMP_DIR/ && \
   cp config.yml.example.win $TMP_DIR/config.yml.example && \
