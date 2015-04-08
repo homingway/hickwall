@@ -1,0 +1,14 @@
+
+#deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ lucid main restricted universe multiverse
+#deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ lucid-security main restricted universe multiverse
+#deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ lucid-updates main restricted universe multiverse
+#deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ lucid-proposed main restricted universe multiverse
+#deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ lucid-backports main restricted universe multiverse
+#
+deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ precise main restricted universe multiverse
+deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ precise-security main restricted universe multiverse
+deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ precise-updates main restricted universe multiverse
+deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ precise-proposed main restricted universe multiverse
+deb [arch=amd64] http://mirrors.sh.ctriptravel.com/ubuntu/ precise-backports main restricted universe multiverse
+#deb [arch=amd64] http://mirrors.sh.ctriptravel.com/other/salt/ubuntu/ precise  main
+deb [arch=amd64] http://mirrors.sh.ctriptravel.com/custom/precise/ precise main
