@@ -18,23 +18,30 @@ cp $PROJ_ROOT/config.yml /opt/hickwall/shared/config.yml.example
 cp $PROJ_ROOT/Readme.html /opt/hickwall/$VER/
 cp $PROJ_ROOT/Readme.md /opt/hickwall/$VER/
 
+cp "$SCRIPT_ROOT/after_install.sh" /opt/hickwall/after_install.sh
+
+AFTER_INSTALL="/opt/hickwall/after_install.sh"
+
+sed -i "s/^VER=.*/VER=$VER/" $AFTER_INSTALL
+
+cat $AFTER_INSTALL
 
 # amd64
 cp -f $PROJ_ROOT/bin/hickwall-linux-amd64 /opt/hickwall/$VER/hickwall
 fpm -s dir -t rpm -p $DIST -a x86_64 \
-  --version $VER --force --name "hickwall" \
+  --version $VER --force --name "hickwall" --after-install $AFTER_INSTALL \
   /opt/hickwall/shared/config.yml.example /opt/hickwall/$VER/
 
 fpm -s dir -t deb -p $DIST -a x86_64 \
-  --version $VER --force --name "hickwall" \
+  --version $VER --force --name "hickwall" --after-install $AFTER_INSTALL \
   /opt/hickwall/shared/config.yml.example /opt/hickwall/$VER/
 
 # 386
 cp -f $PROJ_ROOT/bin/hickwall-linux-386 /opt/hickwall/$VER/hickwall
 fpm -s dir -t rpm -p $DIST -a x86 \
-  --version $VER --force --name "hickwall" \
+  --version $VER --force --name "hickwall" --after-install $AFTER_INSTALL \
   /opt/hickwall/shared/config.yml.example /opt/hickwall/$VER/
 
 fpm -s dir -t deb -p $DIST -a x86 \
-  --version $VER --force --name "hickwall" \
+  --version $VER --force --name "hickwall" --after-install $AFTER_INSTALL \
   /opt/hickwall/shared/config.yml.example /opt/hickwall/$VER/
