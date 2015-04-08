@@ -24,7 +24,7 @@ AFTER_INSTALL="/opt/hickwall/after_install.sh"
 
 sed -i "s/^VER=.*/VER=$VER/" $AFTER_INSTALL
 
-cat $AFTER_INSTALL
+#cat $AFTER_INSTALL
 
 # amd64
 cp -f $PROJ_ROOT/bin/hickwall-linux-amd64 /opt/hickwall/$VER/hickwall

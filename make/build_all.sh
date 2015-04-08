@@ -18,3 +18,5 @@ docker run --rm \
   -v $APP_ROOT:/usr/src/$APP_NAME -w /usr/src/$APP_NAME \
   -v $GOPATH:/gopath -e GOPATH=/gopath \
   $GOIMG $BUILD_CMD
+
+bash ./compile_readme/build.sh
