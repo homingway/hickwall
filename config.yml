@@ -122,6 +122,14 @@ transport_backfill_handsoff: false
 # backup online again. the network traffic will be a lot greater than normal in some cases. 
 transport_merge_request: true
 
+transport_file:
+    - 
+        # output data into file
+        enabled: false
+        flush_interval: 100ms
+        path: "/var/lib/hickwall/fileoutput.txt"
+        max_size: 10mb
+        max_rotation: 5
 
 transport_graphite:
     -
