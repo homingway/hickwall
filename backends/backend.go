@@ -23,15 +23,7 @@ type TSWriter interface {
 }
 
 func init() {
-	// stdConf := StdoutWriterConf{
-	// 	Enabled:           true,
-	// 	Max_batch_size:    MAX_BATCH_SIZE,
-	// 	Interval:          time.Millisecond * time.Duration(1000),
-	// 	Backfill_enabled:  true,
-	// 	Backfill_interval: time.Millisecond * time.Duration(200),
-	// }
-	// backends["stdout"] = NewStdoutWriter(stdConf)
-	// log.Debug("initialized transport backend stdout")
+	backends["stdout"] = NewStdoutWriter(config.Conf.Transport_stdout)
 
 	// influxdb backends
 	for _, iconf := range config.Conf.Transport_influxdb {
@@ -69,9 +61,10 @@ func WriteToBackends(md collectorlib.MultiDataPoint) {
 		if backend.Enabled() == true {
 			log.Debug("Backend.Write.Endabled: ", key)
 			backend.Write(md)
-		} else {
-			log.Debug("Backend.Write.Disabled: ", key)
 		}
+		// else {
+		// 	log.Debug("Backend.Write.Disabled: ", key)
+		// }
 	}
 }
 

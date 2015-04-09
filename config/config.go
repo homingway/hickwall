@@ -32,7 +32,9 @@ type Config struct {
 
 	Transport_flat_metric_key_format string
 	Transport_backfill_enabled       bool
-	Transport_graphite_hosts         []string
+
+	Transport_stdout         Transport_stdout
+	Transport_graphite_hosts []string
 
 	Transport_influxdb []Transport_influxdb
 
@@ -81,6 +83,13 @@ type Conf_cmd struct {
 	Cmd      []string
 	Interval string
 	Tags     map[string]string
+}
+
+type Transport_file struct {
+}
+
+type Transport_stdout struct {
+	Enabled bool
 }
 
 type Transport_influxdb struct {

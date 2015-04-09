@@ -2,12 +2,20 @@ package main
 
 import (
 	"fmt"
+	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
 	. "github.com/oliveagle/hickwall/collectors"
+	"github.com/oliveagle/hickwall/config"
 	"time"
 )
 
 func main() {
+
+	config.Conf.Transport_stdout.Enabled = true
+	// config.Conf.Transport_stdout.Enabled = false
+
+	stdout, _ := backends.GetBackendByName("stdout")
+	go stdout.Run()
 
 	cs := GetBuiltinCollectorByName("builtin_hickwall_client")
 	if cs != nil {
@@ -24,11 +32,8 @@ func main() {
 	loop:
 		for {
 			select {
-			case md, err := <-ch:
-				fmt.Println("MultiDataPoint: ", md, err)
-				for _, p := range md {
-					fmt.Println(" point ---> ", p)
-				}
+			case md, _ := <-ch:
+				stdout.Write(md)
 			case <-done:
 				break loop
 			}
