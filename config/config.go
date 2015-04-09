@@ -34,6 +34,7 @@ type Config struct {
 	Transport_backfill_enabled       bool
 
 	Transport_stdout         Transport_stdout
+	Transport_file           Transport_file
 	Transport_graphite_hosts []string
 
 	Transport_influxdb []Transport_influxdb
@@ -86,6 +87,13 @@ type Conf_cmd struct {
 }
 
 type Transport_file struct {
+	Enabled        bool
+	Flush_Interval string
+	Path           string
+
+	// TODO: max_size, max_rotation
+	Max_size     int
+	Max_rotation int
 }
 
 type Transport_stdout struct {

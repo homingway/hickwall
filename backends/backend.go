@@ -25,6 +25,8 @@ type TSWriter interface {
 func init() {
 	backends["stdout"] = NewStdoutWriter(config.Conf.Transport_stdout)
 
+	backends["file"] = NewFileWriter(config.Conf.Transport_file)
+
 	// influxdb backends
 	for _, iconf := range config.Conf.Transport_influxdb {
 		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))

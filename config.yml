@@ -126,14 +126,13 @@ transport_stdout:
     enabled: false
 
 transport_file:
-    - 
-        # output data into file
-        enabled: false
-        flush_interval: 100ms
-        path: "/var/lib/hickwall/fileoutput.txt"
-        # TODO: max_size, max_rotation
-        # max_size: 10mb
-        # max_rotation: 5
+    # output data into file
+    enabled: false
+    flush_interval: 100ms
+    path: "/var/lib/hickwall/fileoutput.txt"
+    # TODO: max_size, max_rotation
+    # max_size: 10mb
+    # max_rotation: 5
 
 transport_graphite:
     -
