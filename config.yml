@@ -190,6 +190,10 @@ transport_influxdb:
         backfill_latency_threshold_ms: 10
         backfill_cool_down: 5s
 
+transport_kafka:
+    broker_list: "192.168.100.67:6667,192.168.100.67:6668,192.168.100.67:6669,192.168.100.67:6670,192.168.100.67:6671"
+    
+
 # TODO: support amqp transport
 # transport_amqp_enabled: false
 # transport_amqp_hosts: ["127.0.0.1:5672", "127.0.0.1:5672"]

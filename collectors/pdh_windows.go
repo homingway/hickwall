@@ -366,6 +366,14 @@ func builtin_win_pdh() Collector {
 		Query:  "\\Process(hickwall)\\Working Set",
 		Metric: "hickwall.client.mem.working_set"})
 
+	//FIXME: temp fix double process problem.
+	queries = append(queries, config.Conf_win_pdh_query{
+		Query:  "\\Process(hickwall#1)\\Working Set - Private",
+		Metric: "hickwall.client.mem.private_working_set"})
+	queries = append(queries, config.Conf_win_pdh_query{
+		Query:  "\\Process(hickwall#1)\\Working Set",
+		Metric: "hickwall.client.mem.working_set"})
+
 	// // try to find out memory leak source and solution.
 	// queries = append(queries, config.Conf_win_pdh_query{
 	// 	Query:  "\\Process(try_string_overflow)\\Working Set - Private",
