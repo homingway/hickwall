@@ -15,6 +15,10 @@ cp win.iss $TMP_DIR/
 cp start.bat $TMP_DIR/
 cp stop.bat $TMP_DIR/
 
+cd $TMP_DIR
+sed -i "s/{{version}}/$VER/g" win.iss
+# cat win.iss
+
 cd "$PROJ_ROOT"
 cp bin/hickwall-windows-386.exe $TMP_DIR/hickwall.exe && \
   cp config.yml.example.win $TMP_DIR/config.yml.example && \

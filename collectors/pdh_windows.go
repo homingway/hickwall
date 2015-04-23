@@ -352,8 +352,8 @@ func builtin_win_pdh() Collector {
 		Query:  "\\Memory\\Available Bytes",
 		Metric: "win.memory.available_bytes"})
 	queries = append(queries, config.Conf_win_pdh_query{
-		Query:  "\\Processes(_Total)\\Working Set",
-		Metric: "win.processes.working_set.total"})
+		Query:  "\\Process(_Total)\\Working Set",
+		Metric: "win.process.working_set.total"})
 	queries = append(queries, config.Conf_win_pdh_query{
 		Query:  "\\Memory\\Cache Bytes",
 		Metric: "win.memory.cache_bytes"})
@@ -367,20 +367,12 @@ func builtin_win_pdh() Collector {
 		Metric: "hickwall.client.mem.working_set"})
 
 	//FIXME: temp fix double process problem.
-	queries = append(queries, config.Conf_win_pdh_query{
-		Query:  "\\Process(hickwall#1)\\Working Set - Private",
-		Metric: "hickwall.client.mem.private_working_set"})
-	queries = append(queries, config.Conf_win_pdh_query{
-		Query:  "\\Process(hickwall#1)\\Working Set",
-		Metric: "hickwall.client.mem.working_set"})
-
-	// // try to find out memory leak source and solution.
 	// queries = append(queries, config.Conf_win_pdh_query{
-	// 	Query:  "\\Process(try_string_overflow)\\Working Set - Private",
-	// 	Metric: "hickwall.client.mem.try_string_overflow.private_working_set"})
+	// 	Query:  "\\Process(hickwall#1)\\Working Set - Private",
+	// 	Metric: "hickwall.client.mem.private_working_set.1"})
 	// queries = append(queries, config.Conf_win_pdh_query{
-	// 	Query:  "\\Process(try_string_overflow)\\Working Set",
-	// 	Metric: "hickwall.client.mem.try_string_overflow.working_set"})
+	// 	Query:  "\\Process(hickwall#1)\\Working Set",
+	// 	Metric: "hickwall.client.mem.working_set.1"})
 
 	conf := config.Conf_win_pdh{
 		Interval: "2s",

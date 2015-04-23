@@ -3,29 +3,38 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"log"
+	// "log"
+	"os"
+	"path"
+	"path/filepath"
 	"reflect"
+
+	log "github.com/oliveagle/seelog"
 )
 
 const (
 	VERSION = "v0.0.1"
 )
 
-var config_path []string
+var (
+	config_path     []string
+	LOG_DIR         = ""
+	SHARED_DIR      = ""
+	CONFIG_FILEPATH = ""
+
+	LOG_FILE     = "hickwall.log"
+	LOG_FILEPATH = ""
+)
 
 type Config struct {
 	Tags map[string]string
 
-	Port                string
-	Logfile             string
-	Log_colored_console bool
-	Log_console_level   string
-	Log_console_format  string
-	Log_file_level      string
-	Log_file_filepath   string
-	Log_file_format     string
-	Log_file_maxsize    int
-	Log_file_maxrolls   int
+	// Port              string
+	Logfile           string
+	Log_console_level string
+	Log_file_level    string
+	Log_file_maxsize  int
+	Log_file_maxrolls int
 
 	Client_metric_enabled  bool
 	Client_metric_interval string
@@ -185,54 +194,49 @@ func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 func LoadConfigFile() error {
 	err := viper.ReadInConfig()
 	if err != nil {
-		// log.Println("No configuration file loaded - using defaults")
 		return fmt.Errorf("No configuration file loaded. config.yml")
 	}
+	// fmt.Println("config file used: ", viper.ConfigFileUsed())
 
 	// Marshal values
 	err = viper.Marshal(&Conf)
 	if err != nil {
-		log.Fatalln("Error: unable to parse Configuration: %v", err)
+		return fmt.Errorf("Error: unable to parse Configuration: %v\n", err)
 	}
-
-	Conf.setDefaultByKey("port", ":9977")
-	Conf.setDefaultByKey("Logfile", "/var/log/hickwall/hickwall.log")
-
-	// // fmt.Println("-------- after setdefault --------------")
-	ConfigLogger()
-
 	return nil
 }
 
 func init() {
-	// viper.SetConfigType("toml")
-	//viper.SetConfigType("yml")
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, _ = filepath.Split(dir)
+
+	SHARED_DIR, _ = filepath.Abs(path.Join(dir, "shared"))
+
+	LOG_DIR, _ = filepath.Abs(path.Join(SHARED_DIR, "logs"))
+	LOG_FILEPATH, _ = filepath.Abs(path.Join(LOG_DIR, LOG_FILE))
+
+	CONFIG_FILEPATH, _ = filepath.Abs(path.Join(SHARED_DIR, "config.yml"))
+
+	Mkdir_p_logdir(LOG_DIR)
 
 	// read config file
-	addConfigPath()
+	viper.SetConfigName("config")
+	viper.AddConfigPath(SHARED_DIR)
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("..")
+	viper.AddConfigPath("../shared/")
 
-	LoadConfigFile()
+	err := LoadConfigFile()
+	ConfigLogger()
 
-	// err := viper.ReadInConfig()
-	// if err != nil {
-	// 	// log.Println("No configuration file loaded - using defaults")
-	// 	return fmt.Errorf("No configuration file loaded. config.yml")
-	// }
+	if err != nil {
+		log.Errorf("LoadConfigFile failed: %v", err)
+		log.Flush()
+		os.Exit(1)
+	} else {
+		log.Debug("init config, config loaded")
+	}
 
-	// Marshal values
-	// err = viper.Marshal(&Conf)
-	// if err != nil {
-	// 	log.Fatalln("Error: unable to parse Configuration: %v", err)
-	// }
-
-	// place all setDefault here -----------------
-	// First we have to find out which config item is not been set in config.toml
-	// then we only set default values to these missing items.
-
-	//TODO: remove port :9977
-	// Conf.setDefaultByKey("port", ":9977")
-	// Conf.setDefaultByKey("Logfile", "/var/log/hickwall/hickwall.log")
-
-	// // fmt.Println("-------- after setdefault --------------")
-	// ConfigLogger()
+	log.Debug("LOG_DIR: ", LOG_DIR)
+	log.Debug("LOG_FILEPATH: ", LOG_FILEPATH)
 }

@@ -172,7 +172,7 @@ func (c *InfluxdbClient_v088) Ping() (time.Duration, string, error) {
 }
 
 func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Results, error) {
-	log.Debug("InfluxdbClient_v088.Write")
+	// log.Debug("InfluxdbClient_v088.Write")
 	// v0.9.0-rc7 [
 	//  {
 	//      Name: "a",

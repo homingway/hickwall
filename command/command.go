@@ -6,4 +6,4 @@ import (
 
 var PrimaryService = servicelib.NewService("hickwall", "monitoring system")
 
-var HelperService = servicelib.NewService("hickwallhelper", "hickwall helper service")
+// var HelperService = servicelib.NewService("hickwallhelper", "hickwall helper service")

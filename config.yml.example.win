@@ -122,6 +122,17 @@ transport_backfill_handsoff: false
 # backup online again. the network traffic will be a lot greater than normal in some cases. 
 transport_merge_request: true
 
+transport_stdout:
+    enabled: false
+
+transport_file:
+    # output data into file
+    enabled: false
+    flush_interval: 100ms
+    path: "/var/lib/hickwall/fileoutput.txt"
+    # TODO: max_size, max_rotation
+    # max_size: 10mb
+    # max_rotation: 5
 
 transport_graphite:
     -
@@ -179,6 +190,10 @@ transport_influxdb:
         backfill_latency_threshold_ms: 10
         backfill_cool_down: 5s
 
+transport_kafka:
+    broker_list: "192.168.100.67:6667,192.168.100.67:6668,192.168.100.67:6669,192.168.100.67:6670,192.168.100.67:6671"
+    
+
 # TODO: support amqp transport
 # transport_amqp_enabled: false
 # transport_amqp_hosts: ["127.0.0.1:5672", "127.0.0.1:5672"]
@@ -211,8 +226,8 @@ transport_influxdb:
 
 # ---------- collector configurations -------------------------------------------
 
-# interval in seconds
-collector_default_interval: 1
+#TODO: interval in seconds
+collector_default_interval: 5s
 
 # builtin collectors will always working without configurations
 
@@ -588,7 +603,7 @@ collector_cmd:
 # collector_ping:
 #     -
 #         # in seconds
-#         interval: 10
+#         interval: 10s
 #         metric_key: "ping"
 #         tags: [
 #             [ "some", "test2"]
@@ -603,6 +618,7 @@ collector_cmd:
 #             - "time_avg"
 #             - "time_max"
 #             - "time_mdev"
+
 #             - "lost_pct"
 
 #         # metrics:

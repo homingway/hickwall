@@ -5,17 +5,15 @@ import (
 	log "github.com/oliveagle/seelog"
 	"github.com/oliveagle/stringio"
 	"os"
+	// "path"
 	"path/filepath"
+	// "runtime"
 	"text/template"
 )
 
-func Mkdir_p_logdir(logfile string) {
-	dir, _ := filepath.Split(logfile)
-	err := os.MkdirAll(dir, 0755)
-	if err != nil {
-		fmt.Println("Error: cannot create log dir: %s, err: %s", dir, err)
-	}
-}
+const (
+	LOG_FORMAT = "%Date(2006-01-02T15:04:05.00 MST) [%Level] %RelFile:%Line(%FuncShort) %Msg%n"
+)
 
 var (
 	ordered_level = []string{
@@ -36,6 +34,17 @@ var (
 	}
 )
 
+func Mkdir_p_logdir(logfile string) {
+	dir, _ := filepath.Split(logfile)
+	if dir != "" {
+		// fmt.Println("log dir: ", dir)
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			fmt.Println("Error: cannot create log dir: %s, err: %s", dir, err)
+		}
+	}
+}
+
 func evalTpl(tpl string, data interface{}) (str string, err error) {
 	sio := stringio.NewStringIO()
 	defer sio.Close()
@@ -50,13 +59,9 @@ func evalTpl(tpl string, data interface{}) (str string, err error) {
 }
 
 func setLoggerDefaults() {
-	Conf.setDefaultByKey("Log_colored_console", false)
-	Conf.setDefaultByKey("Log_console_level", "debug")
-	Conf.setDefaultByKey("Log_console_format", "%Date/%Time [%LEV] %Msg%n")
-
+	Conf.setDefaultByKey("Log_console_level", "info")
 	Conf.setDefaultByKey("Log_file_level", "debug")
-	Conf.setDefaultByKey("Log_file_filepath", "/var/log/hickwall/hickwall.log")
-	Conf.setDefaultByKey("Log_file_format", "%Date(2006 Jan 02/3:04:05.000000000 PM MST) [%Level] %File %FullPath %RelFile %Msg%n")
+	Conf.setDefaultByKey("Log_file_filepath", LOG_FILEPATH)
 	Conf.setDefaultByKey("Log_file_maxsize", 300)
 	Conf.setDefaultByKey("Log_file_maxrolls", 5)
 }
@@ -91,7 +96,8 @@ func gen_outputs(args *gen_outputs_args) (str string, err error) {
 		tpl_log_out_console := `<console formatid="console-{{.Level}}"/>`
 		// console logger can enable or disable colored output
 		if idx >= idx_console_level {
-			if ALLOWED_COLOR_LOG && args.colored_console {
+			// if ALLOWED_COLOR_LOG && args.colored_console {
+			if args.colored_console {
 				tmp_filter_console, err = evalTpl(tpl_log_out_console, struct {
 					Level string
 				}{
@@ -236,20 +242,19 @@ func gen_config(formats_args *gen_formats_args, outputs_args *gen_outputs_args) 
 var Logger log.LoggerInterface
 
 func ConfigLogger() error {
+
 	setLoggerDefaults()
 
-	Mkdir_p_logdir(Conf.Log_file_filepath)
-
 	formats_args := &gen_formats_args{
-		fmt_console: Conf.Log_console_format,
-		fmt_file:    Conf.Log_file_format,
+		fmt_console: LOG_FORMAT,
+		fmt_file:    LOG_FORMAT,
 	}
 
 	outputs_args := &gen_outputs_args{
-		colored_console: Conf.Log_colored_console,
+		colored_console: false,
 		console_level:   Conf.Log_console_level,
 		file_level:      Conf.Log_file_level,
-		file_path:       Conf.Log_file_filepath,
+		file_path:       LOG_FILEPATH,
 		maxsize:         Conf.Log_file_maxsize * 1024 * 1024,
 		maxrolls:        Conf.Log_file_maxrolls,
 	}

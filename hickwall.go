@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	log "github.com/oliveagle/seelog"
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/command"
 	"github.com/oliveagle/hickwall/servicelib"
+	log "github.com/oliveagle/seelog"
 	"os"
 )
 
@@ -13,6 +13,8 @@ var err error
 
 func main() {
 	defer log.Flush()
+
+	log.Info("main ---------------------------")
 
 	app := cli.NewApp()
 	app.Name = "hickwall"
@@ -106,19 +108,23 @@ func main() {
 	// app.Run(os.Args)
 
 	if len(os.Args) >= 2 {
+		log.Info("len os.args >= 2")
 		app.Run(os.Args)
 	} else {
+		log.Info("len os.args < 2")
+
 		isIntSess, err := servicelib.IsAnInteractiveSession()
 		if err != nil {
 			log.Error("failed to determine if we are running in an interactive session or not: %v", err)
 			return
 		}
+
 		if !isIntSess {
 			fmt.Println("Running ... ")
+			log.Info("running ... ")
 			runService(false)
 			return
 		}
 	}
-
 	return
 }
