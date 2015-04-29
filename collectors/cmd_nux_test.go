@@ -32,7 +32,9 @@ func TestCollector_cmd_1(t *testing.T) {
 }
 
 func TestCollector_cmd_sh_1(t *testing.T) {
-	config.Conf.Log_console_level = "debug"
+	runtime_conf = config.GetRuntimeConf()
+	runtime_conf.Log_console_level = "debug"
+
 	config.ConfigLogger()
 	defer log.Flush()
 

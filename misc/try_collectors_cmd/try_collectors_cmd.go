@@ -13,10 +13,11 @@ import (
 func main() {
 	pretty.Println("")
 
+	runtime_conf := config.GetRuntimeConf()
+
 	cs := GetBuiltinCollectors()
 
-	fmt.Println(config.Conf.Collector_cmd)
-	AddCustomizedCollectorByName("cmd", "cc[0]collector", config.Conf.Collector_cmd[0])
+	AddCustomizedCollectorByName("cmd", "cc[0]collector", runtime_conf.Collector_cmd[0])
 	cc := GetCustomizedCollectors()
 
 	fmt.Println(" ++ customized_collectors:  ", cc)

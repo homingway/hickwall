@@ -5,7 +5,7 @@ import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
 	// . "github.com/oliveagle/hickwall/collectors"
-	"github.com/oliveagle/hickwall/config"
+	// "github.com/oliveagle/hickwall/config"
 	"math/rand"
 	"time"
 )
@@ -15,7 +15,7 @@ func main() {
 	fmt.Println("--")
 	fmt.Println(backends.GetBackendList())
 
-	config.Conf.Transport_file.Enabled = true
+	// config.Conf.Transport_file.Enabled = true
 	// config.Conf.Transport_file.Enabled = false
 
 	file_bk, _ := backends.GetBackendByName("file")

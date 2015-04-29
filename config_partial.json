@@ -1,7 +1,0 @@
-{
-    "collector_ping": [{
-        "alias": "p2_PING",
-        "hosts": ["www.baidu.com", "www.12306.com"],
-        "interval": 10,
-    }, ],
-}

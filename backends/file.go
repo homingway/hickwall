@@ -49,7 +49,7 @@ func NewFileWriter(conf config.Transport_file) *FileWriter {
 }
 
 func (w *FileWriter) Enabled() bool {
-	return config.Conf.Transport_file.Enabled
+	return config.GetRuntimeConf().Transport_file.Enabled
 }
 
 func (w *FileWriter) Close() {

@@ -13,11 +13,12 @@ import (
 func main() {
 	pretty.Println("")
 
-	// pretty.Println(config.Conf)
+	runtime_conf := config.GetRuntimeConf()
+	// fmt.Println(runtime_conf)
 
 	cs := GetBuiltinCollectorByName("builtin_win_wmi")
 
-	AddCustomizedCollectorByName("win_wmi", "cc[0]collector", config.Conf.Collector_win_wmi[0])
+	AddCustomizedCollectorByName("win_wmi", "cc[0]collector", runtime_conf.Collector_win_wmi[0])
 	cc := GetCustomizedCollectors()
 
 	fmt.Println(" ++ builtin_collector: ", &cs)

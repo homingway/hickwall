@@ -383,9 +383,13 @@ func builtin_win_pdh() Collector {
 }
 
 func factory_win_pdh(name string, conf interface{}) Collector {
-	var states state_win_pdh
-	var cf config.Conf_win_pdh
-	var default_interval = time.Duration(1) * time.Second
+	var (
+		states           state_win_pdh
+		cf               config.Conf_win_pdh
+		default_interval = time.Duration(1) * time.Second
+
+		runtime_conf = config.GetRuntimeConf()
+	)
 
 	if conf != nil {
 		cf = conf.(config.Conf_win_pdh)
@@ -409,7 +413,7 @@ func factory_win_pdh(name string, conf interface{}) Collector {
 
 			states.hPdh.AddEnglishCounter(query)
 
-			query_obj.Tags = AddTags.Copy().Merge(config.Conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
+			query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
 
 			states.map_queries[query] = query_obj
 		}

@@ -162,9 +162,12 @@ func builtin_win_wmi() Collector {
 }
 
 func factory_win_wmi(name string, conf interface{}) Collector {
-	var states state_win_wmi
-	var cf config.Conf_win_wmi
-	var default_interval = time.Duration(60) * time.Minute
+	var (
+		states           state_win_wmi
+		cf               config.Conf_win_wmi
+		default_interval = time.Duration(60) * time.Minute
+		runtime_conf     = config.GetRuntimeConf()
+	)
 
 	if conf != nil {
 		cf = conf.(config.Conf_win_wmi)
@@ -182,7 +185,7 @@ func factory_win_wmi(name string, conf interface{}) Collector {
 			//TODO: validate query
 
 			// merge tags
-			query_obj.Tags = AddTags.Copy().Merge(config.Conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
+			query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
 
 			states.queries = append(states.queries, query_obj)
 		}

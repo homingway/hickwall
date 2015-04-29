@@ -23,12 +23,14 @@ type TSWriter interface {
 }
 
 func init() {
-	backends["stdout"] = NewStdoutWriter(config.Conf.Transport_stdout)
+	var runtime_conf = config.GetRuntimeConf()
 
-	backends["file"] = NewFileWriter(config.Conf.Transport_file)
+	backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
+
+	backends["file"] = NewFileWriter(runtime_conf.Transport_file)
 
 	// influxdb backends
-	for _, iconf := range config.Conf.Transport_influxdb {
+	for _, iconf := range runtime_conf.Transport_influxdb {
 		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
 		bk, err := NewInfluxdbWriter(iconf)
 		if err != nil {

@@ -30,7 +30,17 @@ You need install [`tools/godep`][url_godep] first. which is a golang dependencie
 
 ##Configuration
 
+there are two ways to config hickwall client. 
+* Use local configuration file:  hickwall can run standalone with all configurations in `shared/config.yml`
 
+* Use Remote configuration service: hickwall can also retrive configuration from `etcd` cluster without encryption. but you 
+  have to write a minimal `shared/config.yml` to tell hickwall where to find etcd. 
+
+    ```yaml
+    remote_config_protocal: "etcd"
+    remote_config_url: "http://127.0.0.1:4001"
+    remote_config_path: "/config/host/DST54869.json"
+    ```
 
 ## Development
 

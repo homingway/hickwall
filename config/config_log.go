@@ -8,6 +8,7 @@ import (
 	// "path"
 	"path/filepath"
 	// "runtime"
+	"strings"
 	"text/template"
 )
 
@@ -16,6 +17,7 @@ const (
 )
 
 var (
+	Logger        log.LoggerInterface
 	ordered_level = []string{
 		"trace",
 		"debug",
@@ -59,11 +61,18 @@ func evalTpl(tpl string, data interface{}) (str string, err error) {
 }
 
 func setLoggerDefaults() {
-	Conf.setDefaultByKey("Log_console_level", "info")
-	Conf.setDefaultByKey("Log_file_level", "debug")
-	Conf.setDefaultByKey("Log_file_filepath", LOG_FILEPATH)
-	Conf.setDefaultByKey("Log_file_maxsize", 300)
-	Conf.setDefaultByKey("Log_file_maxrolls", 5)
+	// CoreConf.setDefaultByKey("Log_console_level", "info")
+	// CoreConf.setDefaultByKey("Log_level", "debug")
+	// CoreConf.setDefaultByKey("Log_file_filepath", LOG_FILEPATH)
+	// CoreConf.setDefaultByKey("Log_file_maxsize", 300)
+	// CoreConf.setDefaultByKey("Log_file_maxrolls", 5)
+
+	core_viper.SetDefault("Log_file_maxrolls", 5)
+	core_viper.SetDefault("Log_file_maxsize", 300)
+	core_viper.SetDefault("Log_console_level", "info")
+	core_viper.SetDefault("Log_level", "debug")
+	core_viper.SetDefault("Log_file_filepath", LOG_FILEPATH)
+
 }
 
 type gen_outputs_args struct {
@@ -239,9 +248,12 @@ func gen_config(formats_args *gen_formats_args, outputs_args *gen_outputs_args) 
 	return config_str, nil
 }
 
-var Logger log.LoggerInterface
-
 func ConfigLogger() error {
+	var (
+		maxsize   = 1
+		maxrolls  = 1
+		log_level = "debug"
+	)
 
 	setLoggerDefaults()
 
@@ -250,13 +262,27 @@ func ConfigLogger() error {
 		fmt_file:    LOG_FORMAT,
 	}
 
+	if CoreConf.Log_file_maxsize > maxsize {
+		maxsize = CoreConf.Log_file_maxsize
+	}
+	if CoreConf.Log_file_maxrolls > maxrolls {
+		maxrolls = CoreConf.Log_file_maxrolls
+	}
+
+	_log_level := strings.ToLower(CoreConf.Log_level)
+
+	switch _log_level {
+	case "trace", "debug", "info", "error", "critical":
+		log_level = _log_level
+	}
+
 	outputs_args := &gen_outputs_args{
 		colored_console: false,
-		console_level:   Conf.Log_console_level,
-		file_level:      Conf.Log_file_level,
+		console_level:   "info",
+		file_level:      log_level,
 		file_path:       LOG_FILEPATH,
-		maxsize:         Conf.Log_file_maxsize * 1024 * 1024,
-		maxrolls:        Conf.Log_file_maxrolls,
+		maxsize:         maxsize * 1024 * 1024,
+		maxrolls:        maxrolls,
 	}
 
 	config_str, err := gen_config(formats_args, outputs_args)
@@ -272,5 +298,7 @@ func ConfigLogger() error {
 	}
 	log.ReplaceLogger(Logger)
 	// log.Debug(config_str)
+
+	// log.Debug("log_filepath: ", LOG_FILEPATH)
 	return nil
 }

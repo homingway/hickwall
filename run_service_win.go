@@ -39,9 +39,9 @@ type serviceHandler struct{}
 func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	log.Info("runAsPrimaryService")
 
-	err = config.LoadConfigFile()
+	err = config.LoadAllConfig()
 	if err != nil {
-		log.Error("config.Init Failed: %v", err)
+		log.Error("LoadAllConfig Failed: %v", err)
 		return
 	}
 
@@ -147,14 +147,14 @@ loop:
 func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	log.Infof("serviceHandler.Execute: %v", args)
 
-	if len(args) > 0 {
-		svc_name := args[0]
-		if svc_name == "hickwall" {
-			return runAsPrimaryService(args, r, changes)
-		} else {
-			return runAsHelperService(args, r, changes)
-		}
-	}
+	// if len(args) > 0 {
+	// 	svc_name := args[0]
+	// 	if svc_name == "hickwall" {
+	// 		return runAsPrimaryService(args, r, changes)
+	// 	} else {
+	// 		return runAsHelperService(args, r, changes)
+	// 	}
+	// }
 
 	return runAsPrimaryService(args, r, changes)
 }

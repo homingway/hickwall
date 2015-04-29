@@ -105,6 +105,7 @@ func main() {
 		},
 	}
 
+	// log.Trace("hahaha trace")
 	// app.Run(os.Args)
 
 	if len(os.Args) >= 2 {

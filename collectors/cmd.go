@@ -21,10 +21,12 @@ func init() {
 }
 
 func factory_cmd(name string, conf interface{}) Collector {
-	var cf config.Conf_cmd
-	var state state_cmd
-
-	var default_interval = time.Duration(1) * time.Minute
+	var (
+		cf               config.Conf_cmd
+		state            state_cmd
+		default_interval = time.Duration(1) * time.Minute
+		runtime_conf     = config.GetRuntimeConf()
+	)
 
 	if conf != nil {
 		cf = conf.(config.Conf_cmd)
@@ -36,7 +38,7 @@ func factory_cmd(name string, conf interface{}) Collector {
 		}
 		state.Interval = interval
 		state.Cmd = cf.Cmd
-		state.Tags = AddTags.Copy().Merge(config.Conf.Tags).Merge(cf.Tags)
+		state.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags)
 	}
 
 	return &IntervalCollector{

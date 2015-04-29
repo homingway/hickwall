@@ -17,7 +17,7 @@ func NewStdoutWriter(conf config.Transport_stdout) *StdoutWriter {
 }
 
 func (w *StdoutWriter) Enabled() bool {
-	return config.Conf.Transport_stdout.Enabled
+	return config.GetRuntimeConf().Transport_stdout.Enabled
 }
 
 func (w *StdoutWriter) Close() {}

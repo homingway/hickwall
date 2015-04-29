@@ -11,11 +11,13 @@ import (
 
 func init() {
 
+	var runtime_conf = config.GetRuntimeConf()
+
 	interval := time.Duration(1) * time.Second
-	if config.Conf.Client_metric_interval != "" {
-		ival, err := collectorlib.ParseInterval(config.Conf.Client_metric_interval)
+	if runtime_conf.Client_metric_interval != "" {
+		ival, err := collectorlib.ParseInterval(runtime_conf.Client_metric_interval)
 		if err != nil {
-			log.Errorf("cannot parse interval of client_metric_interval: %s - %v", config.Conf.Client_metric_interval, err)
+			log.Errorf("cannot parse interval of client_metric_interval: %s - %v", runtime_conf.Client_metric_interval, err)
 		}
 		interval = ival
 	}
@@ -23,8 +25,8 @@ func init() {
 	builtin_collectors = append(builtin_collectors, &IntervalCollector{
 		F: C_hickwall,
 		Enable: func() bool {
-			fmt.Println("c_hickwall: enabled: ", config.Conf.Client_metric_enabled)
-			return config.Conf.Client_metric_enabled
+			fmt.Println("c_hickwall: enabled: ", runtime_conf.Client_metric_enabled)
+			return runtime_conf.Client_metric_enabled
 		},
 		name:     "builtin_hickwall_client",
 		states:   nil,
@@ -34,10 +36,13 @@ func init() {
 
 // hickwall process metrics, only runtime stats
 func C_hickwall(states interface{}) (collectorlib.MultiDataPoint, error) {
-	var md collectorlib.MultiDataPoint
-	var m runtime.MemStats
+	var (
+		md           collectorlib.MultiDataPoint
+		m            runtime.MemStats
+		runtime_conf = config.GetRuntimeConf()
+	)
 
-	tags := AddTags.Copy().Merge(config.Conf.Tags)
+	tags := AddTags.Copy().Merge(runtime_conf.Tags)
 	runtime.ReadMemStats(&m)
 
 	Add(&md, "hickwall.client.NumGoroutine", runtime.NumGoroutine(), tags, "", "", "")
