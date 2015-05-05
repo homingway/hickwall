@@ -21,7 +21,8 @@ sed -i "s/{{version}}/$VER/g" win.iss
 
 cd "$PROJ_ROOT"
 cp bin/hickwall-windows-386.exe $TMP_DIR/hickwall.exe && \
-  cp config.yml.example.win $TMP_DIR/config.yml.example && \
+  cp config.yml $TMP_DIR/config.yml.example && \
+  cp core_config.yml $TMP_DIR/core_config.yml.example && \
   cp Readme.md $TMP_DIR/ && \
   cp Readme.html $TMP_DIR/ && \
   cd $TMP_DIR && \

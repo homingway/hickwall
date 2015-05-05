@@ -68,7 +68,6 @@ func loadCoreConfig() {
 	}
 
 	// log.Debug("enable_remote_config: ", CoreConf.Etcd_enabled)
-
 	ConfigLogger()
 	if err != nil {
 		log.Errorf("LoadCoreConfFile failed: %v", err)

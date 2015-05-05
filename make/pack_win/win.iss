@@ -13,6 +13,7 @@ SolidCompression=yes
 [Files]
 Source: "hickwall.exe"; DestDir: "{app}\{{version}}"; Permissions: users-readexec; Flags: overwritereadonly replacesameversion touch
 Source: "config.yml.example"; DestDir: "{app}\shared"
+Source: "core_config.yml.example"; DestDir: "{app}\shared"
 Source: "Readme.md"; DestDir: "{app}\{{version}}"
 Source: "Readme.html"; DestDir: "{app}\{{version}}"
 Source: "start.bat"; DestDir: "{app}\shared"
