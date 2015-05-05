@@ -17,7 +17,7 @@ memory_limit_in_mb: 500
 
 # above configurations always needed
 
-enable_remote_config: false
+etcd_enabled: true
 
 # use this to retrive remote configuration
 # Viper will read a config string (as JSON, TOML, or YAML) retrieved from a path 
@@ -27,6 +27,6 @@ enable_remote_config: false
 # the last good configuration from remote will be cached locally. 
 
 # current only support etcd
-remote_config_protocal: "etcd"
-remote_config_url: "http://127.0.0.1:4001"
-remote_config_path: "/config/host/DST54869.json"
+etcd_url: "http://192.168.59.103:4001"
+etcd_path: "/config/host/DST54869.yml"
+

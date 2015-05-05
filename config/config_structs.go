@@ -17,10 +17,9 @@ type CoreConfig struct {
 	Log_file_maxsize  int    `json:"log_file_maxsize"`
 	Log_file_maxrolls int    `json:"log_file_maxrolls"`
 
-	Etcd_enabled        bool   `json:"etcd_enabled"`
-	Etcd_url            string `json:"etcd_url"`
-	Etcd_path           string `json:"etcd_path"`
-	Etcd_check_interval string `json:"etcd_check_interval"`
+	Etcd_enabled bool   `json:"etcd_enabled"`
+	Etcd_url     string `json:"etcd_url"`
+	Etcd_path    string `json:"etcd_path"`
 
 	Heart_beat_interval string `json:"heart_beat_interval"`
 }

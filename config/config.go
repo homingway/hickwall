@@ -81,6 +81,9 @@ func loadCoreConfig() {
 		log.Debug("LOG_DIR: ", LOG_DIR)
 		log.Debug("LOG_FILEPATH: ", LOG_FILEPATH)
 	}
+
+	log.Debug("core config file used: ", core_viper.ConfigFileUsed())
+	log.Debugf("CoreConfig:  %+v", CoreConf)
 }
 
 type RespConfig struct {
@@ -135,16 +138,38 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 		runtime_viper = viper.New()
 		out           = make(chan *RespConfig, 1)
 	)
-	runtime_viper.SetConfigType("YAML")
-	runtime_viper.AddRemoteProvider("etcd", CoreConf.Etcd_url, CoreConf.Etcd_path)
 
 	if stop == nil {
 		stop = make(chan bool)
 	}
 
+	err := runtime_viper.AddRemoteProvider("etcd", CoreConf.Etcd_url, CoreConf.Etcd_path)
+	// err := runtime_viper.AddRemoteProvider("etcd", "http://192.168.59.103:4001", "/config/host/DST54869.yml")
+	if err != nil {
+		log.Criticalf("addRemoteProvider Error: %v", err)
+	}
+	runtime_viper.SetConfigType("YAML")
+
 	go func() {
+		//need to get config at least once
+		var tmp_conf Config
+		err = runtime_viper.ReadRemoteConfig()
+		if err != nil {
+			log.Errorf("runtime_viper.ReadRemoteConfig Error: %v", err)
+		} else {
+			err = runtime_viper.Marshal(&tmp_conf)
+			if err != nil {
+				log.Errorf("runtime_viper.Marshal Error: %v", err)
+			} else {
+				out <- &RespConfig{&tmp_conf, nil}
+			}
+		}
+
+		// watch changes
 		for {
-			var runtime_conf Config
+			var (
+				runtime_conf Config
+			)
 
 			select {
 			case <-stop:
@@ -152,15 +177,17 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 				break
 			default:
 				log.Debugf("watching etcd remote config: %s, %s", CoreConf.Etcd_url, CoreConf.Etcd_path)
-				err := viper.WatchRemoteConfig()
+				err := runtime_viper.WatchRemoteConfig()
 				if err != nil {
 					log.Errorf("unable to read remote config: %v", err)
+					time.Sleep(time.Second * 5)
 					continue
 				}
 
 				err = runtime_viper.Marshal(&runtime_conf)
 				if err != nil {
 					log.Errorf("unable to marshal to config: %v", err)
+					time.Sleep(time.Second * 5)
 					continue
 				}
 
