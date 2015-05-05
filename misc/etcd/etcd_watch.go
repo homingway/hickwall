@@ -61,6 +61,11 @@ func try_vip_get_remote() {
 }
 
 func try_viper_watch_remote() {
+	// within my fork of viper, I implemented WatchRemoteConfig function, but
+	// github.com/xordataexchange/crypt/backend/etcd/etcd.go also need to modifiy a little bit.
+	// use this line instead of c.waitIndex+1 :
+	//   resp, err = c.client.Watch(key, 0, false, nil, stop)
+
 	viper.AddRemoteProvider("etcd", "http://192.168.59.103:4001", "/config/host/DST54869.yml")
 	viper.SetConfigType("YAML") // because there is no file extension in a stream of bytes
 

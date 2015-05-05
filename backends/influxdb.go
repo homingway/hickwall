@@ -26,6 +26,7 @@ var (
 )
 
 type InfluxdbWriter struct {
+	name    string
 	version string
 	tick    <-chan time.Time
 	tickBkf <-chan time.Time
@@ -78,7 +79,7 @@ type InfluxdbWriterConf struct {
 	Merge_Requests bool // try best to merge small group of points to no more than max_batch_size
 }
 
-func NewInfluxdbWriter(conf config.Transport_influxdb) (*InfluxdbWriter, error) {
+func NewInfluxdbWriter(name string, conf config.Transport_influxdb) (*InfluxdbWriter, error) {
 
 	var default_interval = time.Duration(5) * time.Second
 
@@ -141,11 +142,16 @@ func NewInfluxdbWriter(conf config.Transport_influxdb) (*InfluxdbWriter, error) 
 		q:                  q,
 		iclient:            iclient,
 		backfill_cool_down: backfill_cool_down,
+		name:               name,
 	}, nil
 }
 
 func (w *InfluxdbWriter) Enabled() bool {
 	return w.conf.Enabled
+}
+
+func (w *InfluxdbWriter) Name() string {
+	return w.name
 }
 
 func (w *InfluxdbWriter) Close() {

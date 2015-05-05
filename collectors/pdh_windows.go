@@ -383,6 +383,7 @@ func builtin_win_pdh() Collector {
 }
 
 func factory_win_pdh(name string, conf interface{}) Collector {
+	log.Debugf("factory_win_pdh, name: %s", name)
 	var (
 		states           state_win_pdh
 		cf               config.Conf_win_pdh
@@ -418,6 +419,8 @@ func factory_win_pdh(name string, conf interface{}) Collector {
 			states.map_queries[query] = query_obj
 		}
 	}
+
+	log.Debugf("return IntervalCollector name: %s", name)
 
 	return &IntervalCollector{
 		F:        c_win_pdh,

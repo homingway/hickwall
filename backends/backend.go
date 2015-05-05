@@ -9,7 +9,10 @@ import (
 )
 
 var (
-	backends       = map[string]TSWriter{}
+	// backends = make(map[string]TSWriter)
+
+	backends []TSWriter
+
 	MAX_BATCH_SIZE = 200
 	HttpTimeoutMS  = 500
 	MAX_QUEUE_SIZE = int64(100)
@@ -20,9 +23,13 @@ type TSWriter interface {
 	Run()
 	Close()
 	Enabled() bool
+	Name() string
 }
 
 // func init() {
+// 	backends = map[string]TSWriter{}
+// }
+
 // 	var runtime_conf = config.GetRuntimeConf()
 
 // 	backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
@@ -43,50 +50,64 @@ type TSWriter interface {
 // }
 
 func GetBackendList() (res []string) {
-	for key, _ := range backends {
-		res = append(res, key)
+	for _, bk := range backends {
+		res = append(res, bk.Name())
 	}
+	// for key, _ := range backends {
+	// 	res = append(res, key)
+	// }
 	return
 }
 
 func GetBackendByName(name string) (w TSWriter, b bool) {
-	w, b = backends[strings.ToLower(name)]
-	return
+	for _, bk := range backends {
+		if strings.ToLower(bk.Name()) == strings.ToLower(name) {
+			return bk, true
+		}
+	}
+	// w, b = backends[strings.ToLower(name)]
+	return nil, false
 }
 
-func GetBackendByNameVersion(name, version string) (w TSWriter, b bool) {
+func GetBackendByNameVersion(name, version string) (TSWriter, bool) {
 	key := strings.Join([]string{name, version}, "-")
-	w, b = backends[strings.ToLower(key)]
-	return
+	// w, b = backends[strings.ToLower(key)]
+	return GetBackendByName(strings.ToLower(key))
 }
 
 func WriteToBackends(md collectorlib.MultiDataPoint) {
-	for key, backend := range backends {
-		if backend.Enabled() == true {
-			log.Debug("Backend.Write.Endabled: ", key)
-			backend.Write(md)
+	for _, bk := range backends {
+		if bk.Enabled() == true {
+			log.Debug("Backend.Write.Endabled: ", bk.Name())
+			bk.Write(md)
 		}
-		// else {
-		// 	log.Debug("Backend.Write.Disabled: ", key)
-		// }
 	}
+
+	// for key, backend := range backends {
+	// 	if backend.Enabled() == true {
+	// 		log.Debug("Backend.Write.Endabled: ", key)
+	// 		backend.Write(md)
+	// 	}
+	// 	// else {
+	// 	// 	log.Debug("Backend.Write.Disabled: ", key)
+	// 	// }
+	// }
 }
 
 func CloseBackends() {
-	for key, backend := range backends {
-		backend.Close()
-		log.Debug("Closed Backend ", key)
+	for _, bk := range backends {
+		bk.Close()
+		log.Debug("Closed Backend ", bk.Name())
 	}
 }
 
 func RunBackends() {
-	for key, backend := range backends {
-		if backend.Enabled() == true {
-			log.Debug("Backend is Running: ", key)
-			go backend.Run()
+	for _, bk := range backends {
+		if bk.Enabled() == true {
+			log.Debug("Backend is Running: ", bk.Name())
+			go bk.Run()
 		} else {
-			log.Debug("Backend is Not Running: ", key)
-
+			log.Debug("Backend is Not Running: ", bk.Name())
 		}
 	}
 }
@@ -96,23 +117,44 @@ func RemoveAllBackends() {
 }
 
 func CreateBackendsFromRuntimeConf() {
+	log.Debug("Create backends from runtime config")
 	runtime_conf := config.GetRuntimeConf()
 	CreateBackendsFromConf(runtime_conf)
 }
 
 func CreateBackendsFromConf(runtime_conf *config.Config) {
-	backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
+	defer log.Flush()
 
-	backends["file"] = NewFileWriter(runtime_conf.Transport_file)
+	log.Debug("create backends from conf: %v", runtime_conf)
+	log.Flush()
+
+	// backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
+	backends = append(backends, NewStdoutWriter("stdout", runtime_conf.Transport_stdout))
+	log.Debug("stdout backend created")
+
+	// backends["file"] = NewFileWriter(runtime_conf.Transport_file)
+	backends = append(backends, NewFileWriter("file", runtime_conf.Transport_file))
+	log.Debug("file backend created")
 
 	// influxdb backends
 	for _, iconf := range runtime_conf.Transport_influxdb {
 		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
-		bk, err := NewInfluxdbWriter(iconf)
+		log.Debugf("Creating backend: %s", bkname)
+		bk, err := NewInfluxdbWriter(bkname, iconf)
 		if err != nil {
 			log.Criticalf("create backend failed: %v ", err)
+			log.Flush()
 			continue
 		}
-		backends[bkname] = bk
+		log.Debugf("backend created: %s", bkname)
+		log.Flush()
+		backends = append(backends, bk)
+		log.Debugf("backend add to map: %s", bkname)
+		log.Flush()
+
 	}
+
+	fmt.Println("hh")
+	log.Debug("all backends created")
+	log.Flush()
 }

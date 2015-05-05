@@ -15,9 +15,10 @@ type FileWriter struct {
 	mdCh   chan collectorlib.MultiDataPoint
 	conf   *config.Transport_file
 	output *os.File
+	name   string
 }
 
-func NewFileWriter(conf config.Transport_file) *FileWriter {
+func NewFileWriter(name string, conf config.Transport_file) *FileWriter {
 
 	var default_interval = time.Duration(10) * time.Millisecond
 
@@ -45,6 +46,7 @@ func NewFileWriter(conf config.Transport_file) *FileWriter {
 		conf:   &conf,
 		output: f,
 		mdCh:   make(chan collectorlib.MultiDataPoint),
+		name:   name,
 	}
 }
 
@@ -57,6 +59,10 @@ func (w *FileWriter) Close() {
 		w.output.Close()
 	}
 
+}
+
+func (w *FileWriter) Name() string {
+	return w.name
 }
 
 func (w *FileWriter) Write(md collectorlib.MultiDataPoint) {

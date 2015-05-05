@@ -8,11 +8,13 @@ import (
 
 type StdoutWriter struct {
 	mdCh chan collectorlib.MultiDataPoint
+	name string
 }
 
-func NewStdoutWriter(conf config.Transport_stdout) *StdoutWriter {
+func NewStdoutWriter(name string, conf config.Transport_stdout) *StdoutWriter {
 	return &StdoutWriter{
 		mdCh: make(chan collectorlib.MultiDataPoint),
+		name: name,
 	}
 }
 
@@ -26,6 +28,10 @@ func (w *StdoutWriter) Write(md collectorlib.MultiDataPoint) {
 	if w.Enabled() == true {
 		w.mdCh <- md
 	}
+}
+
+func (w *StdoutWriter) Name() string {
+	return w.name
 }
 
 func (w *StdoutWriter) Run() {

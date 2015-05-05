@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	LOG_FORMAT = "%Date(2006-01-02T15:04:05.00 MST) [%Level] %RelFile:%Line(%FuncShort) %Msg%n"
+	// LOG_FORMAT = "%Date(2006-01-02T15:04:05.00 MST) [%Level] %RelFile:%Line(%FuncShort) %Msg%n"
+	LOG_FORMAT = "%Date(2006-01-02T15:04:05.00 MST) [%Level] %File:%Line(%FuncShort) %Msg%n"
 )
 
 var (

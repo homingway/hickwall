@@ -44,53 +44,85 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	mdCh := make(chan collectorlib.MultiDataPoint)
 
 	log.Info("runAsPrimaryService")
+	defer log.Flush()
 
-	err = config.LoadRuntimeConfig()
-	if err != nil {
-		log.Error("LoadRuntimeConfig Failed: %v", err)
-		return
-	}
+	// err = config.LoadRuntimeConfig()
+	// if err != nil {
+	// 	log.Error("LoadRuntimeConfig Failed: %v", err)
+	// 	return
+	// }
 
-	collectors.CreateCustomizedCollectorsFromRuntimeConf()
-	backends.CreateBackendsFromRuntimeConf()
+	// collectors.CreateCustomizedCollectorsFromRuntimeConf()
+	// backends.CreateBackendsFromRuntimeConf()
 
-	collectors.RunAllCollectors(mdCh)
-	backends.RunBackends()
-	defer backends.CloseBackends()
+	// collectors.RunAllCollectors(mdCh)
+	// backends.RunBackends()
+	// defer backends.CloseBackends()
+	collectors.RunBuiltinCollectors(mdCh)
 
 	utils.HttpPprofServe(6060)
 
-	// tick := time.Tick(time.Second * time.Duration(1))
 	// go func() {
+	// 	tick := time.Tick(time.Second * time.Duration(1))
+	// 	changed := false
 	// 	for {
 	// 		select {
 	// 		case <-tick:
-	// 			go start_service_if_stopped(command.HelperService)
+	// 			// check remote config changes
+	// 			changed = check_changes()
+
+	// 			if changed == true {
+	// 				collectors.StopCustomizedCollectors()
+	// 				collectors.RemoveAllCustomizedCollectors()
+	// 				collectors.CreateCustomizedCollectorsFromRuntimeConf()
+
+	// 				backends.CloseBackends()
+	// 				backends.RemoveAllBackends()
+	// 				backends.CreateBackendsFromRuntimeConf()
+
+	// 				collectors.RunAllCollectors(mdCh)
+	// 				backends.RunBackends()
+	// 			}
 	// 		}
 	// 	}
 	// }()
 
 	go func() {
-		tick := time.Tick(time.Second * time.Duration(1))
-		changed := false
-		for {
-			select {
-			case <-tick:
-				// check remote config changes
-				changed = check_changes()
+		for resp := range config.WatchConfig() {
+			if resp.Err != nil {
+				log.Critical("watch config error: %v", resp.Err)
+			} else {
+				defer log.Flush()
 
-				if changed == true {
-					collectors.StopCustomizedCollectors()
-					collectors.RemoveAllCustomizedCollectors()
-					collectors.CreateCustomizedCollectorsFromRuntimeConf()
+				log.Debug("new config is comming")
 
-					backends.CloseBackends()
-					backends.RemoveAllBackends()
-					backends.CreateBackendsFromRuntimeConf()
+				collectors.StopCustomizedCollectors()
+				collectors.RemoveAllCustomizedCollectors()
 
-					collectors.RunAllCollectors(mdCh)
-					backends.RunBackends()
-				}
+				log.Debug("Stopped Customized Collectors and Removed them")
+
+				backends.CloseBackends()
+				backends.RemoveAllBackends()
+
+				log.Debug("Stopped backends and removed them")
+
+				config.UpdateRuntimeConf(resp.Config)
+
+				log.Debug("Updated Runtime Conf with the new one")
+
+				collectors.CreateCustomizedCollectorsFromRuntimeConf()
+				log.Debug("Created Customized Colletors")
+
+				backends.CreateBackendsFromRuntimeConf()
+				log.Debug("Created backends")
+
+				collectors.RunCustomizedCollectors(mdCh)
+				log.Debug("Customized collectors is running")
+
+				backends.RunBackends()
+				log.Debug("backends is running")
+
+				log.Debug("new config applied")
 			}
 		}
 	}()
@@ -127,6 +159,7 @@ loop:
 	}
 	changes <- svc.Status{State: svc.StopPending}
 	log.Info("serviceHandler stopped")
+	log.Flush()
 	return
 }
 
@@ -187,6 +220,8 @@ func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, c
 }
 
 func runService(isDebug bool) {
+	log.Info("runService")
+	log.Flush()
 	err = svc.Run(command.PrimaryService.Name(), &serviceHandler{})
 	if err != nil {
 		log.Errorf("runService: failed: %v\r\n", err)

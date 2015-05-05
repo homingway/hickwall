@@ -2,7 +2,8 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
+	// "github.com/spf13/viper"
+	"github.com/oliveagle/viper"
 	// "log"
 	"os"
 	"path"
@@ -13,6 +14,7 @@ import (
 
 	// "encoding/json"
 	// "io/ioutil"
+	"time"
 )
 
 const (
@@ -234,12 +236,16 @@ func loadCoreConfig() {
 		os.Exit(1)
 	}
 
+	fmt.Println("core config file used: ", core_viper.ConfigFileUsed())
+
 	err = core_viper.Marshal(&CoreConf)
 	if err != nil {
 		log.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 		log.Flush()
 		os.Exit(1)
 	}
+
+	fmt.Println("enable_remote_config: ", CoreConf.Etcd_enabled)
 
 	ConfigLogger()
 	if err != nil {
@@ -255,12 +261,16 @@ func loadCoreConfig() {
 	}
 }
 
-func loadRuntimeConfFromFile() (*Config, error) {
+type RespConfig struct {
+	Config *Config
+	Err    error
+}
+
+func loadRuntimeConfFromFile() <-chan *RespConfig {
 	var (
-		runtime_conf  Config
+		out           = make(chan *RespConfig, 1)
 		runtime_viper = viper.New()
 	)
-
 	// runtime_viper.SetConfigFile(config_file)
 	runtime_viper.SetConfigName("config")
 	runtime_viper.SetConfigType("yaml")
@@ -269,48 +279,82 @@ func loadRuntimeConfFromFile() (*Config, error) {
 	runtime_viper.AddConfigPath(".")        // for hickwall
 	runtime_viper.AddConfigPath("..")       // for hickwall/misc
 
-	err := runtime_viper.ReadInConfig()
+	log.Info("loadRuntimeConfFromFile")
 
-	log.Debug("Config File Used: ", runtime_viper.ConfigFileUsed())
-	// fmt.Println("file used: ", runtime_viper.ConfigFileUsed())
-	if err != nil {
-		fmt.Println("err: ", err)
-		return nil, fmt.Errorf("No configuration file loaded. config.yml")
-	}
-	// fmt.Println("config file used: ", viper.ConfigFileUsed())
+	go func() {
+		log.Info("----------------------------====")
+		var runtime_conf Config
 
-	// Marshal values
-	err = runtime_viper.Marshal(&runtime_conf)
-	if err != nil {
-		fmt.Println("err: ", err)
-		return nil, fmt.Errorf("Error: unable to parse Configuration: %v\n", err)
-	}
+		err := runtime_viper.ReadInConfig()
 
-	return &runtime_conf, nil
+		log.Debug("Config File Used: ", runtime_viper.ConfigFileUsed())
+		// fmt.Println("file used: ", runtime_viper.ConfigFileUsed())
+		if err != nil {
+			fmt.Println("err: ", err)
+			out <- &RespConfig{nil, fmt.Errorf("No configuration file loaded. config.yml: %v", err)}
+			return
+		}
+
+		// Marshal values
+		err = runtime_viper.Marshal(&runtime_conf)
+		if err != nil {
+			fmt.Println("err: ", err)
+			out <- &RespConfig{nil, fmt.Errorf("Error: unable to parse Configuration: %v\n", err)}
+			return
+		}
+
+		out <- &RespConfig{&runtime_conf, nil}
+		return
+	}()
+
+	return out
 }
 
-func loadRuntimeConfFromEtcd() (*Config, error) {
-
+func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 	var (
-		runtime_conf  Config
 		runtime_viper = viper.New()
+		out           = make(chan *RespConfig, 1)
 	)
-
 	runtime_viper.SetConfigType("YAML")
 	runtime_viper.AddRemoteProvider("etcd", CoreConf.Etcd_url, CoreConf.Etcd_path)
 
-	err := viper.ReadRemoteConfig()
-	if err != nil {
-		// log.Errorf("unable to read remote config: %v", err)
-		return nil, fmt.Errorf("unable to read remote config: %v", err)
+	if stop == nil {
+		stop = make(chan bool)
 	}
 
-	err = runtime_viper.Marshal(&runtime_conf)
-	if err != nil {
-		return nil, fmt.Errorf("unable to marshal to config: %v", err)
-	}
+	go func() {
+		for {
+			var runtime_conf Config
 
-	return &runtime_conf, nil
+			select {
+			case <-stop:
+				log.Debugf("stop watching etcd remote config.")
+				break
+			default:
+				log.Debugf("watching etcd remote config: %s, %s", CoreConf.Etcd_url, CoreConf.Etcd_path)
+				err := viper.WatchRemoteConfig()
+				if err != nil {
+					log.Errorf("unable to read remote config: %v", err)
+					// return nil, fmt.Errorf("unable to read remote config: %v", err)
+					continue
+				}
+
+				err = runtime_viper.Marshal(&runtime_conf)
+				if err != nil {
+					// return nil, fmt.Errorf("unable to marshal to config: %v", err)
+					log.Errorf("unable to marshal to config: %v", err)
+					continue
+				}
+
+				log.Debugf("a new config is comming")
+				out <- &RespConfig{&runtime_conf, nil}
+
+				//TODO: make it configurable
+				time.Sleep(time.Second * 5)
+			}
+		}
+	}()
+	return out
 }
 
 func initPathes() {
@@ -318,6 +362,7 @@ func initPathes() {
 	dir, _ = filepath.Split(dir)
 
 	SHARED_DIR, _ = filepath.Abs(path.Join(dir, "shared"))
+	// SHARED_DIR = `D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\shared`
 
 	LOG_DIR, _ = filepath.Abs(path.Join(SHARED_DIR, "logs"))
 	LOG_FILEPATH, _ = filepath.Abs(path.Join(LOG_DIR, LOG_FILE))
@@ -332,54 +377,21 @@ func initPathes() {
 	Mkdir_p_logdir(LOG_DIR)
 }
 
-func watchEtcd() {
-	var (
-		tmp_conf *Config
-	)
-
-	tmp_conf, err := loadRuntimeConfFromEtcd()
-	if err != nil {
-		log.Error(err)
-	}
-	rconf = *tmp_conf
-	// send reload config command to all components
-
-}
-
-func LoadRuntimeConfig() (err error) {
-	var (
-		tmp_conf *Config
-	)
-
+func WatchConfig() <-chan *RespConfig {
 	if CoreConf.Etcd_enabled == true {
-		// try to load config from etcd
-		// fmt.Println("load config from etcd")
-		tmp_conf, err = loadRuntimeConfFromEtcd()
-		if err != nil {
-
-		}
-		// check chanages with interval
-
+		return WatchRuntimeConfFromEtcd(nil)
 	} else {
-		// fmt.Println("load config from file")
-		// try to load config from file
-		tmp_conf, err = loadRuntimeConfFromFile()
-		// fmt.Printf("runtime conf: %+v\n", tmp_conf)
-		if err != nil {
-			fmt.Println("failed load config from file", err)
-			os.Exit(1)
-			return err
-		}
-		rconf = *tmp_conf
+		return loadRuntimeConfFromFile()
 	}
-
-	return nil
 }
 
 func init() {
 	loadCoreConfig()
+	log.Info("CoreConfig Loaded")
+}
 
-	LoadRuntimeConfig()
+func UpdateRuntimeConf(conf *Config) {
+	rconf = *conf
 }
 
 func GetRuntimeConf() *Config {
