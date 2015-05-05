@@ -14,7 +14,7 @@ var err error
 func main() {
 	defer log.Flush()
 
-	log.Info("main ---------------------------")
+	log.Debug("hickwall main ---------------------------")
 
 	app := cli.NewApp()
 	app.Name = "hickwall"
@@ -109,10 +109,10 @@ func main() {
 	// app.Run(os.Args)
 
 	if len(os.Args) >= 2 {
-		log.Info("len os.args >= 2")
+		log.Debug("len os.args >= 2")
 		app.Run(os.Args)
 	} else {
-		log.Info("len os.args < 2")
+		log.Debug("len os.args < 2")
 
 		isIntSess, err := servicelib.IsAnInteractiveSession()
 		if err != nil {
@@ -121,8 +121,7 @@ func main() {
 		}
 
 		if !isIntSess {
-			fmt.Println("Running ... ")
-			log.Info("running ... ")
+			log.Debug("running as service ... ")
 			runService(false)
 			return
 		}

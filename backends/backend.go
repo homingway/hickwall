@@ -9,8 +9,6 @@ import (
 )
 
 var (
-	// backends = make(map[string]TSWriter)
-
 	backends []TSWriter
 
 	MAX_BATCH_SIZE = 200
@@ -27,35 +25,12 @@ type TSWriter interface {
 }
 
 // func init() {
-// 	backends = map[string]TSWriter{}
-// }
-
-// 	var runtime_conf = config.GetRuntimeConf()
-
-// 	backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
-
-// 	backends["file"] = NewFileWriter(runtime_conf.Transport_file)
-
-// 	// influxdb backends
-// 	for _, iconf := range runtime_conf.Transport_influxdb {
-// 		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
-// 		bk, err := NewInfluxdbWriter(iconf)
-// 		if err != nil {
-// 			log.Criticalf("create backend failed: %v ", err)
-// 			continue
-// 		}
-// 		backends[bkname] = bk
-// 	}
-
 // }
 
 func GetBackendList() (res []string) {
 	for _, bk := range backends {
 		res = append(res, bk.Name())
 	}
-	// for key, _ := range backends {
-	// 	res = append(res, key)
-	// }
 	return
 }
 
@@ -65,33 +40,20 @@ func GetBackendByName(name string) (w TSWriter, b bool) {
 			return bk, true
 		}
 	}
-	// w, b = backends[strings.ToLower(name)]
 	return nil, false
 }
 
 func GetBackendByNameVersion(name, version string) (TSWriter, bool) {
 	key := strings.Join([]string{name, version}, "-")
-	// w, b = backends[strings.ToLower(key)]
 	return GetBackendByName(strings.ToLower(key))
 }
 
 func WriteToBackends(md collectorlib.MultiDataPoint) {
 	for _, bk := range backends {
 		if bk.Enabled() == true {
-			log.Debug("Backend.Write.Endabled: ", bk.Name())
 			bk.Write(md)
 		}
 	}
-
-	// for key, backend := range backends {
-	// 	if backend.Enabled() == true {
-	// 		log.Debug("Backend.Write.Endabled: ", key)
-	// 		backend.Write(md)
-	// 	}
-	// 	// else {
-	// 	// 	log.Debug("Backend.Write.Disabled: ", key)
-	// 	// }
-	// }
 }
 
 func CloseBackends() {
@@ -125,14 +87,11 @@ func CreateBackendsFromRuntimeConf() {
 func CreateBackendsFromConf(runtime_conf *config.Config) {
 	defer log.Flush()
 
-	log.Debug("create backends from conf: %v", runtime_conf)
-	log.Flush()
+	log.Debug("creating backends from conf")
 
-	// backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
 	backends = append(backends, NewStdoutWriter("stdout", runtime_conf.Transport_stdout))
 	log.Debug("stdout backend created")
 
-	// backends["file"] = NewFileWriter(runtime_conf.Transport_file)
 	backends = append(backends, NewFileWriter("file", runtime_conf.Transport_file))
 	log.Debug("file backend created")
 
@@ -142,19 +101,11 @@ func CreateBackendsFromConf(runtime_conf *config.Config) {
 		log.Debugf("Creating backend: %s", bkname)
 		bk, err := NewInfluxdbWriter(bkname, iconf)
 		if err != nil {
-			log.Criticalf("create backend failed: %v ", err)
-			log.Flush()
+			log.Errorf("create backend failed: %v ", err)
 			continue
 		}
-		log.Debugf("backend created: %s", bkname)
-		log.Flush()
 		backends = append(backends, bk)
-		log.Debugf("backend add to map: %s", bkname)
-		log.Flush()
-
 	}
 
-	fmt.Println("hh")
 	log.Debug("all backends created")
-	log.Flush()
 }
