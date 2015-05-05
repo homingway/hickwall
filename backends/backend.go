@@ -22,25 +22,25 @@ type TSWriter interface {
 	Enabled() bool
 }
 
-func init() {
-	var runtime_conf = config.GetRuntimeConf()
+// func init() {
+// 	var runtime_conf = config.GetRuntimeConf()
 
-	backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
+// 	backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
 
-	backends["file"] = NewFileWriter(runtime_conf.Transport_file)
+// 	backends["file"] = NewFileWriter(runtime_conf.Transport_file)
 
-	// influxdb backends
-	for _, iconf := range runtime_conf.Transport_influxdb {
-		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
-		bk, err := NewInfluxdbWriter(iconf)
-		if err != nil {
-			log.Criticalf("create backend failed: %v ", err)
-			continue
-		}
-		backends[bkname] = bk
-	}
+// 	// influxdb backends
+// 	for _, iconf := range runtime_conf.Transport_influxdb {
+// 		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
+// 		bk, err := NewInfluxdbWriter(iconf)
+// 		if err != nil {
+// 			log.Criticalf("create backend failed: %v ", err)
+// 			continue
+// 		}
+// 		backends[bkname] = bk
+// 	}
 
-}
+// }
 
 func GetBackendList() (res []string) {
 	for key, _ := range backends {
@@ -88,5 +88,31 @@ func RunBackends() {
 			log.Debug("Backend is Not Running: ", key)
 
 		}
+	}
+}
+
+func RemoveAllBackends() {
+	backends = nil
+}
+
+func CreateBackendsFromRuntimeConf() {
+	runtime_conf := config.GetRuntimeConf()
+	CreateBackendsFromConf(runtime_conf)
+}
+
+func CreateBackendsFromConf(runtime_conf *config.Config) {
+	backends["stdout"] = NewStdoutWriter(runtime_conf.Transport_stdout)
+
+	backends["file"] = NewFileWriter(runtime_conf.Transport_file)
+
+	// influxdb backends
+	for _, iconf := range runtime_conf.Transport_influxdb {
+		bkname := fmt.Sprintf("influxdb-%s", influxdbParseVersionFromString(iconf.Version))
+		bk, err := NewInfluxdbWriter(iconf)
+		if err != nil {
+			log.Criticalf("create backend failed: %v ", err)
+			continue
+		}
+		backends[bkname] = bk
 	}
 }

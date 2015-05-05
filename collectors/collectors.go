@@ -3,7 +3,7 @@ package collectors
 import (
 	// "fmt"
 	"fmt"
-	// log "github.com/oliveagle/seelog"
+	log "github.com/oliveagle/seelog"
 	// "github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectorlib/metadata"
@@ -13,6 +13,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/oliveagle/hickwall/config"
 )
 
 // func init() {
@@ -44,6 +46,7 @@ type Collector interface {
 	Name() string
 	Init()
 	Enabled() bool
+	Stop()
 }
 
 func init() {
@@ -105,24 +108,6 @@ func GetBuiltinCollectors() []Collector {
 	return builtin_collectors
 }
 
-func GetCustomizedCollectors() []Collector {
-	return customized_collectors
-}
-
-func AddCustomizedCollectorByName(factory_name, collector_name string, config interface{}) bool {
-	var collector Collector
-	factory, ok := GetCollectorFactoryByName(factory_name)
-	if ok == true {
-		collector = factory(collector_name, config)
-		customized_collectors = append(customized_collectors, collector)
-	}
-	return ok
-}
-
-func RemoveAllCustomizedCollectors() {
-	customized_collectors = nil
-}
-
 // AddTS is the same as Add but lets you specify the timestamp
 func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
 	tags := t.Copy()
@@ -172,9 +157,15 @@ type IntervalCollector struct {
 	// internal use
 	sync.Mutex
 	enabled bool
+
+	chstop        chan (int)
+	chstop_enable chan (int)
+	isrunning     bool
 }
 
 func (c *IntervalCollector) Init() {
+	c.chstop = make(chan int, 1)
+
 	if c.init != nil {
 		c.init()
 	}
@@ -185,34 +176,77 @@ func (c *IntervalCollector) SetInterval(d time.Duration) {
 }
 
 func (c *IntervalCollector) Run(dpchan chan<- collectorlib.MultiDataPoint) {
-	if c.Enable != nil {
-		go func() {
-			for {
-				next := time.After(time.Minute * 5)
-				c.Lock()
-				c.enabled = c.Enable()
-				c.Unlock()
-				<-next
-			}
-		}()
+	c.Lock()
+	if c.chstop == nil {
+		c.chstop = make(chan int, 1)
+		c.chstop_enable = make(chan int, 1)
 	}
-	for {
-		interval := c.Interval
-		if interval == 0 {
-			interval = DefaultFreq
+	c.Unlock()
+
+	if c.isrunning == false {
+		c.chstop = make(chan int, 1)
+
+		if c.Enable != nil {
+			go func() {
+			enable_main_loop:
+				for {
+					next := time.After(time.Minute * 5)
+					c.Lock()
+					c.enabled = c.Enable()
+					c.Unlock()
+					<-next
+				enable_wait_loop:
+					for {
+						// read stop chanel
+						select {
+						case <-c.chstop_enable:
+							// fmt.Println("Stop 3 enable_main_loop")
+							log.Infof("Stop 3 enable main loop:  %s", c.name)
+							break enable_main_loop
+						case <-next:
+							break enable_wait_loop
+						}
+					}
+				}
+			}()
 		}
 
-		next := time.After(interval)
-		if c.Enabled() {
+		c.isrunning = true
 
-			md, err := c.F(c.states)
-
-			if err != nil {
-				fmt.Errorf("%v: %v", c.Name(), err)
+	main_loop:
+		for {
+			interval := c.Interval
+			if interval == 0 {
+				interval = DefaultFreq
 			}
-			dpchan <- md
+
+			next := time.After(interval)
+			if c.Enabled() {
+
+				md, err := c.F(c.states)
+
+				if err != nil {
+					fmt.Errorf("%v: %v", c.Name(), err)
+				}
+				dpchan <- md
+			}
+
+			// <-next
+		wait_loop:
+			for {
+				// read stop chanel
+				select {
+				case <-c.chstop:
+					c.chstop_enable <- 1
+					log.Infof("Stop 2 main loop: %s", c.name)
+					break main_loop
+				case <-next:
+					break wait_loop
+				}
+			}
 		}
-		<-next
+
+		c.isrunning = false
 	}
 }
 
@@ -233,6 +267,12 @@ func (c *IntervalCollector) Name() string {
 	return v.Name()
 }
 
+func (c *IntervalCollector) Stop() {
+	if c.isrunning == true && c.chstop != nil {
+		c.chstop <- 1
+	}
+}
+
 func enableURL(url string) func() bool {
 	return func() bool {
 		resp, err := http.Get(url)
@@ -245,10 +285,66 @@ func enableURL(url string) func() bool {
 }
 
 func RunAllCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
+	RunBuiltinCollectors(mdCh)
+	RunCustomizedCollectors(mdCh)
+}
+
+func RunBuiltinCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
 	for _, c := range builtin_collectors {
 		go c.Run(mdCh)
 	}
+}
+
+func StopBuiltinCollectors() {
+	for _, c := range builtin_collectors {
+		// fmt.Println("name: ", c.Name())
+		c.Stop()
+	}
+}
+
+// Customized Collectors ---------------------------------------------------------------
+
+func GetCustomizedCollectors() []Collector {
+	return customized_collectors
+}
+
+func AddCustomizedCollectorByName(factory_name, collector_name string, config interface{}) bool {
+	var collector Collector
+	factory, ok := GetCollectorFactoryByName(factory_name)
+	if ok == true {
+		collector = factory(collector_name, config)
+		customized_collectors = append(customized_collectors, collector)
+	}
+	return ok
+}
+
+func RemoveAllCustomizedCollectors() {
+	customized_collectors = nil
+}
+
+func RunCustomizedCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
 	for _, c := range customized_collectors {
 		go c.Run(mdCh)
+	}
+}
+
+func StopCustomizedCollectors() {
+	for _, c := range customized_collectors {
+		c.Stop()
+	}
+}
+
+func CreateCustomizedCollectorsFromRuntimeConf() {
+	runtime_conf := config.GetRuntimeConf()
+	CreateCustomizedCollectorsFromConf(runtime_conf)
+}
+
+func CreateCustomizedCollectorsFromConf(runtime_conf *config.Config) {
+	for i, conf := range runtime_conf.Collector_win_pdh {
+		AddCustomizedCollectorByName("win_pdh", fmt.Sprintf("c_win_pdh_%d", i), conf)
+	}
+
+	for i, conf := range runtime_conf.Collector_win_wmi {
+		AddCustomizedCollectorByName("win_wmi", fmt.Sprintf("c_win_wmi_%d", i), conf)
 	}
 }

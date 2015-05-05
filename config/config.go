@@ -32,7 +32,7 @@ var (
 	CoreConf   CoreConfig // only file
 	core_viper = viper.New()
 
-	Conf Config // can retrived from file or etcd
+	rconf Config // can retrived from file or etcd
 
 	RuntimeConfChan = make(chan *Config, 1)
 )
@@ -189,9 +189,11 @@ type c_ping struct {
 
 func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 
+	runtime_conf := GetRuntimeConf()
+
 	if !viper.IsSet(key) {
 		// fmt.Println("key is not set", key)
-		el := reflect.ValueOf(&Conf).Elem().FieldByName(key)
+		el := reflect.ValueOf(runtime_conf).Elem().FieldByName(key)
 		kind := el.Kind()
 		switch kind {
 		case reflect.Bool:
@@ -213,40 +215,10 @@ func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
 	return
 }
 
-func LoadConfigFile() error {
-	err := viper.ReadInConfig()
-	if err != nil {
-		return fmt.Errorf("No configuration file loaded. config.yml")
-	}
-	// fmt.Println("config file used: ", viper.ConfigFileUsed())
+func loadCoreConfig() {
 
-	// Marshal values
-	err = viper.Marshal(Conf)
-	if err != nil {
-		return fmt.Errorf("Error: unable to parse Configuration: %v\n", err)
-	}
-	return nil
-}
+	initPathes()
 
-func LoadCoreConfig() error {
-	err := core_viper.ReadInConfig()
-	if err != nil {
-		return fmt.Errorf("No configuration file loaded. core_config.yml")
-	}
-	// fmt.Println("config file used: ", core_viper.ConfigFileUsed())
-
-	// Marshal values
-	err = core_viper.Marshal(&CoreConf)
-	if err != nil {
-		return fmt.Errorf("Error: unable to parse Core Configuration: %v\n", err)
-	}
-
-	// fmt.Printf("%+v\n", CoreConf)
-	return nil
-}
-
-func initCoreViper() {
-	// init core_viper
 	core_viper.SetConfigName("core_config")
 	// core_viper.SetConfigFile(CORE_CONF_FILEPATH)
 	core_viper.AddConfigPath(SHARED_DIR) // packaged distribution
@@ -254,7 +226,21 @@ func initCoreViper() {
 	core_viper.AddConfigPath("..")       // for hickwall/misc
 	core_viper.AddConfigPath("../..")    // for hickwall/misc/try_xxx
 
-	err := LoadCoreConfig()
+	// err := LoadCoreConfig()
+	err := core_viper.ReadInConfig()
+	if err != nil {
+		log.Errorf("No configuration file loaded. core_config.yml :%v", err)
+		log.Flush()
+		os.Exit(1)
+	}
+
+	err = core_viper.Marshal(&CoreConf)
+	if err != nil {
+		log.Errorf("Error: unable to parse Core Configuration: %v\n", err)
+		log.Flush()
+		os.Exit(1)
+	}
+
 	ConfigLogger()
 	if err != nil {
 		log.Errorf("LoadCoreConfFile failed: %v", err)
@@ -339,9 +325,9 @@ func initPathes() {
 	CONF_FILEPATH, _ = filepath.Abs(path.Join(SHARED_DIR, "config.yml"))
 	CORE_CONF_FILEPATH, _ = filepath.Abs(path.Join(SHARED_DIR, "core_config.yml"))
 
-	fmt.Println("dir: ", dir)
-	fmt.Println("SHARED_DIR: ", SHARED_DIR)
-	fmt.Println("CONF_FILEPATH: ", CONF_FILEPATH)
+	// fmt.Println("dir: ", dir)
+	// fmt.Println("SHARED_DIR: ", SHARED_DIR)
+	// fmt.Println("CONF_FILEPATH: ", CONF_FILEPATH)
 
 	Mkdir_p_logdir(LOG_DIR)
 }
@@ -355,24 +341,19 @@ func watchEtcd() {
 	if err != nil {
 		log.Error(err)
 	}
-	Conf = *tmp_conf
+	rconf = *tmp_conf
 	// send reload config command to all components
 
 }
 
-func LoadAllConfig() (err error) {
+func LoadRuntimeConfig() (err error) {
 	var (
 		tmp_conf *Config
 	)
 
-	err = LoadCoreConfig()
-	if err != nil {
-		return err
-	}
-
 	if CoreConf.Etcd_enabled == true {
 		// try to load config from etcd
-		fmt.Println("load config from etcd")
+		// fmt.Println("load config from etcd")
 		tmp_conf, err = loadRuntimeConfFromEtcd()
 		if err != nil {
 
@@ -380,37 +361,27 @@ func LoadAllConfig() (err error) {
 		// check chanages with interval
 
 	} else {
-		fmt.Println("load config from file")
+		// fmt.Println("load config from file")
 		// try to load config from file
 		tmp_conf, err = loadRuntimeConfFromFile()
-		fmt.Printf("runtime conf: %+v\n", tmp_conf)
+		// fmt.Printf("runtime conf: %+v\n", tmp_conf)
 		if err != nil {
 			fmt.Println("failed load config from file", err)
 			os.Exit(1)
 			return err
 		}
-		Conf = *tmp_conf
+		rconf = *tmp_conf
 	}
 
 	return nil
 }
 
 func init() {
-	initPathes()
+	loadCoreConfig()
 
-	initCoreViper()
-	// initRuntimeViper()
-
-	LoadAllConfig()
-
-	// x, _ := json.Marshal(Conf)
-	// ioutil.WriteFile("config.json", x, 0644)
-	// fmt.Println(string(x))
-
-	// fmt.Printf("%+v\n", Conf)
-
+	LoadRuntimeConfig()
 }
 
 func GetRuntimeConf() *Config {
-	return &Conf
+	return &rconf
 }

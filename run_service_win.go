@@ -37,20 +37,22 @@ func start_service_if_stopped(service *servicelib.Service) {
 type serviceHandler struct{}
 
 func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	log.Info("runAsPrimaryService")
-
-	err = config.LoadAllConfig()
-	if err != nil {
-		log.Error("LoadAllConfig Failed: %v", err)
-		return
-	}
-
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
-
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	mdCh := make(chan collectorlib.MultiDataPoint)
+
+	log.Info("runAsPrimaryService")
+
+	err = config.LoadRuntimeConfig()
+	if err != nil {
+		log.Error("LoadRuntimeConfig Failed: %v", err)
+		return
+	}
+
+	collectors.CreateCustomizedCollectorsFromRuntimeConf()
+	backends.CreateBackendsFromRuntimeConf()
 
 	collectors.RunAllCollectors(mdCh)
 	backends.RunBackends()
@@ -67,6 +69,31 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	// 		}
 	// 	}
 	// }()
+
+	go func() {
+		tick := time.Tick(time.Second * time.Duration(1))
+		changed := false
+		for {
+			select {
+			case <-tick:
+				// check remote config changes
+				changed = check_changes()
+
+				if changed == true {
+					collectors.StopCustomizedCollectors()
+					collectors.RemoveAllCustomizedCollectors()
+					collectors.CreateCustomizedCollectorsFromRuntimeConf()
+
+					backends.CloseBackends()
+					backends.RemoveAllBackends()
+					backends.CreateBackendsFromRuntimeConf()
+
+					collectors.RunAllCollectors(mdCh)
+					backends.RunBackends()
+				}
+			}
+		}
+	}()
 
 	// major loop for signal processing.
 loop:

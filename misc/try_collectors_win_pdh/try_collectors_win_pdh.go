@@ -27,11 +27,12 @@ func main() {
 	ch := make(chan collectorlib.MultiDataPoint)
 
 	go cs[0].Run(ch)
+
 	go cc[0].Run(ch)
 	go cc[1].Run(ch)
 
-	done := time.After(time.Second * 3)
-	delay := time.After(time.Second * 1)
+	done := time.After(time.Second * 30)
+	delay := time.After(time.Second * 5)
 loop:
 	for {
 		select {
@@ -45,6 +46,24 @@ loop:
 				fmt.Println(" point ---> ", p)
 			}
 		case <-delay:
+
+			// cs[0].Stop()
+			StopBuiltinCollectors()
+
+			StopCustomizedCollectors()
+			fmt.Println("customized_collectors", GetCustomizedCollectors())
+			RemoveAllCustomizedCollectors()
+			fmt.Println("customized_collectors", GetCustomizedCollectors())
+
+			AddCustomizedCollectorByName("win_pdh", "cc[0]collector", runtime_conf.Collector_win_pdh[0])
+			AddCustomizedCollectorByName("win_pdh", "cc[1]collector", runtime_conf.Collector_win_pdh[1])
+			fmt.Println("customized_collectors", GetCustomizedCollectors())
+
+			RunCustomizedCollectors(ch)
+
+			// cc[0].Stop()
+			// cc[1].Stop()
+
 			// change config on the fly
 			// cs[0].Init()
 			// cs[0].(*IntervalCollector).SetInterval(time.Millisecond * 200)
