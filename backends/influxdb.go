@@ -205,17 +205,17 @@ func (w *InfluxdbWriter) Ping() {
 					err_cnt = 0
 					tick = fasttick
 					w.is_host_alive = true
-					log.Debugf("Fast-PING: resp_time: %v, influxdb ver: %s, q Len: %d, buf size: %d, pingAvg: %d", t, v, w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("Fast-PING: host: %s, resp_time: %v, influxdb ver: %s, q Len: %d, buf size: %d, pingAvg: %d", w.conf.Host, t, v, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 				if err_cnt > 0 && err_cnt <= failing_pint_cnt {
-					log.Debugf("Fast-PING: influxdb host is failling %d, q Len: %d, buf size: %d, pingAvg: %d", err_cnt, w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("Fast-PING: host: %s, influxdb host is failling %d, q Len: %d, buf size: %d, pingAvg: %d", w.conf.Host, err_cnt, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 				if err_cnt > failing_pint_cnt {
 					w.is_host_alive = false
 					tick = slowtick
-					log.Debugf("SLOW-PING: Wait for influxdb host back online again! q Len: %d, buf size: %d, pingAvg: %d", w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("SLOW-PING: host: %s, Wait for influxdb host back online again! q Len: %d, buf size: %d, pingAvg: %d", w.conf.Host, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 			}

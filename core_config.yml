@@ -17,7 +17,7 @@ memory_limit_in_mb: 500
 
 # above configurations always needed
 
-etcd_enabled: true
+etcd_enabled: false
 
 # use this to retrive remote configuration
 # Viper will read a config string (as JSON, TOML, or YAML) retrieved from a path 

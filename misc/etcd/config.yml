@@ -141,7 +141,8 @@ transport_influxdb:
         interval: 1s
         merge_reqeusts: false
 
-        host: "192.168.59.103:8086"    # v0.8.8 why to config db host
+        # host: "192.168.59.103:8086"    # v0.8.8 why to config db host
+        host: "10.3.6.207:8086"    # v0.8.8 why to config db host
         username: "root"
         password: "root"
         database: "metrics"
