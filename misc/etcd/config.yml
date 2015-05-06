@@ -129,7 +129,7 @@ transport_influxdb:
         backfill_enabled: true
         backfill_interval: 1s
         backfill_handsoff: true
-        backfill_latency_threshold_ms: 10
+        backfill_latency_threshold_ms: 100
         backfill_cool_down: 5s      # cool down duration 
 
     -
@@ -153,7 +153,7 @@ transport_influxdb:
         backfill_enabled: true
         backfill_interval: 1s
         backfill_handsoff: true
-        backfill_latency_threshold_ms: 10
+        backfill_latency_threshold_ms: 100
         backfill_cool_down: 5s
 
 transport_kafka:
