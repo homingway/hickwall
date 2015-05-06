@@ -220,7 +220,7 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 
 		s.Points = append(s.Points, point)
 
-		log.Debugf("write: %v", s)
+		log.Tracef("write: %v", s)
 
 		series = append(series, &s)
 	}
