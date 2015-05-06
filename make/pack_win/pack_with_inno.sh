@@ -17,6 +17,8 @@ cp stop.bat $TMP_DIR/
 
 cd $TMP_DIR
 sed -i "s/{{version}}/$VER/g" win.iss
+sed -i "s/{{version}}/$VER/g" start.bat
+sed -i "s/{{version}}/$VER/g" stop.bat
 # cat win.iss
 
 cd "$PROJ_ROOT"
