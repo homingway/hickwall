@@ -106,6 +106,8 @@ type Transport_influxdb struct {
 	Interval       string `json:"interval"`
 	Max_batch_size int    `json:"max_match_size"`
 
+	Max_queue_size int64 `json:"max_queue_size"`
+
 	// Client Config
 	// for v0.8.8
 	Host string `json:"host"`

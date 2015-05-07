@@ -21,6 +21,12 @@ client_metric_enabled: false
 # collection interval in seconds
 client_metric_interval: 2s
 
+collector_hickwall:
+    enabled: false
+    interval: 2s
+
+heart_beat_interval: 1s
+
 #TODO: merge_metadata_to_tags
 # If enable metadata, but backend don't support metadata. this option will merge all metadata
 # into tags
@@ -28,7 +34,6 @@ merge_metadata_to_tags: false
 
 # ---------- transport configurations -------------------------------------------
 
-#TODO: transport_flat_metric_key_format
 # graphtie and influxdb version below 0.9 don't support tags.  So we need to flatten the metric key with tags
 # transport flat metric key format instruction:
 #  
@@ -43,43 +48,15 @@ merge_metadata_to_tags: false
 #                       all fields in {tags} will only appear once in generated flat metric key.  so if you have `{{Tgas_xxx}}` 
 #                       and `{tags}` in the option at the same time, then `{tags}` will only applys to the remaining tags 
 # Note: {{.Lv2.Lv2}}         Multiple leveled tempalte is not allowed
-# transport_flat_metric_key_format: "{{.Tags_bu}}.{{.Tags_host}}.{{.Key}}.{{.Tags}}"
 
-#TODO: config transport_backfill_enabled
 # when transport target host failed, the client will try to cache up requests into a file queue. once the target host
 # back online again, the client will try to send cached requests back into target host. 
 # this option can turn it on/off.  if this option is off, no reqeust will be cached.
-transport_backfill_enabled: false
 
 # Try the best to report latest data to upstream is the core concept of the collector daemon. and then try to evenly
 # distribute backfill workloads to prevent surge of pressure in upstream server. So two threads work seperately. 
 # the first one report latest data with fixed interval, cache request if failed. 
 # the second thread try to backfill data in cache with all following tweaks.
-
-#TODO: config transport_queue_full_method
-# can be 'drop' or 'trim'.  `drop` means all incoming new request will be dropped. `trim` means to push incoming request
-# into queue and trim queue size to max_queue_size(oldest request will be dropped.)
-transport_queue_full_method: "trim"
-
-# can be 'memory' or 'boltq'. `boltq` is a boltdb based simple file queue, which is not optmized for performance.  
-transport_queue_backend: "memory"
-
-#TODO: config transport_queue_max_size
-# max cached reqeusts count
-transport_queue_max_size: 10000000
-
-# each cached request will contain multiple data points. the client will try to merge several cached requests into one
-# backfill request whlie backfilling. this option decide how many of cached reqeusts can be merged into one.
-# [DELETE] transport_backfill_batch: 2
-
-# Whether the client will try to cool down a little while if a response latency threshold reached while backfilling.
-transport_backfill_handsoff: false
-
-# try best to merge small group of points to no more thatn max_batch_size. this option is meant to
-# backfill data as quick as possible and at the same time don't add extra http request than usual.
-# If you have a large cluster. it's better turn this off. coz once queue is long and backend host is
-# backup online again. the network traffic will be a lot greater than normal in some cases. 
-transport_merge_request: true
 
 transport_stdout:
     enabled: false
@@ -110,7 +87,15 @@ transport_influxdb:
         enabled: false
         max_batch_size: 200
         interval: 1s
+
+        # try best to merge small group of points to no more thatn max_batch_size. this option is meant to
+        # backfill data as quick as possible and at the same time don't add extra http request than usual.
+        # If you have a large cluster. it's better turn this off. coz once queue is long and backend host is
+        # backup online again. the network traffic will be a lot greater than normal in some cases. 
         merge_reqeusts: false
+
+        # max cached reqeusts count
+        max_queue_size: 100000
 
         url: "http://192.168.59.103:8086/write"
         username: "root"
@@ -122,6 +107,8 @@ transport_influxdb:
 
         backfill_enabled: true
         backfill_interval: 1s
+
+        # Whether the client will try to cool down a little while if a response latency threshold reached when backfilling.
         backfill_handsoff: true
         backfill_latency_threshold_ms: 100
         backfill_cool_down: 5s      # cool down duration 
@@ -134,6 +121,9 @@ transport_influxdb:
         max_batch_size: 200
         interval: 1s
         merge_reqeusts: false
+
+        # max cached reqeusts count
+        max_queue_size: 100000
 
         # host: "192.168.59.103:8086"    # v0.8.8 why to config db host
         host: "10.3.6.207:8086"    # v0.8.8 why to config db host
@@ -152,28 +142,9 @@ transport_influxdb:
 
 transport_kafka:
     broker_list: "192.168.100.67:6667,192.168.100.67:6668,192.168.100.67:6669,192.168.100.67:6670,192.168.100.67:6671"
-
-
-# TODO: support amqp transport
-# transport_amqp_enabled: false
-# transport_amqp_hosts: ["127.0.0.1:5672", "127.0.0.1:5672"]
-# transport_amqp_vhost: "/"
-# transport_amqp_username: "guest"
-# transport_amqp_password: "guest"
-# transport_amqp_exchange: "amq.fanout"
-# transport_amqp_exchange_type: "fanout"
-# transport_amqp_routing_key: "hickwall"
-# transport_amqp_persistent: false
-# transport_amqp_queue: "queuename"
-
-
-# transport_kafka_enabled: true
-# transport_kafka_hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
+    enabled: false
 
 # ---------- collector configurations -------------------------------------------
-
-#TODO: interval in seconds
-collector_default_interval: 5s
 
 # builtin collectors will always working without configurations
 
@@ -217,9 +188,6 @@ collector_win_pdh:
                 tags: {
                     "mount": "C"
                 }
-            - 
-                query: "\\Process(hickwall)\\Working Set - Private"
-                metric: "hickwall.working_set"
 
 
 # This collector is supplement for win_pdh. and is not performace optimized. so should be used with 

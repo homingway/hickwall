@@ -368,14 +368,6 @@ func builtin_win_pdh() <-chan Collector {
 		Query:  "\\Process(hickwall)\\Working Set",
 		Metric: "hickwall.client.mem.working_set"})
 
-	//FIXME: temp fix double process problem.
-	// queries = append(queries, config.Conf_win_pdh_query{
-	// 	Query:  "\\Process(hickwall#1)\\Working Set - Private",
-	// 	Metric: "hickwall.client.mem.private_working_set.1"})
-	// queries = append(queries, config.Conf_win_pdh_query{
-	// 	Query:  "\\Process(hickwall#1)\\Working Set",
-	// 	Metric: "hickwall.client.mem.working_set.1"})
-
 	conf := config.Conf_win_pdh{
 		Interval: "2s",
 		Queries:  queries,

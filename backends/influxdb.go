@@ -81,7 +81,12 @@ type InfluxdbWriterConf struct {
 
 func NewInfluxdbWriter(name string, conf config.Transport_influxdb) (*InfluxdbWriter, error) {
 
-	var default_interval = time.Duration(5) * time.Second
+	log.Debug("NewInfluxdbWriter")
+
+	var (
+		default_interval = time.Duration(5) * time.Second
+		max_queue_size   = int64(100000)
+	)
 
 	version := influxdbParseVersionFromString(conf.Version)
 
@@ -99,9 +104,12 @@ func NewInfluxdbWriter(name string, conf config.Transport_influxdb) (*InfluxdbWr
 		log.Critical(err)
 		return nil, err
 	}
+	if conf.Max_queue_size > 1000 {
+		max_queue_size = conf.Max_queue_size
+	}
 
 	//TODO: boltq name should be configurable or automatic generated based on writer's name
-	q, err := boltq.NewBoltQ("backend_influxdb.queue", MAX_QUEUE_SIZE, boltq.POP_ON_FULL)
+	q, err := boltq.NewBoltQ("backend_influxdb.queue", max_queue_size, boltq.POP_ON_FULL)
 	if err != nil {
 		err = fmt.Errorf("cannot open backend_influxdb.queue: %v", err)
 		log.Critical(err)

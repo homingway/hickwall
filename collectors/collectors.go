@@ -305,6 +305,19 @@ func RunBuiltinCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
 	for _, c := range builtin_collectors {
 		go c.Run(mdCh)
 	}
+
+	// heart_beat
+	go func() {
+		for {
+			next := time.After(time.Second * time.Duration(1))
+			var md collectorlib.MultiDataPoint
+			runtime_conf := config.GetRuntimeConf()
+			tags := AddTags.Copy().Merge(runtime_conf.Tags)
+			Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
+			mdCh <- md
+			<-next
+		}
+	}()
 }
 
 func StopBuiltinCollectors() {

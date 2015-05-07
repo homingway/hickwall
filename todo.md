@@ -242,5 +242,22 @@ collector_mysql_query:
             #   mysql_query.xxxx.total  {"bu": "test"}  432
 ````
 
+* use wal and replay to replace boltq
+* transport_amqp
+````yaml
+# TODO: support amqp transport
+# transport_amqp_enabled: false
+# transport_amqp_hosts: ["127.0.0.1:5672", "127.0.0.1:5672"]
+# transport_amqp_vhost: "/"
+# transport_amqp_username: "guest"
+# transport_amqp_password: "guest"
+# transport_amqp_exchange: "amq.fanout"
+# transport_amqp_exchange_type: "fanout"
+# transport_amqp_routing_key: "hickwall"
+# transport_amqp_persistent: false
+# transport_amqp_queue: "queuename"
+````
+
+
 # DONE
 * collector_ping (20150507)

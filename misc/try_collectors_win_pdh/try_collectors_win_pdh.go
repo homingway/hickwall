@@ -29,12 +29,18 @@ func main() {
 	fmt.Println(" ++ customized_collectors:  ", cc)
 	fmt.Println(" ++ builtin_collectors: ", cs)
 
+	for _, c := range cs {
+		fmt.Println(c.Name())
+	}
+
 	ch := make(chan collectorlib.MultiDataPoint)
+
+	RunBuiltinCollectors(ch)
 
 	go cs[0].Run(ch)
 
-	go cc[0].Run(ch)
-	go cc[1].Run(ch)
+	// go cc[0].Run(ch)
+	// go cc[1].Run(ch)
 
 	done := time.After(time.Second * 30)
 	delay := time.After(time.Second * 5)
@@ -42,7 +48,7 @@ loop:
 	for {
 		select {
 		case dp, err := <-ch:
-			fmt.Println("MultiDataPoint: ", dp, err)
+			fmt.Println("MultiDataPoint: ----------------------------------", err)
 			// case <-ch:
 			// fmt.Println(" point ---> ", dp, err)
 			// fmt.Println("-------------------")
@@ -53,18 +59,18 @@ loop:
 		case <-delay:
 
 			// cs[0].Stop()
-			StopBuiltinCollectors()
+			// StopBuiltinCollectors()
 
-			StopCustomizedCollectors()
-			fmt.Println("customized_collectors", GetCustomizedCollectors())
-			RemoveAllCustomizedCollectors()
-			fmt.Println("customized_collectors", GetCustomizedCollectors())
+			// StopCustomizedCollectors()
+			// fmt.Println("customized_collectors", GetCustomizedCollectors())
+			// RemoveAllCustomizedCollectors()
+			// fmt.Println("customized_collectors", GetCustomizedCollectors())
 
-			AddCustomizedCollectorByName("win_pdh", "cc[0]collector", runtime_conf.Collector_win_pdh[0])
-			AddCustomizedCollectorByName("win_pdh", "cc[1]collector", runtime_conf.Collector_win_pdh[1])
-			fmt.Println("customized_collectors", GetCustomizedCollectors())
+			// AddCustomizedCollectorByName("win_pdh", "cc[0]collector", runtime_conf.Collector_win_pdh[0])
+			// AddCustomizedCollectorByName("win_pdh", "cc[1]collector", runtime_conf.Collector_win_pdh[1])
+			// fmt.Println("customized_collectors", GetCustomizedCollectors())
 
-			RunCustomizedCollectors(ch)
+			// RunCustomizedCollectors(ch)
 
 			// cc[0].Stop()
 			// cc[1].Stop()
