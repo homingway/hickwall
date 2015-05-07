@@ -569,26 +569,26 @@ collector_cmd:
 #             #   mysql_query.xxxx.total  {"bu": "test"}  432
 
 # TODO: collector_ping
-# collector_ping:
-#     -
-#         # in seconds
-#         interval: 10s
-#         metric_key: "ping"
-#         tags: [
-#             [ "some", "test2"]
-#         ]
-#         hosts:
-#             - "www.baidu.com"
-#             - "www.12306.com"
-#         timeout_ms: 1000ms
-#         packets: 5
-#         collect:
-#             - "time_min"
-#             - "time_avg"
-#             - "time_max"
-#             - "time_mdev"
-
-#             - "lost_pct"
+collector_ping:
+    -
+        # in seconds
+        interval: 10s
+        metric_key: "ping"
+        tags: [
+            [ "some", "test2"]
+        ]
+        targets:
+            - "www.baidu.com"
+            - "www.12306.com"
+        timeout: 50ms
+        packets: 5
+        collect:
+            - "time_min"
+            - "time_avg"
+            - "time_max"
+            - "time_mdev"
+            - "lost_pct"
+            - "ip"
 
 #         # metrics:
 #         #   ping.time_min    {"some": "test2", "host": "www.baidu.com"}  28.307
@@ -602,23 +602,3 @@ collector_cmd:
 #         #   ping.time_max    {"some": "test2", "host": "www.12306.com"}  34.360
 #         #   ping.time_mdev   {"some": "test2", "host": "www.12306.com"}  2.192
 #         #   ping.lost_pct    {"some": "test2", "host": "www.12306.com"}  0.0
-
-
-# plugin_cmd:
-#     - 
-#         alias: "cmd1"
-#         cmd: "/bin/echo"
-#         regex: "/"
-
-# plugin_cmd:
-#     -
-#         alias: "python"
-#         cmd: "/bin/python /path/to/py/script.py"
-#         regex: "\d+"
-
-
-
-
-
-
-

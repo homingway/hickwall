@@ -1,79 +1,144 @@
 package collectors
 
-// import (
-// 	"fmt"
-// 	"github.com/oliveagle/hickwall/collectorlib"
-// 	"github.com/oliveagle/hickwall/config"
-// 	log "github.com/oliveagle/seelog"
-// 	"runtime"
-// 	"time"
-// )
+import (
+	"fmt"
+	"github.com/GaryBoone/GoStats/stats"
+	"github.com/oliveagle/hickwall/collectorlib"
+	"github.com/oliveagle/hickwall/config"
+	log "github.com/oliveagle/seelog"
+	"github.com/tatsushid/go-fastping"
+	"math"
+	"net"
+	"strings"
+	"time"
+)
 
 func init() {
-	// collector_factories["ping"] = factory_ping
+	collector_factories["ping"] = factory_ping
 }
 
-// func factory_ping(name string, conf interface{}) <-chan Collector {
-// 	log.Debugf("factory_ping, name: %s", name)
+func factory_ping(name string, conf interface{}) <-chan Collector {
+	log.Debugf("factory_ping, name: %s", name)
 
-// 	var out = make(chan Collector)
-// 	go func() {
+	var out = make(chan Collector)
+	go func() {
+		var (
+			cf               config.Conf_ping
+			default_interval = time.Duration(1) * time.Second
+			default_timeout  = time.Duration(5) * time.Second
+		)
 
-// 		var (
-// 			cf               config.Conf_ping
-// 			default_interval = time.Duration(1) * time.Second
+		if conf != nil {
+			cf = conf.(config.Conf_ping)
 
-// 			runtime_conf = config.GetRuntimeConf()
-// 		)
+			interval, err := collectorlib.ParseInterval(cf.Interval)
+			if err != nil {
+				log.Errorf("cannot parse interval of collector_ping: %s - %v", cf.Interval, err)
+				interval = default_interval
+			}
+			timeout, err := collectorlib.ParseInterval(cf.Timeout)
+			if err != nil {
+				log.Errorf("cannot parse timeout of collector_ping: %s - %v", cf.Timeout, err)
+				timeout = default_timeout
+			}
 
-// 		if conf != nil {
-// 			interval, err := collectorlib.ParseInterval(cf.Interval)
-// 			if err != nil {
-// 				log.Errorf("cannot parse interval of collector_pdh: %s - %v", cf.Interval, err)
-// 				interval = default_interval
-// 			}
+			for idx, target := range cf.Targets {
+				var (
+					states state_c_ping
+				)
 
-// 			for idx, target := range cf.Targets {
+				states.Interval = interval
+				states.Target = target
+				states.Conf = cf
+				states.Timeout = timeout
 
-// 				var (
-// 					states state_c_ping
-// 				)
+				out <- &IntervalCollector{
+					F:        C_ping,
+					Enable:   nil,
+					name:     fmt.Sprintf("%s_%d_%d", name, idx),
+					states:   states,
+					Interval: states.Interval,
+				}
+			}
+		}
+		close(out)
+	}()
+	return out
+}
 
-// 				states.Interval = interval
-// 				states.Target = target
+type state_c_ping struct {
+	Interval time.Duration
+	Target   string
+	Conf     config.Conf_ping
+	Timeout  time.Duration
+}
 
-// 				out <- &IntervalCollector{
-// 					F:        C_ping,
-// 					Enable:   nil,
-// 					name:     fmt.Sprintf("%s_%d", name, idx),
-// 					states:   states,
-// 					Interval: states.Interval,
-// 				}
-// 			}
-// 		}
+// hickwall process metrics, only runtime stats
+func C_ping(states interface{}) (collectorlib.MultiDataPoint, error) {
+	var (
+		md           collectorlib.MultiDataPoint
+		runtime_conf = config.GetRuntimeConf()
+		p            = fastping.NewPinger()
+		d            stats.Stats
 
-// 		close(out)
-// 	}()
+		state = states.(state_c_ping)
 
-// 	return out
-// }
+		rtt_chan = make(chan float64)
+	)
 
-// type state_c_ping struct {
-// 	Interval time.Duration
-// 	Target   string
-// }
+	tags := AddTags.Copy().Merge(runtime_conf.Tags)
+	tags["target"] = state.Target
 
-// // hickwall process metrics, only runtime stats
-// func C_ping(states interface{}) (collectorlib.MultiDataPoint, error) {
-// 	var (
-// 		md           collectorlib.MultiDataPoint
-// 		m            runtime.MemStats
-// 		runtime_conf = config.GetRuntimeConf()
-// 	)
+	if state.Conf.Packets <= 0 {
+		return md, fmt.Errorf("collector_ping: packets should be greater than zero")
+	}
 
-// 	tags := AddTags.Copy().Merge(runtime_conf.Tags)
-// 	// runtime.ReadMemStats(&m)
+	ip, err := net.ResolveIPAddr("ip4:icmp", state.Target)
+	if err != nil {
+		log.Errorf("collector_ping: DNS resolve error: %v", err)
+		return md, fmt.Errorf("collector_ping: DNS resolve error: %v", err)
+	}
 
-// 	// Add(&md, "hickwall.client.NumGoroutine", runtime.NumGoroutine(), tags, "", "", "")
-// 	return md, nil
-// }
+	p.MaxRTT = state.Timeout
+	p.AddIPAddr(ip)
+	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
+		rtt_chan <- float64(rtt.Nanoseconds() / 1000 / 1000)
+	}
+
+	go func() {
+		for i := 0; i < state.Conf.Packets; i++ {
+			err = p.Run()
+			if err != nil {
+				fmt.Println("run err", err)
+			}
+		}
+		close(rtt_chan)
+	}()
+
+	for rtt := range rtt_chan {
+		d.Update(rtt)
+	}
+
+	for _, sl := range state.Conf.Collect {
+		switch strings.ToLower(sl) {
+		case "time_min":
+			Add(&md, fmt.Sprintf("%s.%s", state.Conf.Metric_key, "time_min"), d.Min(), tags, "", "", "")
+		case "time_max":
+			Add(&md, fmt.Sprintf("%s.%s", state.Conf.Metric_key, "time_max"), d.Max(), tags, "", "", "")
+		case "time_avg":
+			Add(&md, fmt.Sprintf("%s.%s", state.Conf.Metric_key, "time_avg"), d.Mean(), tags, "", "", "")
+		case "time_mdev":
+			std := d.SampleStandardDeviation()
+			if math.IsNaN(std) {
+				std = 0
+			}
+			Add(&md, fmt.Sprintf("%s.%s", state.Conf.Metric_key, "time_mdev"), std, tags, "", "", "")
+		case "ip":
+			Add(&md, fmt.Sprintf("%s.%s", state.Conf.Metric_key, "ip"), ip.IP.String(), tags, "", "", "")
+		case "lost_pct":
+			lost_pct := float64((state.Conf.Packets-d.Count())/state.Conf.Packets) * 100
+			Add(&md, fmt.Sprintf("%s.%s", state.Conf.Metric_key, "lost_pct"), lost_pct, tags, "", "", "")
+		}
+	}
+	return md, nil
+}

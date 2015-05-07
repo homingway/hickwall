@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/tatsushid/go-fastping"
-	"net"
-	"os"
+	// "github.com/tatsushid/go-fastping"
+	// "net"
+	// "os"
 	// "fmt"
+	// "github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
 	. "github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/config"
@@ -36,29 +37,28 @@ import (
 
 func main() {
 	pretty.Println("")
+	config.LoadRuntimeConfFromFileOnce()
+	// backends.CreateBackendsFromRuntimeConf()
 
 	runtime_conf := config.GetRuntimeConf()
-
-	cs := GetBuiltinCollectors()
+	fmt.Println("runtime_conf.Collector_ping: ", runtime_conf.Collector_ping[0])
 
 	AddCustomizedCollectorByName("ping", "ping", runtime_conf.Collector_ping[0])
 	cc := GetCustomizedCollectors()
 
 	fmt.Println(" ++ customized_collectors:  ", cc)
-	fmt.Println(" ++ builtin_collectors: ", cs)
 
 	ch := make(chan collectorlib.MultiDataPoint)
 
-	go cs[0].Run(ch)
 	go cc[0].Run(ch)
 
-	done := time.After(time.Second * 3)
+	done := time.After(time.Second * 30)
 	delay := time.After(time.Second * 1)
 loop:
 	for {
 		select {
 		case dp, err := <-ch:
-			fmt.Println("MultiDataPoint: ", dp, err)
+			fmt.Println("MultiDataPoint: ", err)
 			// case <-ch:
 			// fmt.Println(" point ---> ", dp, err)
 			// fmt.Println("-------------------")
