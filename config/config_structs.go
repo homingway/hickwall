@@ -44,7 +44,7 @@ type Config struct {
 
 	Collector_mysql_query []c_mysql_query `json:"collector_mysql_query"`
 
-	Collector_ping []c_ping `json:"collector_ping"`
+	Collector_ping []Conf_ping `json:"collector_ping"`
 
 	Collector_cmd []Conf_cmd `json:"collector_cmd"`
 }
@@ -152,12 +152,14 @@ type c_mysql_query_item struct {
 	Comment    string     `json:"comment"`
 }
 
-type c_ping struct {
+type Conf_ping struct {
+	Interval   string     `json:"interval"`
 	Metric_key string     `json:"metric_key"`
 	Tags       [][]string `json:"tags"`
-
-	Hosts    []string `json:"hosts"`
-	Interval int      `json:"interval"`
+	Targets    []string   `json:"targets"`
+	Timeout    string     `json:"timeout"`
+	Packets    int        `json:"packets"`
+	Collect    []string   `json:"collect"`
 }
 
 func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {

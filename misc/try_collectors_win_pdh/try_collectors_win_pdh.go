@@ -12,10 +12,12 @@ import (
 
 func main() {
 	pretty.Println("")
+	config.LoadRuntimeConfFromFileOnce()
 
 	runtime_conf := config.GetRuntimeConf()
 
 	cs := GetBuiltinCollectors()
+	fmt.Println("runtime_conf.Collector_win_pdh: ", runtime_conf.Collector_win_pdh)
 
 	AddCustomizedCollectorByName("win_pdh", "cc[0]collector", runtime_conf.Collector_win_pdh[0])
 	AddCustomizedCollectorByName("win_pdh", "cc[1]collector", runtime_conf.Collector_win_pdh[1])

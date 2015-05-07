@@ -83,6 +83,9 @@ func loadCoreConfig() {
 
 	log.Debug("core config file used: ", core_viper.ConfigFileUsed())
 	log.Debugf("CoreConfig:  %+v", CoreConf)
+
+	// fmt.Println("core config file used: ", core_viper.ConfigFileUsed())
+	// fmt.Println("SHARED_DIR: ", SHARED_DIR)
 }
 
 type RespConfig struct {
@@ -111,6 +114,9 @@ func loadRuntimeConfFromFile() <-chan *RespConfig {
 		err := runtime_viper.ReadInConfig()
 
 		log.Debug("Runtime Config File Used: ", runtime_viper.ConfigFileUsed())
+
+		// fmt.Println("Runtime Config File Used: ", runtime_viper.ConfigFileUsed())
+
 		if err != nil {
 			log.Error("loadRuntimeConfFromFile error: ", err)
 			out <- &RespConfig{nil, fmt.Errorf("No configuration file loaded. config.yml: %v", err)}
@@ -126,6 +132,7 @@ func loadRuntimeConfFromFile() <-chan *RespConfig {
 		}
 
 		out <- &RespConfig{&runtime_conf, nil}
+		close(out)
 		return
 	}()
 
@@ -227,6 +234,21 @@ func WatchConfig() <-chan *RespConfig {
 	} else {
 		return loadRuntimeConfFromFile()
 	}
+}
+
+func LoadRuntimeConfFromFileOnce() error {
+	defer log.Flush()
+
+	for resp := range loadRuntimeConfFromFile() {
+		if resp.Err != nil {
+			log.Errorf("cannot load runtime config from file: %v", resp.Err)
+			return fmt.Errorf("cannot load runtime config from file: %v", resp.Err)
+		} else {
+			UpdateRuntimeConf(resp.Config)
+			log.Debug("updated runtime config")
+		}
+	}
+	return nil
 }
 
 func init() {
