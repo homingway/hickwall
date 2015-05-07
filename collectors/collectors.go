@@ -23,7 +23,8 @@ import (
 // }
 
 //TODO, detect duplicated metric keys in configuration
-type collector_factory_func func(name string, conf interface{}) Collector
+// type collector_factory_func func(name string, conf interface{}) Collector
+type collector_factory_func func(name string, conf interface{}) <-chan Collector
 
 var (
 	// collector factories
@@ -312,15 +313,14 @@ func GetCustomizedCollectors() []Collector {
 func AddCustomizedCollectorByName(factory_name, collector_name string, config interface{}) bool {
 	defer log.Flush()
 
-	var collector Collector
 	factory, ok := GetCollectorFactoryByName(factory_name)
 	log.Debugf("factory: %s, ok: %v", factory_name, ok)
-	// log.Flush()
 	if ok == true {
-		collector = factory(collector_name, config)
-		log.Debugf("collector created with config: %s", collector.Name())
-		// log.Flush()
-		customized_collectors = append(customized_collectors, collector)
+		for collector := range factory(collector_name, config) {
+			log.Debugf("collector created with config: %s", collector.Name())
+			customized_collectors = append(customized_collectors, collector)
+		}
+
 	}
 	return ok
 }

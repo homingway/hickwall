@@ -20,34 +20,39 @@ func init() {
 	// builtin_collectors = append(builtin_collectors, builtin_win_wmi())
 }
 
-func factory_cmd(name string, conf interface{}) Collector {
-	var (
-		cf               config.Conf_cmd
-		state            state_cmd
-		default_interval = time.Duration(1) * time.Minute
-		runtime_conf     = config.GetRuntimeConf()
-	)
+func factory_cmd(name string, conf interface{}) <-chan Collector {
+	var out = make(chan Collector)
+	go func() {
+		var (
+			cf               config.Conf_cmd
+			state            state_cmd
+			default_interval = time.Duration(1) * time.Minute
+			runtime_conf     = config.GetRuntimeConf()
+		)
 
-	if conf != nil {
-		cf = conf.(config.Conf_cmd)
+		if conf != nil {
+			cf = conf.(config.Conf_cmd)
 
-		interval, err := collectorlib.ParseInterval(cf.Interval)
-		if err != nil {
-			log.Errorf("cannot parse interval of collector_cmd: %s - %v", cf.Interval, err)
-			interval = default_interval
+			interval, err := collectorlib.ParseInterval(cf.Interval)
+			if err != nil {
+				log.Errorf("cannot parse interval of collector_cmd: %s - %v", cf.Interval, err)
+				interval = default_interval
+			}
+			state.Interval = interval
+			state.Cmd = cf.Cmd
+			state.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags)
 		}
-		state.Interval = interval
-		state.Cmd = cf.Cmd
-		state.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags)
-	}
 
-	return &IntervalCollector{
-		F:        c_cmd,
-		Enable:   nil,
-		name:     name,
-		states:   state,
-		Interval: state.Interval,
-	}
+		out <- &IntervalCollector{
+			F:        c_cmd,
+			Enable:   nil,
+			name:     name,
+			states:   state,
+			Interval: state.Interval,
+		}
+		close(out)
+	}()
+	return out
 }
 
 type state_cmd struct {

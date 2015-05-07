@@ -19,7 +19,9 @@ func init() {
 
 	collector_factories["win_wmi"] = factory_win_wmi
 
-	builtin_collectors = append(builtin_collectors, builtin_win_wmi())
+	for collector := range builtin_win_wmi() {
+		builtin_collectors = append(builtin_collectors, collector)
+	}
 
 	// log.Debug("Initialized builtin collector: win_wmi")
 }
@@ -80,7 +82,7 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 	return resultMap
 }
 
-func builtin_win_wmi() Collector {
+func builtin_win_wmi() <-chan Collector {
 
 	queries := []config.Conf_win_wmi_query{}
 
@@ -161,43 +163,48 @@ func builtin_win_wmi() Collector {
 	return factory_win_wmi("builtin_win_wmi", conf)
 }
 
-func factory_win_wmi(name string, conf interface{}) Collector {
-	var (
-		states           state_win_wmi
-		cf               config.Conf_win_wmi
-		default_interval = time.Duration(60) * time.Minute
-		runtime_conf     = config.GetRuntimeConf()
-	)
+func factory_win_wmi(name string, conf interface{}) <-chan Collector {
+	var out = make(chan Collector)
+	go func() {
+		var (
+			states           state_win_wmi
+			cf               config.Conf_win_wmi
+			default_interval = time.Duration(60) * time.Minute
+			runtime_conf     = config.GetRuntimeConf()
+		)
 
-	if conf != nil {
-		cf = conf.(config.Conf_win_wmi)
+		if conf != nil {
+			cf = conf.(config.Conf_win_wmi)
 
-		interval, err := collectorlib.ParseInterval(cf.Interval)
-		if err != nil {
-			log.Errorf("cannot parse interval of collector_wmi: %s - %v", cf.Interval, err)
-			interval = default_interval
+			interval, err := collectorlib.ParseInterval(cf.Interval)
+			if err != nil {
+				log.Errorf("cannot parse interval of collector_wmi: %s - %v", cf.Interval, err)
+				interval = default_interval
+			}
+			states.Interval = interval
+
+			states.queries = []config.Conf_win_wmi_query{}
+
+			for _, query_obj := range cf.Queries {
+				//TODO: validate query
+
+				// merge tags
+				query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
+
+				states.queries = append(states.queries, query_obj)
+			}
 		}
-		states.Interval = interval
 
-		states.queries = []config.Conf_win_wmi_query{}
-
-		for _, query_obj := range cf.Queries {
-			//TODO: validate query
-
-			// merge tags
-			query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
-
-			states.queries = append(states.queries, query_obj)
+		out <- &IntervalCollector{
+			F:        c_win_wmi,
+			Enable:   nil,
+			name:     name,
+			states:   states,
+			Interval: states.Interval,
 		}
-	}
-
-	return &IntervalCollector{
-		F:        c_win_wmi,
-		Enable:   nil,
-		name:     name,
-		states:   states,
-		Interval: states.Interval,
-	}
+		close(out)
+	}()
+	return out
 }
 
 type state_win_wmi struct {
