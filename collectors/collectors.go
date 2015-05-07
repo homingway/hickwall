@@ -306,18 +306,34 @@ func RunBuiltinCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
 		go c.Run(mdCh)
 	}
 
-	// heart_beat
-	go func() {
-		for {
-			next := time.After(time.Second * time.Duration(1))
-			var md collectorlib.MultiDataPoint
-			runtime_conf := config.GetRuntimeConf()
-			tags := AddTags.Copy().Merge(runtime_conf.Tags)
-			Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
-			mdCh <- md
-			<-next
+	go run_heartbeat(mdCh)
+}
+
+func run_heartbeat(mdCh chan<- collectorlib.MultiDataPoint) {
+	for {
+		var md collectorlib.MultiDataPoint
+
+		runtime_conf := config.GetRuntimeConf()
+		default_interval := time.Second * time.Duration(1)
+
+		interval, err := collectorlib.ParseInterval(runtime_conf.Heartbeat_interval)
+		if err != nil {
+			log.Errorf("cannot parse interval of heart_beat: %s - %v", runtime_conf.Heartbeat_interval, err)
+			interval = default_interval
+		} else {
+			if interval < default_interval {
+				interval = default_interval
+			}
 		}
-	}()
+
+		next := time.After(interval)
+
+		tags := AddTags.Copy().Merge(runtime_conf.Tags)
+		Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
+		log.Debug("Heartbeat")
+		mdCh <- md
+		<-next
+	}
 }
 
 func StopBuiltinCollectors() {

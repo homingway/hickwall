@@ -25,7 +25,8 @@ collector_hickwall:
     enabled: false
     interval: 2s
 
-heart_beat_interval: 1s
+# minimal interval is 1s
+heartbeat_interval: 5s
 
 #TODO: merge_metadata_to_tags
 # If enable metadata, but backend don't support metadata. this option will merge all metadata

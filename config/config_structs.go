@@ -27,6 +27,8 @@ type CoreConfig struct {
 type RuntimeConfig struct {
 	Hostname string
 
+	Heartbeat_interval string
+
 	Tags map[string]string `json:"tags"`
 
 	Client_metric_enabled  bool   `json:"client_metric_enabled"`
