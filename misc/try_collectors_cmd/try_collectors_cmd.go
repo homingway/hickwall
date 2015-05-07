@@ -12,7 +12,8 @@ import (
 
 func main() {
 	pretty.Println("")
-
+	config.LoadRuntimeConfFromFileOnce()
+	// backends.CreateBackendsFromRuntimeConf()
 	runtime_conf := config.GetRuntimeConf()
 
 	cs := GetBuiltinCollectors()

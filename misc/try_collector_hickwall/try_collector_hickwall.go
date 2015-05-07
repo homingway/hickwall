@@ -5,12 +5,13 @@ import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
 	. "github.com/oliveagle/hickwall/collectors"
-	// "github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/config"
 	"time"
 )
 
 func main() {
-
+	config.LoadRuntimeConfFromFileOnce()
+	backends.CreateBackendsFromRuntimeConf()
 	// runtime_conf := config.GetRuntimeConf()
 
 	// config.Conf.Transport_stdout.Enabled = true

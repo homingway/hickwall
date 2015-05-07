@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
+	"github.com/oliveagle/hickwall/config"
 
 	"fmt"
 	"math/rand"
@@ -11,6 +12,9 @@ import (
 
 func main() {
 	fmt.Println("---")
+
+	config.LoadRuntimeConfFromFileOnce()
+	backends.CreateBackendsFromRuntimeConf()
 
 	// backend, _ := backends.GetBackendByName("influxdb")
 	// backend, _ := backends.GetBackendByNameVersion("influxdb", "0.9.0-rc7")

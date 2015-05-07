@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
+	"github.com/oliveagle/hickwall/config"
 
 	"fmt"
 	"math/rand"
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+
+	config.LoadRuntimeConfFromFileOnce()
+	backends.CreateBackendsFromRuntimeConf()
 
 	fmt.Println("--")
 	// p := collectorlib.DataPoint{
@@ -23,6 +27,10 @@ func main() {
 	// backend, _ := backends.GetBackendByName("stdout")
 	// go backend.Run()
 	// defer backend.Close()
+
+	runtime_conf := config.GetRuntimeConf()
+	runtime_conf.Transport_stdout.Enabled = true
+	config.UpdateRuntimeConf(runtime_conf)
 
 	fmt.Println(backends.GetBackendList())
 

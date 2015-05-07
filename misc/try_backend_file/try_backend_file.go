@@ -5,18 +5,24 @@ import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
 	// . "github.com/oliveagle/hickwall/collectors"
-	// "github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/config"
 	"math/rand"
 	"time"
 )
 
 func main() {
 
+	config.LoadRuntimeConfFromFileOnce()
+	backends.CreateBackendsFromRuntimeConf()
+
 	fmt.Println("--")
 	fmt.Println(backends.GetBackendList())
 
-	// config.Conf.Transport_file.Enabled = true
-	// config.Conf.Transport_file.Enabled = false
+	runtime_conf := config.GetRuntimeConf()
+	fmt.Println(runtime_conf.Transport_stdout)
+	fmt.Println(runtime_conf.Transport_file)
+	runtime_conf.Transport_stdout.Enabled = true
+	config.UpdateRuntimeConf(runtime_conf)
 
 	file_bk, _ := backends.GetBackendByName("file")
 	go file_bk.Run()
@@ -25,6 +31,7 @@ func main() {
 	tick := time.Tick(time.Millisecond * 100)
 	done := time.After(time.Second * 6)
 
+	// TODO: file backend donesn't work
 loop:
 	for {
 		select {
