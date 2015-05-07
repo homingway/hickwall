@@ -43,14 +43,19 @@ func main() {
 	runtime_conf := config.GetRuntimeConf()
 	fmt.Println("runtime_conf.Collector_ping: ", runtime_conf.Collector_ping[0])
 
-	AddCustomizedCollectorByName("ping", "ping", runtime_conf.Collector_ping[0])
+	// AddCustomizedCollectorByName("ping", "ping", runtime_conf.Collector_ping[0])
+	for _, cf := range runtime_conf.Collector_ping {
+		AddCustomizedCollectorByName("ping", "ping", cf)
+	}
+
 	cc := GetCustomizedCollectors()
 
 	fmt.Println(" ++ customized_collectors:  ", cc)
 
 	ch := make(chan collectorlib.MultiDataPoint)
 
-	go cc[0].Run(ch)
+	// go cc[0].Run(ch)
+	RunCustomizedCollectors(ch)
 
 	done := time.After(time.Second * 30)
 	delay := time.After(time.Second * 1)
