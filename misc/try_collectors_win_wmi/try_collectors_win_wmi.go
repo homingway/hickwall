@@ -12,9 +12,10 @@ import (
 
 func main() {
 	pretty.Println("")
+	config.LoadRuntimeConfFromFileOnce()
 
 	runtime_conf := config.GetRuntimeConf()
-	// fmt.Println(runtime_conf)
+	fmt.Println(runtime_conf.Collector_win_wmi)
 
 	cs := GetBuiltinCollectorByName("builtin_win_wmi")
 
