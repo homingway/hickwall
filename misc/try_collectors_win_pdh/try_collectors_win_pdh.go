@@ -14,7 +14,10 @@ func main() {
 	pretty.Println("")
 	config.LoadRuntimeConfFromFileOnce()
 
+	// test set hostname from runtime config
 	runtime_conf := config.GetRuntimeConf()
+	runtime_conf.Hostname = "tes哈哈啊哈t"
+	config.UpdateRuntimeConf(runtime_conf)
 
 	cs := GetBuiltinCollectors()
 	fmt.Println("runtime_conf.Collector_win_pdh: ", runtime_conf.Collector_win_pdh)

@@ -56,3 +56,13 @@ func TestParseInterval(t *testing.T) {
 		t.Error("d is not 1s")
 	}
 }
+
+func TestSetHostname(t *testing.T) {
+
+	// FullHostname = true
+	SetHostname()
+	t.Log(Hostname)
+	t.Log(FullHostname)
+
+	// t.Error("...")
+}

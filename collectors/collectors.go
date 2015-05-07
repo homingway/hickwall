@@ -126,6 +126,16 @@ func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value int
 	} else if host == "" {
 		delete(tags, "host")
 	}
+
+	conf := config.GetRuntimeConf()
+	if conf.Hostname != "" {
+		// hostname should be english
+		hostname := collectorlib.NormalizeMetricKey(conf.Hostname)
+		if hostname != "" {
+			tags["host"] = hostname
+		}
+	}
+
 	tags = AddTags.Copy().Merge(tags)
 	d := collectorlib.DataPoint{
 		Metric:    name,

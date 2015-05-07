@@ -25,6 +25,8 @@ type CoreConfig struct {
 }
 
 type Config struct {
+	Hostname string
+
 	Tags map[string]string `json:"tags"`
 
 	Client_metric_enabled  bool   `json:"client_metric_enabled"`

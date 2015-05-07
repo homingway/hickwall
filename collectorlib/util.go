@@ -15,37 +15,34 @@ import (
 
 var (
 	// Hostname is the machine's hostname.
-	Hostname string
-	// FullHostname will, if false, uses the hostname upto the first ".". Run Set()
-	// manually after changing.
-	FullHostname bool
+	Hostname     string
+	FullHostname string
 	timestamp    = time.Now().Unix()
 	tlock        sync.Mutex
 )
 
 // Clean cleans a hostname based on the current FullHostname setting.
-func Clean(s string) string {
-	if !FullHostname {
+func Clean(s string, full bool) string {
+	if !full {
 		s = strings.SplitN(s, ".", 2)[0]
 	}
 	return strings.ToLower(s)
 }
 
 // Set sets Hostntame based on the current preferences.
-func Set() {
+func SetHostname() {
 	h, err := os.Hostname()
-	if err == nil {
-		if !FullHostname {
-			h = strings.SplitN(h, ".", 2)[0]
-		}
-	} else {
+	if err != nil {
 		h = "unknown"
 	}
-	Hostname = Clean(h)
+	fmt.Println(h)
+
+	Hostname = Clean(h, false)
+	FullHostname = Clean(h, true)
 }
 
 func init() {
-	Set()
+	SetHostname()
 
 	// timestamp
 	go func() {
