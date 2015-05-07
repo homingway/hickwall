@@ -1,16 +1,10 @@
-#TODO: config hostname
 # customize hostname, if omit this option, the client will use $(hostname) automatically
 # hostname: "test_server1"
 
-#TODO: split config into configuration folder
-#TODO: [done 2015Mar04] normalize metric, only `a-z._` allowed in metric
-#TODO: [done 2015Mar04] normalize tags
 #TODO: if collect data failed, now we can provide DEFAULT value from config. how about NO-DATA alert
 #   like zabbix ?
 #TODO: write time precision is limited to MS (milliseconds) only
 #TODO: {{.Key}}.{{.Tags}}   if Tags is empty, key will have a trailing dot.  e.g.:  `metric1.`
-#TODO: make all collector config can be changed at runtime.
-# TODO: refactory all interval configuration
 
 # these tags will be appended into metrics' tags field. 
 #tags: {
@@ -49,7 +43,7 @@ merge_metadata_to_tags: false
 #                       all fields in {tags} will only appear once in generated flat metric key.  so if you have `{{Tgas_xxx}}` 
 #                       and `{tags}` in the option at the same time, then `{tags}` will only applys to the remaining tags 
 # Note: {{.Lv2.Lv2}}         Multiple leveled tempalte is not allowed
-transport_flat_metric_key_format: "{{.Tags_bu}}.{{.Tags_host}}.{{.Key}}.{{.Tags}}"
+# transport_flat_metric_key_format: "{{.Tags_bu}}.{{.Tags_host}}.{{.Key}}.{{.Tags}}"
 
 #TODO: config transport_backfill_enabled
 # when transport target host failed, the client will try to cache up requests into a file queue. once the target host

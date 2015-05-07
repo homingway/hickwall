@@ -84,7 +84,7 @@ func CreateBackendsFromRuntimeConf() {
 	CreateBackendsFromConf(runtime_conf)
 }
 
-func CreateBackendsFromConf(runtime_conf *config.Config) {
+func CreateBackendsFromConf(runtime_conf *config.RuntimeConfig) {
 	defer log.Flush()
 
 	log.Debug("creating backends from conf")

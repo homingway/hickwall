@@ -43,7 +43,7 @@ func try_vip_get_remote() {
 	viper.AddRemoteProvider("etcd", "http://192.168.59.103:4001", "/config/host/DST54869.yml")
 	viper.SetConfigType("YAML") // because there is no file extension in a stream of bytes
 
-	var x config.Config
+	var x config.RuntimeConfig
 
 	err := viper.ReadRemoteConfig()
 	if err != nil {
@@ -69,7 +69,7 @@ func try_viper_watch_remote() {
 	viper.AddRemoteProvider("etcd", "http://192.168.59.103:4001", "/config/host/DST54869.yml")
 	viper.SetConfigType("YAML") // because there is no file extension in a stream of bytes
 
-	var x config.Config
+	var x config.RuntimeConfig
 
 	for {
 		fmt.Println("watching")

@@ -356,7 +356,7 @@ func CreateCustomizedCollectorsFromRuntimeConf() {
 	CreateCustomizedCollectorsFromConf(runtime_conf)
 }
 
-func CreateCustomizedCollectorsFromConf(runtime_conf *config.Config) {
+func CreateCustomizedCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 	defer log.Flush()
 
 	log.Debug("Creating Customized Collectors")

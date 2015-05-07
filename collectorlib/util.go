@@ -35,8 +35,6 @@ func SetHostname() {
 	if err != nil {
 		h = "unknown"
 	}
-	fmt.Println(h)
-
 	Hostname = Clean(h, false)
 	FullHostname = Clean(h, true)
 }

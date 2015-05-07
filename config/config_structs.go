@@ -24,16 +24,13 @@ type CoreConfig struct {
 	Heart_beat_interval string `json:"heart_beat_interval"`
 }
 
-type Config struct {
+type RuntimeConfig struct {
 	Hostname string
 
 	Tags map[string]string `json:"tags"`
 
 	Client_metric_enabled  bool   `json:"client_metric_enabled"`
 	Client_metric_interval string `json:"client_metric_interval"`
-
-	Transport_flat_metric_key_format string `json:"transport_flat_metric_key_format"`
-	Transport_backfill_enabled       bool   `json:"transport_backfill_enabled"`
 
 	Transport_stdout         Transport_stdout `json:"transport_stdout"`
 	Transport_file           Transport_file   `json:"transport_file"`
@@ -164,7 +161,7 @@ type Conf_ping struct {
 	Collect    []string   `json:"collect"`
 }
 
-func (c *Config) setDefaultByKey(key string, val interface{}) (err error) {
+func (c *RuntimeConfig) setDefaultByKey(key string, val interface{}) (err error) {
 
 	runtime_conf := GetRuntimeConf()
 

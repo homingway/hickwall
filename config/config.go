@@ -27,16 +27,12 @@ var (
 	SHARED_DIR         = ""
 	CONF_FILEPATH      = ""
 	CORE_CONF_FILEPATH = ""
-
-	LOG_FILE     = "hickwall.log"
-	LOG_FILEPATH = ""
-
-	CoreConf   CoreConfig // only file
-	core_viper = viper.New()
-
-	rconf Config // can retrived from file or etcd
-
-	RuntimeConfChan = make(chan *Config, 1)
+	LOG_FILE           = "hickwall.log"
+	LOG_FILEPATH       = ""
+	CoreConf           CoreConfig // only file
+	core_viper         = viper.New()
+	rconf              RuntimeConfig // can retrived from file or etcd
+	RuntimeConfChan    = make(chan *RuntimeConfig, 1)
 )
 
 func loadCoreConfig() {
@@ -89,7 +85,7 @@ func loadCoreConfig() {
 }
 
 type RespConfig struct {
-	Config *Config
+	Config *RuntimeConfig
 	Err    error
 }
 
@@ -109,13 +105,13 @@ func loadRuntimeConfFromFile() <-chan *RespConfig {
 	runtime_viper.AddConfigPath("..")       // for hickwall/misc
 
 	go func() {
-		var runtime_conf Config
+		var runtime_conf RuntimeConfig
 
 		err := runtime_viper.ReadInConfig()
 
-		log.Debug("Runtime Config File Used: ", runtime_viper.ConfigFileUsed())
+		log.Debug("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
 
-		// fmt.Println("Runtime Config File Used: ", runtime_viper.ConfigFileUsed())
+		// fmt.Println("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
 
 		if err != nil {
 			log.Error("loadRuntimeConfFromFile error: ", err)
@@ -158,7 +154,7 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 
 	go func() {
 		//need to get config at least once
-		var tmp_conf Config
+		var tmp_conf RuntimeConfig
 		err = runtime_viper.ReadRemoteConfig()
 		if err != nil {
 			log.Errorf("runtime_viper.ReadRemoteConfig Error: %v", err)
@@ -174,7 +170,7 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 		// watch changes
 		for {
 			var (
-				runtime_conf Config
+				runtime_conf RuntimeConfig
 			)
 
 			select {
@@ -256,10 +252,10 @@ func init() {
 	log.Debug("CoreConfig Loaded")
 }
 
-func UpdateRuntimeConf(conf *Config) {
+func UpdateRuntimeConf(conf *RuntimeConfig) {
 	rconf = *conf
 }
 
-func GetRuntimeConf() *Config {
+func GetRuntimeConf() *RuntimeConfig {
 	return &rconf
 }
