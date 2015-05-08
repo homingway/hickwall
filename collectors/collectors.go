@@ -24,7 +24,8 @@ import (
 
 //TODO, detect duplicated metric keys in configuration
 // type collector_factory_func func(name string, conf interface{}) Collector
-type collector_factory_func func(name string, conf interface{}) <-chan Collector
+// type collector_factory_func func(name string, conf interface{}) <-chan Collector
+type collector_factory_func func(conf interface{}) <-chan Collector
 
 var (
 	// collector factories
@@ -48,6 +49,7 @@ type Collector interface {
 	Init()
 	Enabled() bool
 	Stop()
+	FactoryName() string
 }
 
 func init() {
@@ -172,6 +174,8 @@ type IntervalCollector struct {
 	chstop        chan (int)
 	chstop_enable chan (int)
 	isrunning     bool
+
+	factory_name string
 }
 
 func (c *IntervalCollector) Init() {
@@ -278,6 +282,10 @@ func (c *IntervalCollector) Name() string {
 	return v.Name()
 }
 
+func (c *IntervalCollector) FactoryName() string {
+	return c.factory_name
+}
+
 func (c *IntervalCollector) Stop() {
 	if c.isrunning == true && c.chstop != nil {
 		log.Debugf("stopping collector: %s", c.name)
@@ -355,7 +363,8 @@ func AddCustomizedCollectorByName(factory_name, collector_name string, config in
 	factory, ok := GetCollectorFactoryByName(factory_name)
 	log.Debugf("factory: %s, ok: %v", factory_name, ok)
 	if ok == true {
-		for collector := range factory(collector_name, config) {
+		// for collector := range factory(collector_name, config) {
+		for collector := range factory(config) {
 			log.Debugf("collector created with config: %s", collector.Name())
 			customized_collectors = append(customized_collectors, collector)
 		}
@@ -363,6 +372,21 @@ func AddCustomizedCollectorByName(factory_name, collector_name string, config in
 	}
 	return ok
 }
+
+// func AddCustomizedCollectorByNameV2(factory_name, collector_name string, config interface{}) bool {
+// 	defer log.Flush()
+
+// 	factory, ok := GetCollectorFactoryByName(factory_name)
+// 	log.Debugf("factory: %s, ok: %v", factory_name, ok)
+// 	if ok == true {
+// 		for collector := range factory(collector_name, config) {
+// 			log.Debugf("collector created with config: %s", collector.Name())
+// 			customized_collectors = append(customized_collectors, collector)
+// 		}
+
+// 	}
+// 	return ok
+// }
 
 func RemoveAllCustomizedCollectors() {
 	customized_collectors = nil
@@ -396,10 +420,12 @@ func CreateCustomizedCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 	}
 	log.Debug("Created win_pdh")
 
-	for i, conf := range runtime_conf.Collector_win_wmi {
-		log.Debugf("creating customized collector: win_wmi:, %s,  %v", fmt.Sprintf("c_win_wmi_%d", i), conf)
-		AddCustomizedCollectorByName("win_wmi", fmt.Sprintf("c_win_wmi_%d", i), conf)
-	}
+	// for i, conf := range runtime_conf.Collector_win_wmi {
+	// 	log.Debugf("creating customized collector: win_wmi:, %s,  %v", fmt.Sprintf("c_win_wmi_%d", i), conf)
+	// 	AddCustomizedCollectorByName("win_wmi", fmt.Sprintf("c_win_wmi_%d", i), conf)
+	// }
+
+	AddCustomizedCollectorByName("win_wmi", "win_wmi", runtime_conf.Collector_win_wmi)
 
 	log.Debug("Created All Customized Collectors")
 }

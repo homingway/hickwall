@@ -198,7 +198,7 @@ collector_win_wmi:
         interval: 2s
         tags: {
             "bu": "train",
-            "prodution": "中文"
+            "prodution": "短周期"
         }
 
         queries: 
@@ -275,6 +275,27 @@ collector_win_wmi:
                     # - 
                     #     value_from: "FileSystem"
                     #     metric: "win.wmi.fs.{{.Name}}.filesystem"
+
+    - 
+        interval: 5s
+        tags: {
+            "bu": "train",
+            "prodution": "长周期"
+        }
+
+        queries: 
+            # simplest query form. for single instance return query
+            - 
+                query: "select Name, NumberOfCores from Win32_Processor"
+                metrics:
+                    # character cases matters here!!  
+                    -
+                        value_from: "Name"
+                        metric: "win.wmi.cpu.name"
+                    -
+                        value_from: "NumberOfCores"
+                        metric: "win.wmi.cpu.numberofcores"
+
 
 #TODO: collector_cmd:
 collector_cmd:

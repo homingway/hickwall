@@ -11,6 +11,7 @@ import (
 
 	log "github.com/oliveagle/seelog"
 
+	"fmt"
 	"syscall"
 	"unsafe"
 )
@@ -373,65 +374,66 @@ func builtin_win_pdh() <-chan Collector {
 		Query:  "\\Process(hickwall)\\Working Set",
 		Metric: "hickwall.client.mem.working_set"})
 
-	conf := config.Conf_win_pdh{
-		Interval: "2s",
-		Queries:  queries,
+	conf := []config.Conf_win_pdh{
+		config.Conf_win_pdh{
+			Interval: "2s",
+			Queries:  queries,
+		},
 	}
 
-	return factory_win_pdh("builtin_win_pdh", conf)
+	return factory_win_pdh(conf)
 }
 
-func factory_win_pdh(name string, conf interface{}) <-chan Collector {
-	log.Debugf("factory_win_pdh, name: %s", name)
+func factory_win_pdh(conf interface{}) <-chan Collector {
+	log.Debug("factory_win_pdh")
 
 	var out = make(chan Collector)
 
 	go func() {
 
 		var (
-			states           state_win_pdh
-			cf               config.Conf_win_pdh
+			states state_win_pdh
+			// cf               config.Conf_win_pdh
+			config_list      []config.Conf_win_pdh
 			default_interval = time.Duration(1) * time.Second
 
 			runtime_conf = config.GetRuntimeConf()
 		)
 
 		if conf != nil {
-			cf = conf.(config.Conf_win_pdh)
-			// fmt.Println("factory_win_pdh: ", cf)
-			// pretty.Println("factory_win_pdh:", cf)
+			config_list = conf.([]config.Conf_win_pdh)
+			for collector_idx, cf := range config_list {
+				interval, err := collectorlib.ParseInterval(cf.Interval)
+				if err != nil {
+					log.Errorf("cannot parse interval of collector_pdh: %s - %v", cf.Interval, err)
+					interval = default_interval
+				}
+				states.Interval = interval
 
-			interval, err := collectorlib.ParseInterval(cf.Interval)
-			if err != nil {
-				log.Errorf("cannot parse interval of collector_pdh: %s - %v", cf.Interval, err)
-				interval = default_interval
+				states.hPdh = NewPdhCollector()
+
+				states.map_queries = make(map[string]config.Conf_win_pdh_query)
+
+				for _, query_obj := range cf.Queries {
+					query := query_obj.Query
+					//TODO: validate query
+
+					states.hPdh.AddEnglishCounter(query)
+
+					query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
+
+					states.map_queries[query] = query_obj
+				}
+
+				out <- &IntervalCollector{
+					F:            c_win_pdh,
+					Enable:       nil,
+					name:         fmt.Sprintf("win_pdh_%d", collector_idx),
+					states:       states,
+					Interval:     states.Interval,
+					factory_name: "win_pdh",
+				}
 			}
-			states.Interval = interval
-
-			states.hPdh = NewPdhCollector()
-
-			states.map_queries = make(map[string]config.Conf_win_pdh_query)
-
-			for _, query_obj := range cf.Queries {
-				query := query_obj.Query
-				//TODO: validate query
-
-				states.hPdh.AddEnglishCounter(query)
-
-				query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
-
-				states.map_queries[query] = query_obj
-			}
-		}
-
-		log.Debugf("return IntervalCollector name: %s", name)
-
-		out <- &IntervalCollector{
-			F:        c_win_pdh,
-			Enable:   nil,
-			name:     name,
-			states:   states,
-			Interval: states.Interval,
 		}
 		close(out)
 	}()

@@ -17,47 +17,53 @@ func init() {
 	collector_factories["ping"] = factory_ping
 }
 
-func factory_ping(name string, conf interface{}) <-chan Collector {
-	log.Debugf("factory_ping, name: %s", name)
+func factory_ping(conf interface{}) <-chan Collector {
+	log.Debug("factory_ping")
 
 	var out = make(chan Collector)
 	go func() {
 		var (
-			cf               config.Conf_ping
+			config_list []config.Conf_ping
+			// cf               config.Conf_ping
 			default_interval = time.Duration(1) * time.Second
 			default_timeout  = time.Duration(5) * time.Second
 		)
 
 		if conf != nil {
-			cf = conf.(config.Conf_ping)
+			config_list = conf.([]config.Conf_ping)
 
-			interval, err := collectorlib.ParseInterval(cf.Interval)
-			if err != nil {
-				log.Errorf("cannot parse interval of collector_ping: %s - %v", cf.Interval, err)
-				interval = default_interval
-			}
-			timeout, err := collectorlib.ParseInterval(cf.Timeout)
-			if err != nil {
-				log.Errorf("cannot parse timeout of collector_ping: %s - %v", cf.Timeout, err)
-				timeout = default_timeout
-			}
+			for collector_idx, cf := range config_list {
+				// cf = conf.(config.Conf_ping)
 
-			for idx, target := range cf.Targets {
-				var (
-					states state_c_ping
-				)
+				interval, err := collectorlib.ParseInterval(cf.Interval)
+				if err != nil {
+					log.Errorf("cannot parse interval of collector_ping: %s - %v", cf.Interval, err)
+					interval = default_interval
+				}
+				timeout, err := collectorlib.ParseInterval(cf.Timeout)
+				if err != nil {
+					log.Errorf("cannot parse timeout of collector_ping: %s - %v", cf.Timeout, err)
+					timeout = default_timeout
+				}
 
-				states.Interval = interval
-				states.Target = target
-				states.Conf = cf
-				states.Timeout = timeout
+				for target_idx, target := range cf.Targets {
+					var (
+						states state_c_ping
+					)
 
-				out <- &IntervalCollector{
-					F:        C_ping,
-					Enable:   nil,
-					name:     fmt.Sprintf("%s_%d_%d", name, idx),
-					states:   states,
-					Interval: states.Interval,
+					states.Interval = interval
+					states.Target = target
+					states.Conf = cf
+					states.Timeout = timeout
+
+					out <- &IntervalCollector{
+						F:            C_ping,
+						Enable:       nil,
+						name:         fmt.Sprintf("ping_%d_%d", collector_idx, target_idx),
+						states:       states,
+						Interval:     states.Interval,
+						factory_name: "ping",
+					}
 				}
 			}
 		}

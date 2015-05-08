@@ -84,9 +84,9 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 
 func builtin_win_wmi() <-chan Collector {
 
-	queries := []config.Conf_win_wmi_query{}
+	large_interval_queries := []config.Conf_win_wmi_query{}
 
-	queries = append(queries, config.Conf_win_wmi_query{
+	large_interval_queries = append(large_interval_queries, config.Conf_win_wmi_query{
 		Query: "select Name, NumberOfCores, NumberOfLogicalProcessors from Win32_Processor",
 		Metrics: []config.Conf_win_wmi_query_metric{
 			config.Conf_win_wmi_query_metric{
@@ -103,7 +103,7 @@ func builtin_win_wmi() <-chan Collector {
 			},
 		}})
 
-	queries = append(queries, config.Conf_win_wmi_query{
+	large_interval_queries = append(large_interval_queries, config.Conf_win_wmi_query{
 		Query: "select * from Win32_ComputerSystem",
 		Metrics: []config.Conf_win_wmi_query_metric{
 			config.Conf_win_wmi_query_metric{
@@ -116,7 +116,7 @@ func builtin_win_wmi() <-chan Collector {
 			},
 		}})
 
-	queries = append(queries, config.Conf_win_wmi_query{
+	large_interval_queries = append(large_interval_queries, config.Conf_win_wmi_query{
 		Query: "select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12",
 		Metrics: []config.Conf_win_wmi_query_metric{
 			config.Conf_win_wmi_query_metric{
@@ -137,7 +137,7 @@ func builtin_win_wmi() <-chan Collector {
 			},
 		}})
 
-	queries = append(queries, config.Conf_win_wmi_query{
+	large_interval_queries = append(large_interval_queries, config.Conf_win_wmi_query{
 		Query: "select * from Win32_OperatingSystem",
 		Metrics: []config.Conf_win_wmi_query_metric{
 			config.Conf_win_wmi_query_metric{
@@ -151,7 +151,7 @@ func builtin_win_wmi() <-chan Collector {
 		}})
 
 	// TODO: iisInstalled, when W3svc is not installed, should give a value.
-	queries = append(queries, config.Conf_win_wmi_query{
+	large_interval_queries = append(large_interval_queries, config.Conf_win_wmi_query{
 		Query: "select * from Win32_Service where Name='W3svc'",
 		Metrics: []config.Conf_win_wmi_query_metric{
 			config.Conf_win_wmi_query_metric{
@@ -163,53 +163,65 @@ func builtin_win_wmi() <-chan Collector {
 
 	// TODO: rsaInstalled
 
-	conf := config.Conf_win_wmi{
-		Interval: "60m",
-		Queries:  queries,
+	config_list := []config.Conf_win_wmi{
+		config.Conf_win_wmi{
+			Interval: "60m",
+			Queries:  large_interval_queries,
+		},
 	}
 
-	return factory_win_wmi("builtin_win_wmi", conf)
+	// return factory_win_wmi("builtin_win_wmi", config_list)
+	return factory_win_wmi(config_list)
 }
 
-func factory_win_wmi(name string, conf interface{}) <-chan Collector {
+// conf interface{}: []config.Conf_win_wmi
+func factory_win_wmi(conf interface{}) <-chan Collector {
 	var out = make(chan Collector)
 	go func() {
 		var (
-			states           state_win_wmi
-			cf               config.Conf_win_wmi
+			states      state_win_wmi
+			config_list []config.Conf_win_wmi
+			// cf               config.Conf_win_wmi
 			default_interval = time.Duration(60) * time.Minute
 			runtime_conf     = config.GetRuntimeConf()
 		)
 
 		if conf != nil {
-			cf = conf.(config.Conf_win_wmi)
+			config_list = conf.([]config.Conf_win_wmi)
+			for idx, cf := range config_list {
 
-			interval, err := collectorlib.ParseInterval(cf.Interval)
-			if err != nil {
-				log.Errorf("cannot parse interval of collector_wmi: %s - %v", cf.Interval, err)
-				interval = default_interval
+				// cf = conf.(config.Conf_win_wmi)
+
+				interval, err := collectorlib.ParseInterval(cf.Interval)
+				if err != nil {
+					log.Errorf("cannot parse interval of collector_wmi: %s - %v", cf.Interval, err)
+					interval = default_interval
+				}
+				states.Interval = interval
+
+				states.queries = []config.Conf_win_wmi_query{}
+
+				for _, query_obj := range cf.Queries {
+					//TODO: validate query
+
+					// merge tags
+					query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
+
+					states.queries = append(states.queries, query_obj)
+				}
+
+				out <- &IntervalCollector{
+					F:            c_win_wmi,
+					Enable:       nil,
+					name:         fmt.Sprintf("win_wmi_%d", idx),
+					states:       states,
+					Interval:     states.Interval,
+					factory_name: "win_wmi",
+				}
 			}
-			states.Interval = interval
 
-			states.queries = []config.Conf_win_wmi_query{}
-
-			for _, query_obj := range cf.Queries {
-				//TODO: validate query
-
-				// merge tags
-				query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
-
-				states.queries = append(states.queries, query_obj)
-			}
 		}
 
-		out <- &IntervalCollector{
-			F:        c_win_wmi,
-			Enable:   nil,
-			name:     name,
-			states:   states,
-			Interval: states.Interval,
-		}
 		close(out)
 	}()
 	return out
