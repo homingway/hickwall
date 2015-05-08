@@ -10,3 +10,14 @@
 * collectors implemented:
     * windows_pdh
     * windows_wmi
+
+### Version 0.1.1
+* config devided into 2 part. 1st one is core config, 2nd is runtime config.
+* runtime config can be loaded from file or from etcd
+* runtime config can be hot reloaded by watching etcd path changes.
+* collector_cmd implemented
+* collector_ping implemented
+* refactoried how collectors been created.
+* fixed several bugs
+* added heartbeat metrics
+* removed hickwallhelper service on windows.
