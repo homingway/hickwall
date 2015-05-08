@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/oliveagle/hickwall/collectorlib"
-	. "github.com/oliveagle/hickwall/collectors"
+	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/config"
 	"time"
 
@@ -17,10 +17,12 @@ func main() {
 	runtime_conf := config.GetRuntimeConf()
 	fmt.Println(runtime_conf.Collector_win_wmi)
 
-	cs := GetBuiltinCollectorByName("builtin_win_wmi")
+	cs := collectors.GetBuiltinCollectorByName("builtin_win_wmi")
 
-	AddCustomizedCollectorByName("win_wmi", "cc[0]collector", runtime_conf.Collector_win_wmi[0])
-	cc := GetCustomizedCollectors()
+	collectors.AddCustomizedCollectorByName("win_wmi", "cc[0]collector", runtime_conf.Collector_win_wmi[0])
+	cc := collectors.GetCustomizedCollectors()
+
+	// collectors.RunBuiltinCollectors()
 
 	fmt.Println(" ++ builtin_collector: ", &cs)
 	fmt.Println(" ++ customized_collectors:  ", cc)

@@ -121,10 +121,18 @@ func builtin_win_wmi() <-chan Collector {
 		Metrics: []config.Conf_win_wmi_query_metric{
 			config.Conf_win_wmi_query_metric{
 				Value_from: "Size",
-				Metric:     "win.wmi.fs.size.{{.Name}}.bytes",
+				Metric:     "win.wmi.fs.size.bytes",
 				Tags: map[string]string{
-					"mount":   "{{.Name}}",
-					"fs_type": "{{.FileSystem}}",
+					"mount": "{{.Name}}",
+					// "fs_type": "{{.FileSystem}}",
+				},
+			},
+			config.Conf_win_wmi_query_metric{
+				Value_from: "FreeSpace",
+				Metric:     "win.wmi.fs.freespace.bytes",
+				Tags: map[string]string{
+					"mount": "{{.Name}}",
+					// "fs_type": "{{.FileSystem}}",
 				},
 			},
 		}})
@@ -255,7 +263,8 @@ func get_fields_of_query(query config.Conf_win_wmi_query) []string {
 
 		}
 
-		for _, value := range query.Tags {
+		for _, value := range item.Tags {
+			// fmt.Println("item.Tags.value: ", value)
 			for _, f := range win_wmi_pat_field.FindAllString(value, -1) {
 				key := f[3 : len(f)-2]
 				if len(key) > 0 {
@@ -269,6 +278,8 @@ func get_fields_of_query(query config.Conf_win_wmi_query) []string {
 	for key, _ := range fields {
 		results = append(results, key)
 	}
+
+	// fmt.Println("results: ", results)
 
 	return results
 }

@@ -335,6 +335,11 @@ func (p *PdhCollector) CollectData() []*PdhDataPoint {
 	return data
 }
 
+/*******************************************************************************
+*  Above are pdh wrapper for go. while trying to cross compile from ubuntu to
+* windows, pdh wrapper cannot be compiled except put it here.
+*******************************************************************************/
+
 func init() {
 	collector_factories["win_pdh"] = factory_win_pdh
 

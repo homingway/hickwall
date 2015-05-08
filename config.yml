@@ -202,15 +202,15 @@ collector_win_wmi:
         }
 
         queries: 
-            - 
-                # query: "select * from Win32_SystemServices where Name='W3svc'"
-                query: "select * from Win32_Service where Name='W3svc'"
-                metrics:
-                    # character cases matters here!!  
-                    -
-                        value_from: "State"
-                        metric: "win.wmi.service.iis.state"
-                        default: "IIS Not Installed"
+            # - 
+            #     # query: "select * from Win32_SystemServices where Name='W3svc'"
+            #     query: "select * from Win32_Service where Name='W3svc'"
+            #     metrics:
+            #         # character cases matters here!!  
+            #         -
+            #             value_from: "State"
+            #             metric: "win.wmi.service.iis.state"
+            #             default: "IIS Not Installed"
 
 
             # - 
@@ -238,43 +238,43 @@ collector_win_wmi:
             #             value_from: "NumberOfCores"
             #             metric: "win.wmi.cpu.numberofcores"
 
-            # # query with metric templating, tags for multiple instance return query
-            # - 
-            #     # query: "wmic logicaldisk get Name, FileSystem, FreeSpace"
-            #     # query: "wmic logicaldisk where 'mediatype=11 or mediatype=12' get Name, FileSystem, FreeSpace, Size"
-            #     query: "select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12"
+            # query with metric templating, tags for multiple instance return query
+            - 
+                # query: "wmic logicaldisk get Name, FileSystem, FreeSpace"
+                # query: "wmic logicaldisk where 'mediatype=11 or mediatype=12' get Name, FileSystem, FreeSpace, Size"
+                query: "select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12"
 
-            #     #  map[FreeSpace: Name:A: FileSystem:]
-            #     #  map[Name:C: FileSystem:NTFS FreeSpace:57517752320]
-            #     #  map[FileSystem:CDFS FreeSpace:0 Name:D:]
+                #  map[FreeSpace: Name:A: FileSystem:]
+                #  map[Name:C: FileSystem:NTFS FreeSpace:57517752320]
+                #  map[FileSystem:CDFS FreeSpace:0 Name:D:]
 
-            #     tags: {
-            #         "tag_level": "query_tag"
-            #     }
-            #     # metric string is a template. {Name} means use the value of `Name` Field of collected record. 
-            #     metrics:
-            #         # character cases matters here!!  
-            #         -
-            #             value_from: "Size"
-            #             metric: "win.wmi.fs.{{.Name}}.{{.FileSystem}}.size.bytes"
-            #             tags: {
-            #                 "mount": "{{.Name}}",
-            #                 "fs_type": "{{.FileSystem}}",
-            #             }
-            #         -
-            #             value_from: "FreeSpace"
-            #             metric: "win.wmi.fs.{{.Name}}.{{.FileSystem}}.freespace.bytes"
-            #             tags: {
-            #                 "mount": "{{.Name}}",
-            #                 "fs_type": "{{.FileSystem}}",
-            #             }
-            #             #TODO: support meta
-            #             # meta: {
-            #             #     "unit": "bytes"
-            #             # }
-            #         - 
-            #             value_from: "FileSystem"
-            #             metric: "win.wmi.fs.{{.Name}}.filesystem"
+                # tags: {
+                #     "tag_level": "query_tag"
+                # }
+                # metric string is a template. {Name} means use the value of `Name` Field of collected record. 
+                metrics:
+                    # character cases matters here!!  
+                    -
+                        value_from: "Size"
+                        metric: "win.wmi.fs.size.bytes"
+                        tags: {
+                            "mount": "{{.Name}}",
+                            # "fs_type": "{{.FileSystem}}",
+                        }
+                    -
+                        value_from: "FreeSpace"
+                        metric: "win.wmi.fs.freespace.bytes"
+                        tags: {
+                            "mount": "{{.Name}}",
+                            # "fs_type": "{{.FileSystem}}",
+                        }
+                        #TODO: support meta
+                        # meta: {
+                        #     "unit": "bytes"
+                        # }
+                    # - 
+                    #     value_from: "FileSystem"
+                    #     metric: "win.wmi.fs.{{.Name}}.filesystem"
 
 #TODO: collector_cmd:
 collector_cmd:
