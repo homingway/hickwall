@@ -358,21 +358,21 @@ func builtin_win_pdh() <-chan Collector {
 		Metric: "win.processes.count"})
 	queries = append(queries, config.Conf_win_pdh_query{
 		Query:  "\\Memory\\Available Bytes",
-		Metric: "win.memory.available_bytes"})
+		Metric: "win.memory.available.bytes"})
 	queries = append(queries, config.Conf_win_pdh_query{
 		Query:  "\\Process(_Total)\\Working Set",
-		Metric: "win.process.working_set.total"})
+		Metric: "win.process.working_set.total.bytes"})
 	queries = append(queries, config.Conf_win_pdh_query{
 		Query:  "\\Memory\\Cache Bytes",
-		Metric: "win.memory.cache_bytes"})
+		Metric: "win.memory.cache.bytes"})
 
 	// private memory size
 	queries = append(queries, config.Conf_win_pdh_query{
 		Query:  "\\Process(hickwall)\\Working Set - Private",
-		Metric: "hickwall.client.mem.private_working_set"})
+		Metric: "hickwall.client.mem.private_working_set.bytes"})
 	queries = append(queries, config.Conf_win_pdh_query{
 		Query:  "\\Process(hickwall)\\Working Set",
-		Metric: "hickwall.client.mem.working_set"})
+		Metric: "hickwall.client.mem.working_set.bytes"})
 
 	conf := []config.Conf_win_pdh{
 		config.Conf_win_pdh{

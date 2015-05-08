@@ -23,6 +23,7 @@ Source: "stop.bat"; DestDir: "{app}\shared"
 Name: "{group}\start hickwall"; Filename: "{app}\shared\start.bat"; WorkingDir: "{app}\shared"
 Name: "{group}\stop hickwall"; Filename: "{app}\shared\stop.bat"; WorkingDir: "{app}\shared"
 Name: "{group}\Readme.html"; Filename: "{app}\{{version}}\Readme.html"
+Name: "{group}\Open Installed Dir"; Filename: "{app}"
 Name: "{group}\uninstall"; Filename: "{uninstallexe}";
 
 [Run]

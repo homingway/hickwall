@@ -22,8 +22,6 @@ func init() {
 	for collector := range builtin_win_wmi() {
 		builtin_collectors = append(builtin_collectors, collector)
 	}
-
-	// log.Debug("Initialized builtin collector: win_wmi")
 }
 
 //TODO: we don't allow  multpile leveled template {{.A.B}}
@@ -83,6 +81,7 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 }
 
 func builtin_win_wmi() <-chan Collector {
+	// large_interval_queries -----------------------------------------------------------
 
 	large_interval_queries := []config.Conf_win_wmi_query{}
 
@@ -127,14 +126,6 @@ func builtin_win_wmi() <-chan Collector {
 					// "fs_type": "{{.FileSystem}}",
 				},
 			},
-			config.Conf_win_wmi_query_metric{
-				Value_from: "FreeSpace",
-				Metric:     "win.wmi.fs.freespace.bytes",
-				Tags: map[string]string{
-					"mount": "{{.Name}}",
-					// "fs_type": "{{.FileSystem}}",
-				},
-			},
 		}})
 
 	large_interval_queries = append(large_interval_queries, config.Conf_win_wmi_query{
@@ -163,10 +154,32 @@ func builtin_win_wmi() <-chan Collector {
 
 	// TODO: rsaInstalled
 
+	// small_interval_queries -----------------------------------------------------------
+
+	small_interval_queries := []config.Conf_win_wmi_query{}
+	small_interval_queries = append(small_interval_queries, config.Conf_win_wmi_query{
+		Query: "select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12",
+		Metrics: []config.Conf_win_wmi_query_metric{
+			config.Conf_win_wmi_query_metric{
+				Value_from: "FreeSpace",
+				Metric:     "win.wmi.fs.freespace.bytes",
+				Tags: map[string]string{
+					"mount": "{{.Name}}",
+					// "fs_type": "{{.FileSystem}}",
+				},
+			},
+		}})
+
+	// config_list ------------------------------------------------------------------------
+
 	config_list := []config.Conf_win_wmi{
 		config.Conf_win_wmi{
 			Interval: "60m",
 			Queries:  large_interval_queries,
+		},
+		config.Conf_win_wmi{
+			Interval: "1s",
+			Queries:  small_interval_queries,
 		},
 	}
 

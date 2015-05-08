@@ -16,8 +16,6 @@ import (
 func init() {
 
 	collector_factories["cmd"] = factory_cmd
-
-	// builtin_collectors = append(builtin_collectors, builtin_win_wmi())
 }
 
 // func factory_cmd(name string, conf interface{}) <-chan Collector {

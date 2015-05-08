@@ -414,10 +414,13 @@ func CreateCustomizedCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 
 	log.Debug("Creating Customized Collectors")
 
-	for i, conf := range runtime_conf.Collector_win_pdh {
-		log.Debugf("creating customized collector: win_pdh:, %s,  %v", fmt.Sprintf("c_win_pdh_%d", i), conf)
-		AddCustomizedCollectorByName("win_pdh", fmt.Sprintf("c_win_pdh_%d", i), conf)
-	}
+	// for i, conf := range runtime_conf.Collector_win_pdh {
+	// 	log.Debugf("creating customized collector: win_pdh:, %s,  %v", fmt.Sprintf("c_win_pdh_%d", i), conf)
+	// 	AddCustomizedCollectorByName("win_pdh", fmt.Sprintf("c_win_pdh_%d", i), conf)
+	// }
+
+	AddCustomizedCollectorByName("win_pdh", "win_pdh", runtime_conf.Collector_win_pdh)
+
 	log.Debug("Created win_pdh")
 
 	// for i, conf := range runtime_conf.Collector_win_wmi {

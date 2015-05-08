@@ -41,12 +41,9 @@ func main() {
 	// backends.CreateBackendsFromRuntimeConf()
 
 	runtime_conf := config.GetRuntimeConf()
-	fmt.Println("runtime_conf.Collector_ping: ", runtime_conf.Collector_ping[0])
+	fmt.Println("runtime_conf.Collector_ping: ", runtime_conf.Collector_ping)
 
-	// AddCustomizedCollectorByName("ping", "ping", runtime_conf.Collector_ping[0])
-	for _, cf := range runtime_conf.Collector_ping {
-		AddCustomizedCollectorByName("ping", "ping", cf)
-	}
+	AddCustomizedCollectorByName("ping", "ping", runtime_conf.Collector_ping)
 
 	cc := GetCustomizedCollectors()
 
