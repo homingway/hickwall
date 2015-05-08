@@ -5,10 +5,13 @@ import (
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 )
 
 func LoadConfigAndReload(mdCh chan<- collectorlib.MultiDataPoint) {
+	defer utils.Recover_and_log()
+
 	for resp := range config.WatchConfig() {
 		if resp.Err != nil {
 			log.Critical("watch config error: %v", resp.Err)

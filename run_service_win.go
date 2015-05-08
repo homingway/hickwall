@@ -16,6 +16,8 @@ import (
 )
 
 func start_service_if_stopped(service *servicelib.Service) {
+	defer utils.Recover_and_log()
+
 	state, err := service.Status()
 	if err != nil {
 		log.Errorf("CmdServiceStatus Error: %v", err)
@@ -36,14 +38,14 @@ func start_service_if_stopped(service *servicelib.Service) {
 type serviceHandler struct{}
 
 func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+	defer utils.Recover_and_log()
+	log.Info("runAsPrimaryService")
+
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	mdCh := make(chan collectorlib.MultiDataPoint)
-
-	log.Info("runAsPrimaryService")
-	defer log.Flush()
 
 	collectors.RunBuiltinCollectors(mdCh)
 	log.Debug("all builtin collectors turned on")
@@ -51,47 +53,6 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	utils.HttpPprofServe(6060)
 
 	go LoadConfigAndReload(mdCh)
-
-	// where to watch config and reload
-	// go func() {
-	// 	for resp := range config.WatchConfig() {
-	// 		if resp.Err != nil {
-	// 			log.Critical("watch config error: %v", resp.Err)
-	// 		} else {
-	// 			defer log.Flush()
-
-	// 			log.Debug("new config is comming")
-
-	// 			collectors.StopCustomizedCollectors()
-	// 			collectors.RemoveAllCustomizedCollectors()
-
-	// 			log.Debug("Stopped Customized Collectors and Removed them")
-
-	// 			backends.CloseBackends()
-	// 			backends.RemoveAllBackends()
-
-	// 			log.Debug("Stopped backends and removed them")
-
-	// 			config.UpdateRuntimeConf(resp.Config)
-
-	// 			log.Debug("Updated Runtime Conf with the new one")
-
-	// 			collectors.CreateCustomizedCollectorsFromRuntimeConf()
-	// 			log.Debug("Created Customized Colletors")
-
-	// 			backends.CreateBackendsFromRuntimeConf()
-	// 			log.Debug("Created backends")
-
-	// 			collectors.RunCustomizedCollectors(mdCh)
-	// 			log.Debug("all customized collectors turned on")
-
-	// 			backends.RunBackends()
-	// 			log.Debug("all backends turned on")
-
-	// 			log.Debug("new config applied")
-	// 		}
-	// 	}
-	// }()
 
 	// major loop for signal processing.
 loop:
@@ -129,6 +90,7 @@ loop:
 }
 
 func runAsHelperService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+	defer utils.Recover_and_log()
 	// NOTE: helper service should not write log to file. otherwise, multiple process write to same log file will cause log
 	// rotate have unexpected behaviors.
 
@@ -170,24 +132,16 @@ loop:
 }
 
 func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	defer log.Flush()
+	defer utils.Recover_and_log()
 
 	log.Infof("serviceHandler.Execute: %v", args)
-
-	// if len(args) > 0 {
-	// 	svc_name := args[0]
-	// 	if svc_name == "hickwall" {
-	// 		return runAsPrimaryService(args, r, changes)
-	// 	} else {
-	// 		return runAsHelperService(args, r, changes)
-	// 	}
-	// }
-
 	return runAsPrimaryService(args, r, changes)
 }
 
 func runService(isDebug bool) {
-	defer log.Flush()
+	defer utils.Recover_and_log()
+	// panic("hahaah")
+
 	log.Debug("runService")
 	err = svc.Run(command.PrimaryService.Name(), &serviceHandler{})
 	if err != nil {

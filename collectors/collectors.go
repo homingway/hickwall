@@ -7,8 +7,9 @@ import (
 	// "github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectorlib/metadata"
+	"github.com/oliveagle/hickwall/utils"
 	"net/http"
-	"os"
+	// "os"
 	"reflect"
 	"runtime"
 	"sync"
@@ -87,7 +88,6 @@ func ValidateKey(key string) (string, error) {
 	if AddMetricKey(key) != true {
 		err := fmt.Errorf("duplicated metric key: %s", key)
 		fmt.Println(err)
-		os.Exit(1)
 		return "", err
 	}
 	return key, nil
@@ -129,7 +129,7 @@ func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value int
 		delete(tags, "host")
 	}
 
-	conf := config.GetRuntimeConf()
+	conf := config.GetRuntimeConf().Client
 	if conf.Hostname != "" {
 		// hostname should be english
 		hostname := collectorlib.NormalizeMetricKey(conf.Hostname)
@@ -310,6 +310,8 @@ func RunAllCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
 }
 
 func RunBuiltinCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
+	defer utils.Recover_and_log()
+
 	for _, c := range builtin_collectors {
 		go c.Run(mdCh)
 	}
@@ -321,12 +323,13 @@ func run_heartbeat(mdCh chan<- collectorlib.MultiDataPoint) {
 	for {
 		var md collectorlib.MultiDataPoint
 
-		runtime_conf := config.GetRuntimeConf()
+		// runtime_conf := config.GetRuntimeConf()
+		client_conf := config.GetRuntimeConf().Client
 		default_interval := time.Second * time.Duration(1)
 
-		interval, err := collectorlib.ParseInterval(runtime_conf.Heartbeat_interval)
+		interval, err := collectorlib.ParseInterval(client_conf.Heartbeat_interval)
 		if err != nil {
-			log.Errorf("cannot parse interval of heart_beat: %s - %v", runtime_conf.Heartbeat_interval, err)
+			log.Errorf("cannot parse interval of heart_beat: %s - %v", client_conf.Heartbeat_interval, err)
 			interval = default_interval
 		} else {
 			if interval < default_interval {
@@ -336,7 +339,7 @@ func run_heartbeat(mdCh chan<- collectorlib.MultiDataPoint) {
 
 		next := time.After(interval)
 
-		tags := AddTags.Copy().Merge(runtime_conf.Tags)
+		tags := AddTags.Copy().Merge(client_conf.Tags)
 		Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
 		log.Debug("Heartbeat")
 		mdCh <- md
@@ -373,26 +376,13 @@ func AddCustomizedCollectorByName(factory_name, collector_name string, config in
 	return ok
 }
 
-// func AddCustomizedCollectorByNameV2(factory_name, collector_name string, config interface{}) bool {
-// 	defer log.Flush()
-
-// 	factory, ok := GetCollectorFactoryByName(factory_name)
-// 	log.Debugf("factory: %s, ok: %v", factory_name, ok)
-// 	if ok == true {
-// 		for collector := range factory(collector_name, config) {
-// 			log.Debugf("collector created with config: %s", collector.Name())
-// 			customized_collectors = append(customized_collectors, collector)
-// 		}
-
-// 	}
-// 	return ok
-// }
-
 func RemoveAllCustomizedCollectors() {
 	customized_collectors = nil
 }
 
 func RunCustomizedCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
+	defer utils.Recover_and_log()
+
 	for _, c := range customized_collectors {
 		go c.Run(mdCh)
 	}
@@ -414,21 +404,9 @@ func CreateCustomizedCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 
 	log.Debug("Creating Customized Collectors")
 
-	// for i, conf := range runtime_conf.Collector_win_pdh {
-	// 	log.Debugf("creating customized collector: win_pdh:, %s,  %v", fmt.Sprintf("c_win_pdh_%d", i), conf)
-	// 	AddCustomizedCollectorByName("win_pdh", fmt.Sprintf("c_win_pdh_%d", i), conf)
-	// }
-
 	AddCustomizedCollectorByName("win_pdh", "win_pdh", runtime_conf.Collector_win_pdh)
-
 	log.Debug("Created win_pdh")
 
-	// for i, conf := range runtime_conf.Collector_win_wmi {
-	// 	log.Debugf("creating customized collector: win_wmi:, %s,  %v", fmt.Sprintf("c_win_wmi_%d", i), conf)
-	// 	AddCustomizedCollectorByName("win_wmi", fmt.Sprintf("c_win_wmi_%d", i), conf)
-	// }
-
 	AddCustomizedCollectorByName("win_wmi", "win_wmi", runtime_conf.Collector_win_wmi)
-
 	log.Debug("Created All Customized Collectors")
 }

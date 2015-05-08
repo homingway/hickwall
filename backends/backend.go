@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 	"strings"
 )
@@ -64,6 +65,8 @@ func CloseBackends() {
 }
 
 func RunBackends() {
+	defer utils.Recover_and_log()
+
 	for _, bk := range backends {
 		if bk.Enabled() == true {
 			log.Debug("Backend is Running: ", bk.Name())
@@ -85,7 +88,7 @@ func CreateBackendsFromRuntimeConf() {
 }
 
 func CreateBackendsFromConf(runtime_conf *config.RuntimeConfig) {
-	defer log.Flush()
+	defer utils.Recover_and_log()
 
 	log.Debug("creating backends from conf")
 

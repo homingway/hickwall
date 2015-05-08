@@ -4,20 +4,22 @@ import (
 	"fmt"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 	"runtime"
 	"time"
 )
 
 func init() {
+	defer utils.Recover_and_log()
 
-	var runtime_conf = config.GetRuntimeConf()
+	client_conf := config.GetRuntimeConf().Client
 
 	interval := time.Duration(1) * time.Second
-	if runtime_conf.Client_metric_interval != "" {
-		ival, err := collectorlib.ParseInterval(runtime_conf.Client_metric_interval)
+	if client_conf.Metric_interval != "" {
+		ival, err := collectorlib.ParseInterval(client_conf.Metric_interval)
 		if err != nil {
-			log.Errorf("cannot parse interval of client_metric_interval: %s - %v", runtime_conf.Client_metric_interval, err)
+			log.Errorf("cannot parse interval of client.Metric_interval: %s - %v", client_conf.Metric_interval, err)
 		}
 		interval = ival
 	}
@@ -25,24 +27,28 @@ func init() {
 	builtin_collectors = append(builtin_collectors, &IntervalCollector{
 		F: C_hickwall,
 		Enable: func() bool {
-			fmt.Println("c_hickwall: enabled: ", runtime_conf.Client_metric_enabled)
-			return runtime_conf.Client_metric_enabled
+			fmt.Println("c_hickwall: enabled: ", client_conf.Metric_enabled)
+			return client_conf.Metric_enabled
 		},
-		name:     "builtin_hickwall_client",
-		states:   nil,
-		Interval: interval,
+		name:         "hickwall_client",
+		states:       nil,
+		Interval:     interval,
+		factory_name: "hickwall_client",
 	})
 }
 
 // hickwall process metrics, only runtime stats
 func C_hickwall(states interface{}) (collectorlib.MultiDataPoint, error) {
+	defer utils.Recover_and_log()
+
 	var (
-		md           collectorlib.MultiDataPoint
-		m            runtime.MemStats
-		runtime_conf = config.GetRuntimeConf()
+		md collectorlib.MultiDataPoint
+		m  runtime.MemStats
 	)
 
-	tags := AddTags.Copy().Merge(runtime_conf.Tags)
+	client_conf := config.GetRuntimeConf().Client
+
+	tags := AddTags.Copy().Merge(client_conf.Tags)
 	runtime.ReadMemStats(&m)
 
 	Add(&md, "hickwall.client.NumGoroutine", runtime.NumGoroutine(), tags, "", "", "")

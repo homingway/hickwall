@@ -5,6 +5,7 @@ import (
 	"github.com/GaryBoone/GoStats/stats"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 	"github.com/tatsushid/go-fastping"
 	"math"
@@ -14,10 +15,14 @@ import (
 )
 
 func init() {
+	defer utils.Recover_and_log()
+
 	collector_factories["ping"] = factory_ping
 }
 
 func factory_ping(conf interface{}) <-chan Collector {
+	defer utils.Recover_and_log()
+
 	log.Debug("factory_ping")
 
 	var out = make(chan Collector)
@@ -81,6 +86,8 @@ type state_c_ping struct {
 
 // hickwall process metrics, only runtime stats
 func C_ping(states interface{}) (collectorlib.MultiDataPoint, error) {
+	defer utils.Recover_and_log()
+
 	var (
 		md           collectorlib.MultiDataPoint
 		runtime_conf = config.GetRuntimeConf()
@@ -92,7 +99,7 @@ func C_ping(states interface{}) (collectorlib.MultiDataPoint, error) {
 		rtt_chan = make(chan float64)
 	)
 
-	tags := AddTags.Copy().Merge(runtime_conf.Tags)
+	tags := AddTags.Copy().Merge(runtime_conf.Client.Tags)
 	tags["target"] = state.Target
 
 	if state.Conf.Packets <= 0 {

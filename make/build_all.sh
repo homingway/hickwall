@@ -14,6 +14,8 @@ BUILD_CMD="bash make/loop_goos_goarch.sh"
 GOIMG="golang:1.4.2-cross"
 GOPATH="/oledev/gocodez/"
 
+bash patch_version.sh
+
 docker run --rm \
   -v $APP_ROOT:/usr/src/$APP_NAME -w /usr/src/$APP_NAME \
   -v $GOPATH:/gopath -e GOPATH=/gopath \

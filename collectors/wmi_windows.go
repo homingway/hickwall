@@ -1,3 +1,5 @@
+// +build windows
+
 package collectors
 
 import (
@@ -16,6 +18,7 @@ import (
 )
 
 func init() {
+	defer utils.Recover_and_log()
 
 	collector_factories["win_wmi"] = factory_win_wmi
 
@@ -32,6 +35,8 @@ var (
 )
 
 func WmiQueryWithFields(query string, fields []string) []map[string]string {
+	defer utils.Recover_and_log()
+
 	// init COM, oh yeah
 	ole.CoInitialize(0)
 	defer ole.CoUninitialize()
@@ -81,6 +86,8 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 }
 
 func builtin_win_wmi() <-chan Collector {
+	defer utils.Recover_and_log()
+
 	// large_interval_queries -----------------------------------------------------------
 
 	large_interval_queries := []config.Conf_win_wmi_query{}
@@ -189,6 +196,8 @@ func builtin_win_wmi() <-chan Collector {
 
 // conf interface{}: []config.Conf_win_wmi
 func factory_win_wmi(conf interface{}) <-chan Collector {
+	defer utils.Recover_and_log()
+
 	var out = make(chan Collector)
 	go func() {
 		var (
@@ -218,7 +227,7 @@ func factory_win_wmi(conf interface{}) <-chan Collector {
 					//TODO: validate query
 
 					// merge tags
-					query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
+					query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Client.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
 
 					states.queries = append(states.queries, query_obj)
 				}
@@ -310,6 +319,8 @@ func get_fields_of_query(query config.Conf_win_wmi_query) []string {
 }
 
 func c_win_wmi(states interface{}) (collectorlib.MultiDataPoint, error) {
+	defer utils.Recover_and_log()
+
 	var md collectorlib.MultiDataPoint
 	var st state_win_wmi
 

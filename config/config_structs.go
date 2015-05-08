@@ -25,14 +25,7 @@ type CoreConfig struct {
 }
 
 type RuntimeConfig struct {
-	Hostname string
-
-	Heartbeat_interval string
-
-	Tags map[string]string `json:"tags"`
-
-	Client_metric_enabled  bool   `json:"client_metric_enabled"`
-	Client_metric_interval string `json:"client_metric_interval"`
+	Client Conf_client `json:"client"`
 
 	Transport_stdout         Transport_stdout `json:"transport_stdout"`
 	Transport_file           Transport_file   `json:"transport_file"`
@@ -48,6 +41,14 @@ type RuntimeConfig struct {
 	Collector_ping []Conf_ping `json:"collector_ping"`
 
 	Collector_cmd []Conf_cmd `json:"collector_cmd"`
+}
+
+type Conf_client struct {
+	Hostname           string
+	Heartbeat_interval string            `json:"heartbeat_interval"`
+	Metric_enabled     bool              `json:"metric_enabled"`
+	Metric_interval    string            `json:"metric_interval"`
+	Tags               map[string]string `json:"tags"`
 }
 
 type Conf_win_pdh struct {

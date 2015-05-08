@@ -16,7 +16,7 @@ func main() {
 
 	// test set hostname from runtime config
 	runtime_conf := config.GetRuntimeConf()
-	runtime_conf.Hostname = "tes哈哈啊哈t"
+	runtime_conf.Client.Hostname = "tes哈哈啊哈t"
 	config.UpdateRuntimeConf(runtime_conf)
 
 	cs := GetBuiltinCollectors()

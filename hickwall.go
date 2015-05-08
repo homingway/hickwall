@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/command"
 	"github.com/oliveagle/hickwall/servicelib"
+	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 	"os"
 )
@@ -12,14 +13,14 @@ import (
 var err error
 
 func main() {
-	defer log.Flush()
+	defer utils.Recover_and_log()
 
 	log.Debug("hickwall main ---------------------------")
 
 	app := cli.NewApp()
 	app.Name = "hickwall"
 	app.Usage = "monitoring system"
-	app.Version = "v0.0.1"
+	app.Version = "v0.1.2"
 
 	app.Commands = []cli.Command{
 		//TODO: configuration test, reload

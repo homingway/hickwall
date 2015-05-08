@@ -1,37 +1,35 @@
-# customize hostname, if omit this option, the client will use $(hostname) automatically
-# hostname: "test_server1"
+# ---------- client configurations -------------------------------------------
 
 #TODO: if collect data failed, now we can provide DEFAULT value from config. how about NO-DATA alert
 #   like zabbix ?
 #TODO: write time precision is limited to MS (milliseconds) only
 #TODO: {{.Key}}.{{.Tags}}   if Tags is empty, key will have a trailing dot.  e.g.:  `metric1.`
 
-# these tags will be appended into metrics' tags field. 
-#tags: {
-#    "bu": "hotel",
-#    "global": "tag",
-#}
+client:
+    # customize hostname, if omit this option, the client will use $(hostname) automatically
+    # hostname: "test_server1"
 
-#TODO: enable_metadata
-# only opentsdb support metadata
-enable_metadata: false
+    # minimal interval is 1s
+    heartbeat_interval: 5s
 
-# collect client performance metrics
-client_metric_enabled: false
-# collection interval in seconds
-client_metric_interval: 2s
+    metric_enabled: false
+    metric_interval: 2s
 
-collector_hickwall:
-    enabled: false
-    interval: 2s
+    # these tags will be appended into metrics' tags field. 
+    # tags: {
+    #    "bu": "hotel",
+    #    "global": "tag",
+    # }
 
-# minimal interval is 1s
-heartbeat_interval: 5s
+    #TODO: enable_metadata
+    # only opentsdb support metadata
+    enable_metadata: false
 
-#TODO: merge_metadata_to_tags
-# If enable metadata, but backend don't support metadata. this option will merge all metadata
-# into tags
-merge_metadata_to_tags: false
+
+    #TODO: merge_metadata_to_tags
+    # If enable metadata, but backend don't support metadata. this option will merge all metadata
+    # into tags
+    merge_metadata_to_tags: false
 
 # ---------- transport configurations -------------------------------------------
 

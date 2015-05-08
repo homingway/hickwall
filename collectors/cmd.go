@@ -5,7 +5,7 @@ import (
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectorlib/metadata"
 	"github.com/oliveagle/hickwall/config"
-	// "github.com/oliveagle/hickwall/utils"
+	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 	// "regexp"
 	"strconv"
@@ -14,12 +14,14 @@ import (
 )
 
 func init() {
-
+	defer utils.Recover_and_log()
 	collector_factories["cmd"] = factory_cmd
 }
 
 // func factory_cmd(name string, conf interface{}) <-chan Collector {
 func factory_cmd(conf interface{}) <-chan Collector {
+	defer utils.Recover_and_log()
+
 	var out = make(chan Collector)
 	go func() {
 		var (
@@ -43,7 +45,7 @@ func factory_cmd(conf interface{}) <-chan Collector {
 				}
 				state.Interval = interval
 				state.Cmd = cf.Cmd
-				state.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags)
+				state.Tags = AddTags.Copy().Merge(runtime_conf.Client.Tags).Merge(cf.Tags)
 
 				out <- &IntervalCollector{
 					F:            c_cmd,
@@ -67,6 +69,8 @@ type state_cmd struct {
 }
 
 func c_cmd(states interface{}) (collectorlib.MultiDataPoint, error) {
+	defer utils.Recover_and_log()
+
 	log.Debugf("collector:c_cmd start")
 	var md collectorlib.MultiDataPoint
 	st := states.(state_cmd)

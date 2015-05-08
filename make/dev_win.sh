@@ -14,4 +14,10 @@ GOARCH=386
 BUILD_CMD="go build -v -o bin/hickwall-$GOOS-$GOARCH.exe"
 GOIMG="golang:1.4.2-cross"
 
-cd $APP_ROOT && go build -v -o hickwall.exe && cp hickwall.exe bin/hickwall-windows-386.exe 
+VER=$(cat $APP_ROOT/release-version)
+
+cd $APP_ROOT
+
+sed -i "s/\(app.Version.*\"\)\(.*\)\"$/\1v$VER\"/g" hickwall.go
+
+go build -v -o hickwall.exe && cp hickwall.exe bin/hickwall-windows-386.exe 

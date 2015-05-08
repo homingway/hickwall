@@ -5,14 +5,13 @@
 package collectors
 
 import (
+	"fmt"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
-	"time"
-
+	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
-
-	"fmt"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -342,6 +341,8 @@ func (p *PdhCollector) CollectData() []*PdhDataPoint {
 *******************************************************************************/
 
 func init() {
+	defer utils.Recover_and_log()
+
 	collector_factories["win_pdh"] = factory_win_pdh
 
 	for collector := range builtin_win_pdh() {
@@ -350,6 +351,7 @@ func init() {
 }
 
 func builtin_win_pdh() <-chan Collector {
+	defer utils.Recover_and_log()
 
 	queries := []config.Conf_win_pdh_query{}
 
@@ -385,6 +387,8 @@ func builtin_win_pdh() <-chan Collector {
 }
 
 func factory_win_pdh(conf interface{}) <-chan Collector {
+	defer utils.Recover_and_log()
+
 	log.Debug("factory_win_pdh")
 
 	var out = make(chan Collector)
@@ -420,7 +424,7 @@ func factory_win_pdh(conf interface{}) <-chan Collector {
 
 					states.hPdh.AddEnglishCounter(query)
 
-					query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
+					query_obj.Tags = AddTags.Copy().Merge(runtime_conf.Client.Tags).Merge(cf.Tags).Merge(query_obj.Tags)
 
 					states.map_queries[query] = query_obj
 				}
@@ -450,6 +454,8 @@ type state_win_pdh struct {
 }
 
 func c_win_pdh(states interface{}) (collectorlib.MultiDataPoint, error) {
+	defer utils.Recover_and_log()
+
 	var md collectorlib.MultiDataPoint
 	var st state_win_pdh
 
