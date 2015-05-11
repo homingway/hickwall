@@ -50,6 +50,8 @@ type InfluxdbWriter struct {
 	ping_time_avg int64
 
 	backfill_cool_down time.Duration
+
+	is_closed bool
 }
 
 //TODO: use config.Transport_influxdb instead
@@ -163,10 +165,17 @@ func (w *InfluxdbWriter) Name() string {
 }
 
 func (w *InfluxdbWriter) Close() {
+	log.Info("closing influxdb - entry:", &w)
 	w.flushToQueue()
+	log.Info("closing influxdb - flushtoqueu:", &w)
+
+	w.is_closed = true
+	log.Info("closing influxdb - exit:", &w)
 }
 
 func (w *InfluxdbWriter) Write(md collectorlib.MultiDataPoint) {
+	defer utils.Recover_and_log()
+
 	if w.Enabled() == true {
 		w.mdCh <- md
 	}
@@ -174,6 +183,8 @@ func (w *InfluxdbWriter) Write(md collectorlib.MultiDataPoint) {
 
 func (w *InfluxdbWriter) Ping() {
 	go func() {
+		defer utils.Recover_and_log()
+
 		err_cnt := 0
 		fasttick := influxdb_ping_fast_tick
 		slowtick := influxdb_ping_slowtick
@@ -184,6 +195,10 @@ func (w *InfluxdbWriter) Ping() {
 		for {
 			select {
 			case <-tick:
+				if w.is_closed == true {
+					break
+				}
+
 				t, v, err := w.iclient.Ping()
 				if err != nil {
 					fmt.Println("iclient.Ping: ", err)
@@ -213,35 +228,50 @@ func (w *InfluxdbWriter) Ping() {
 					err_cnt = 0
 					tick = fasttick
 					w.is_host_alive = true
-					log.Debugf("Fast-PING: host: %s, resp_time: %v, influxdb ver: %s, q Len: %d, buf size: %d, pingAvg: %d", w.conf.Host, t, v, w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("%v: Fast-PING: host: %s, resp_time: %v, influxdb ver: %s, q Len: %d, buf size: %d, pingAvg: %d", &w, w.conf.Host, t, v, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 				if err_cnt > 0 && err_cnt <= failing_pint_cnt {
-					log.Debugf("Fast-PING: host: %s, influxdb host is failling %d, q Len: %d, buf size: %d, pingAvg: %d", w.conf.Host, err_cnt, w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("%v: Fast-PING: host: %s, influxdb host is failling %d, q Len: %d, buf size: %d, pingAvg: %d", &w, w.conf.Host, err_cnt, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 				if err_cnt > failing_pint_cnt {
 					w.is_host_alive = false
 					tick = slowtick
-					log.Debugf("SLOW-PING: host: %s, Wait for influxdb host back online again! q Len: %d, buf size: %d, pingAvg: %d", w.conf.Host, w.q.Size(), len(w.buf), w.ping_time_avg)
+					log.Debugf("%v: SLOW-PING: host: %s, Wait for influxdb host back online again! q Len: %d, buf size: %d, pingAvg: %d", &w, w.conf.Host, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
 			}
 		}
+		log.Info("influxdb.Ping is closed: %s", &w)
 	}()
 }
 
 func (w *InfluxdbWriter) Run() {
+	defer utils.Recover_and_log()
+
 	go w.Ping()
 
 	for {
+		// if w.is_closed == true {
+		// 	break
+		// }
 		select {
 		case md := <-w.mdCh:
-			go w.addMD2Buf(md)
+			if w.is_closed == true {
+				break
+			}
+			w.addMD2Buf(md)
 		case <-w.tick:
+			if w.is_closed == true {
+				break
+			}
 			w.flushToQueue()
 			go w.consume()
 		case <-w.tickBkf:
+			if w.is_closed == true {
+				break
+			}
 			go w.backfill()
 		}
 	}

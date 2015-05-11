@@ -6,8 +6,8 @@ import (
 	"code.google.com/p/winsvc/svc"
 	// "fmt"
 	"github.com/oliveagle/hickwall/backends"
-	"github.com/oliveagle/hickwall/collectorlib"
-	// "github.com/oliveagle/hickwall/collectors"
+	// "github.com/oliveagle/hickwall/collectorlib"
+	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/servicelib"
@@ -46,18 +46,23 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	changes <- svc.Status{State: svc.StartPending}
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
-	mdCh := make(chan collectorlib.MultiDataPoint)
-
 	//http://localhost:6060/debug/pprof/
 	utils.HttpPprofServe(6060)
 
-	go LoadConfigAndReload(mdCh)
+	go LoadConfigAndWatching()
+
+	// go func() {
+	// 	for {
+	// 		<-time.After(time.Second * time.Duration(15))
+	// 		ReloadWithRuntimeConfig()
+	// 	}
+	// }()
 
 	// major loop for signal processing.
 loop:
 	for {
 		select {
-		case md, _ := <-mdCh:
+		case md, _ := <-collectors.GetDataChan():
 			for _, p := range md {
 				log.Trace(" point ---> ", p)
 			}
@@ -86,48 +91,6 @@ loop:
 	changes <- svc.Status{State: svc.StopPending}
 	log.Info("serviceHandler stopped")
 	return
-}
-
-func runAsHelperService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	defer utils.Recover_and_log()
-	// NOTE: helper service should not write log to file. otherwise, multiple process write to same log file will cause log
-	// rotate have unexpected behaviors.
-
-	log.Info("helper service started")
-
-	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
-	changes <- svc.Status{State: svc.StartPending}
-
-	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
-
-	tick := time.Tick(time.Second * time.Duration(1))
-
-	// major loop for signal processing.
-loop:
-	for {
-		select {
-		case <-tick:
-			go start_service_if_stopped(command.PrimaryService)
-		case c := <-r:
-			switch c.Cmd {
-			case svc.Interrogate:
-				changes <- c.CurrentStatus
-				// testing deadlock from https://code.google.com/p/winsvc/issues/detail?id=4
-				time.Sleep(100 * time.Millisecond)
-				changes <- c.CurrentStatus
-			case svc.Stop, svc.Shutdown:
-				log.Info("svc.Stop or svc.Shutdown is triggered")
-				break loop
-			default:
-				log.Error("unexpected control request #%d", c)
-
-			}
-		}
-	}
-	changes <- svc.Status{State: svc.StopPending}
-	log.Error("helper service stopped")
-	return
-
 }
 
 func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {

@@ -7,6 +7,8 @@ import (
 	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 	"strings"
+
+	"sync"
 )
 
 var (
@@ -15,6 +17,8 @@ var (
 	MAX_BATCH_SIZE = 200
 	HttpTimeoutMS  = 500
 	MAX_QUEUE_SIZE = int64(100)
+
+	mutex sync.Mutex
 )
 
 type TSWriter interface {
@@ -29,6 +33,9 @@ type TSWriter interface {
 // }
 
 func GetBackendList() (res []string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	for _, bk := range backends {
 		res = append(res, bk.Name())
 	}
@@ -36,6 +43,9 @@ func GetBackendList() (res []string) {
 }
 
 func GetBackendByName(name string) (w TSWriter, b bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	for _, bk := range backends {
 		if strings.ToLower(bk.Name()) == strings.ToLower(name) {
 			return bk, true
@@ -45,11 +55,18 @@ func GetBackendByName(name string) (w TSWriter, b bool) {
 }
 
 func GetBackendByNameVersion(name, version string) (TSWriter, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	key := strings.Join([]string{name, version}, "-")
 	return GetBackendByName(strings.ToLower(key))
 }
 
 func WriteToBackends(md collectorlib.MultiDataPoint) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	log.Info("write to backends ")
+
 	for _, bk := range backends {
 		if bk.Enabled() == true {
 			bk.Write(md)
@@ -58,13 +75,21 @@ func WriteToBackends(md collectorlib.MultiDataPoint) {
 }
 
 func CloseBackends() {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	log.Debugf("backends: ", backends)
+
 	for _, bk := range backends {
+		log.Debug("Closing Backend ", bk.Name())
 		bk.Close()
-		log.Debug("Closed Backend ", bk.Name())
 	}
 }
 
 func RunBackends() {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	defer utils.Recover_and_log()
 
 	for _, bk := range backends {
@@ -78,6 +103,9 @@ func RunBackends() {
 }
 
 func RemoveAllBackends() {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	backends = nil
 }
 
@@ -88,6 +116,9 @@ func CreateBackendsFromRuntimeConf() {
 }
 
 func CreateBackendsFromConf(runtime_conf *config.RuntimeConfig) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	defer utils.Recover_and_log()
 
 	log.Debug("creating backends from conf")

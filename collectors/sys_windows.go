@@ -15,7 +15,7 @@ import (
 func init() {
 	defer utils.Recover_and_log()
 
-	collector_factories["sys_windows"] = factory_win_sys
+	collector_factories["win_sys"] = factory_win_sys
 }
 
 func factory_win_sys(name string, conf interface{}) <-chan Collector {
@@ -52,6 +52,10 @@ collector_win_pdh:
             -
                 query: "\\Processor(_Total)\\% Processor Time"
                 metric: "sys.cpu.processor_time_pct.total"
+            -
+                query: "\\Process(hickwall)\\Working Set - Private"
+                metric: "hickwall.client.mem.private_working_set.bytes"
+
 `
 	pdh_config_str, _ := utils.ExecuteTemplate(pdh_config_str_tpl, map[string]string{"Interval": interval}, nil)
 	pdh_viper := viper.New()

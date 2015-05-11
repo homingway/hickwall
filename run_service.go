@@ -2,14 +2,28 @@ package main
 
 import (
 	"github.com/oliveagle/hickwall/backends"
-	"github.com/oliveagle/hickwall/collectorlib"
+	// "github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
+
+	"sync"
 )
 
-func ReloadConfig(mdCh chan<- collectorlib.MultiDataPoint, runtime_conf *config.RuntimeConfig) {
+var (
+	mutex sync.Mutex
+)
+
+func ReloadWithRuntimeConfig() {
+	runtime_conf := config.GetRuntimeConf()
+	ReloadConfig(runtime_conf)
+}
+
+func ReloadConfig(runtime_conf *config.RuntimeConfig) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	defer utils.Recover_and_log()
 
 	log.Critical("resp.Config: %+v", runtime_conf)
@@ -36,7 +50,7 @@ func ReloadConfig(mdCh chan<- collectorlib.MultiDataPoint, runtime_conf *config.
 	backends.CreateBackendsFromRuntimeConf()
 	log.Debug("Created backends")
 
-	collectors.RunCollectors(mdCh)
+	collectors.RunCollectors()
 	log.Debug("all customized collectors turned on")
 
 	backends.RunBackends()
@@ -45,14 +59,14 @@ func ReloadConfig(mdCh chan<- collectorlib.MultiDataPoint, runtime_conf *config.
 	log.Debug("new config applied")
 }
 
-func LoadConfigAndReload(mdCh chan<- collectorlib.MultiDataPoint) {
+func LoadConfigAndWatching() {
 	defer utils.Recover_and_log()
 
 	for resp := range config.WatchConfig() {
 		if resp.Err != nil {
 			log.Critical("watch config error: %v", resp.Err)
 		} else {
-			ReloadConfig(mdCh, resp.Config)
+			ReloadConfig(resp.Config)
 		}
 	}
 }

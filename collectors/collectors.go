@@ -42,6 +42,7 @@ var (
 
 	timestamp = time.Now()
 	tlock     sync.Mutex
+	md_chan   chan collectorlib.MultiDataPoint
 )
 
 type Collector interface {
@@ -53,6 +54,14 @@ type Collector interface {
 	FactoryName() string
 }
 
+func SetDataChan(mdChan chan collectorlib.MultiDataPoint) {
+	md_chan = mdChan
+}
+
+func GetDataChan() chan collectorlib.MultiDataPoint {
+	return md_chan
+}
+
 func init() {
 	go func() {
 		for t := range time.Tick(time.Second) {
@@ -61,6 +70,8 @@ func init() {
 			tlock.Unlock()
 		}
 	}()
+
+	md_chan = make(chan collectorlib.MultiDataPoint)
 }
 
 func now() (t time.Time) {
@@ -344,13 +355,19 @@ func RemoveAllCollectors() {
 	collectors = nil
 }
 
-func RunCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
+func RunCollectors() error {
 	defer utils.Recover_and_log()
 
-	go run_heartbeat(mdCh)
+	if md_chan != nil {
+		go run_heartbeat(md_chan)
 
-	for _, c := range collectors {
-		go c.Run(mdCh)
+		for _, c := range collectors {
+			go c.Run(md_chan)
+		}
+
+		return nil
+	} else {
+		return fmt.Errorf("md_chan is nil")
 	}
 }
 
@@ -374,5 +391,8 @@ func CreateCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 	log.Debug("Created win_pdh")
 
 	AddCollector("win_wmi", "win_wmi", runtime_conf.Collector_win_wmi)
-	log.Debug("Created All Customized Collectors")
+
+	AddCollector("win_sys", "win_sys", runtime_conf.Collector_win_sys)
+
+	log.Debug("Created All Collectors")
 }
