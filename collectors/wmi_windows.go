@@ -22,9 +22,9 @@ func init() {
 
 	collector_factories["win_wmi"] = factory_win_wmi
 
-	for collector := range builtin_win_wmi() {
-		builtin_collectors = append(builtin_collectors, collector)
-	}
+	// for collector := range builtin_win_wmi() {
+	// 	builtin_collectors = append(builtin_collectors, collector)
+	// }
 }
 
 //TODO: we don't allow  multpile leveled template {{.A.B}}
@@ -190,12 +190,12 @@ func builtin_win_wmi() <-chan Collector {
 		},
 	}
 
-	// return factory_win_wmi("builtin_win_wmi", config_list)
-	return factory_win_wmi(config_list)
+	return factory_win_wmi("builtin_win_wmi", config_list)
+	// return factory_win_wmi(config_list)
 }
 
 // conf interface{}: []config.Conf_win_wmi
-func factory_win_wmi(conf interface{}) <-chan Collector {
+func factory_win_wmi(name string, conf interface{}) <-chan Collector {
 	defer utils.Recover_and_log()
 
 	var out = make(chan Collector)
@@ -235,7 +235,7 @@ func factory_win_wmi(conf interface{}) <-chan Collector {
 				out <- &IntervalCollector{
 					F:            c_win_wmi,
 					Enable:       nil,
-					name:         fmt.Sprintf("win_wmi_%d", idx),
+					name:         fmt.Sprintf("win_wmi_%s_%d", name, idx),
 					states:       states,
 					Interval:     states.Interval,
 					factory_name: "win_wmi",

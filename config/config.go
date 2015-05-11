@@ -33,9 +33,15 @@ var (
 	core_viper         = viper.New()
 	rconf              RuntimeConfig // can retrived from file or etcd
 	RuntimeConfChan    = make(chan *RuntimeConfig, 1)
+	core_conf_loaded   bool
 )
 
-func loadCoreConfig() {
+func IsCoreConfigLoaded() bool {
+	return core_conf_loaded
+}
+
+func LoadCoreConfig() error {
+	defer log.Flush()
 
 	initPathes()
 
@@ -46,12 +52,10 @@ func loadCoreConfig() {
 	core_viper.AddConfigPath("..")       // for hickwall/misc
 	core_viper.AddConfigPath("../..")    // for hickwall/misc/try_xxx
 
-	// err := LoadCoreConfig()
 	err := core_viper.ReadInConfig()
 	if err != nil {
 		log.Errorf("No configuration file loaded. core_config.yml :%v", err)
-		log.Flush()
-		os.Exit(1)
+		return fmt.Errorf("No configuration file loaded. core_config.yml :%v", err)
 	}
 
 	// log.Debug("core config file used: ", core_viper.ConfigFileUsed())
@@ -59,8 +63,7 @@ func loadCoreConfig() {
 	err = core_viper.Marshal(&CoreConf)
 	if err != nil {
 		log.Errorf("Error: unable to parse Core Configuration: %v\n", err)
-		log.Flush()
-		os.Exit(1)
+		return fmt.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 	}
 
 	// log.Debug("enable_remote_config: ", CoreConf.Etcd_enabled)
@@ -68,9 +71,8 @@ func loadCoreConfig() {
 	if err != nil {
 		log.Errorf("LoadCoreConfFile failed: %v", err)
 		log.Error("SHARED_DIR: ", SHARED_DIR)
-		// log.Error("CORE_CONF_FILEPATH: ", CORE_CONF_FILEPATH)
-		log.Flush()
-		os.Exit(1)
+		return fmt.Errorf("LoadCoreConfFile failed: %v", err)
+
 	} else {
 		log.Debug("init config, core config loaded")
 		log.Debug("LOG_DIR: ", LOG_DIR)
@@ -82,6 +84,10 @@ func loadCoreConfig() {
 
 	// fmt.Println("core config file used: ", core_viper.ConfigFileUsed())
 	// fmt.Println("SHARED_DIR: ", SHARED_DIR)
+	core_conf_loaded = true
+
+	log.Debug("CoreConfig Loaded")
+	return nil
 }
 
 type RespConfig struct {
@@ -248,8 +254,7 @@ func LoadRuntimeConfFromFileOnce() error {
 }
 
 func init() {
-	loadCoreConfig()
-	log.Debug("CoreConfig Loaded")
+	LoadCoreConfig()
 }
 
 func UpdateRuntimeConf(conf *RuntimeConfig) {

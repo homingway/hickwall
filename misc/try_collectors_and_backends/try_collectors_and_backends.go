@@ -21,7 +21,8 @@ func main() {
 
 	ch := make(chan collectorlib.MultiDataPoint)
 
-	collectors.RunAllCollectors(ch)
+	collectors.RunCollectors(ch)
+
 	backends.RunBackends()
 	defer backends.CloseBackends()
 

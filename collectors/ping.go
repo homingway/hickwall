@@ -20,7 +20,8 @@ func init() {
 	collector_factories["ping"] = factory_ping
 }
 
-func factory_ping(conf interface{}) <-chan Collector {
+// func factory_ping(conf interface{}) <-chan Collector {
+func factory_ping(name string, conf interface{}) <-chan Collector {
 	defer utils.Recover_and_log()
 
 	log.Debug("factory_ping")
@@ -64,7 +65,7 @@ func factory_ping(conf interface{}) <-chan Collector {
 					out <- &IntervalCollector{
 						F:            C_ping,
 						Enable:       nil,
-						name:         fmt.Sprintf("ping_%d_%d", collector_idx, target_idx),
+						name:         fmt.Sprintf("ping_%s_%d_%d", name, collector_idx, target_idx),
 						states:       states,
 						Interval:     states.Interval,
 						factory_name: "ping",

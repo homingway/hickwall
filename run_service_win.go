@@ -7,8 +7,9 @@ import (
 	// "fmt"
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectorlib"
-	"github.com/oliveagle/hickwall/collectors"
+	// "github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
+	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
@@ -47,9 +48,7 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 
 	mdCh := make(chan collectorlib.MultiDataPoint)
 
-	collectors.RunBuiltinCollectors(mdCh)
-	log.Debug("all builtin collectors turned on")
-
+	//http://localhost:6060/debug/pprof/
 	utils.HttpPprofServe(6060)
 
 	go LoadConfigAndReload(mdCh)
@@ -141,6 +140,11 @@ func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, c
 func runService(isDebug bool) {
 	defer utils.Recover_and_log()
 	// panic("hahaah")
+
+	if !config.IsCoreConfigLoaded() {
+		log.Critical("core config not loaded.")
+		return
+	}
 
 	log.Debug("runService")
 	err = svc.Run(command.PrimaryService.Name(), &serviceHandler{})

@@ -16,17 +16,13 @@ func main() {
 	// backends.CreateBackendsFromRuntimeConf()
 	runtime_conf := config.GetRuntimeConf()
 
-	cs := GetBuiltinCollectors()
+	AddCollector("cmd", "cc[0]collector", runtime_conf.Collector_cmd)
+	cc := GetCollectors()
 
-	AddCustomizedCollectorByName("cmd", "cc[0]collector", runtime_conf.Collector_cmd[0])
-	cc := GetCustomizedCollectors()
-
-	fmt.Println(" ++ customized_collectors:  ", cc)
-	fmt.Println(" ++ builtin_collectors: ", cs)
+	fmt.Println(" ++ collectors:  ", cc)
 
 	ch := make(chan collectorlib.MultiDataPoint)
 
-	go cs[0].Run(ch)
 	go cc[0].Run(ch)
 
 	done := time.After(time.Second * 3)

@@ -13,24 +13,24 @@ import (
 func main() {
 	pretty.Println("")
 	config.LoadRuntimeConfFromFileOnce()
-
-	// test set hostname from runtime config
 	runtime_conf := config.GetRuntimeConf()
-	runtime_conf.Client.Hostname = "tes哈哈啊哈t"
-	config.UpdateRuntimeConf(runtime_conf)
 
-	fmt.Println("runtime_conf.Collector_win_pdh: ", runtime_conf.Collector_win_pdh)
-	AddCollector("win_pdh", "cc[0]collector", runtime_conf.Collector_win_pdh)
-	// AddCollector("win_pdh", "cc[1]collector", runtime_conf.Collector_win_pdh[1])
+	fmt.Println("runtime_conf.Collector_win_pdh: ", runtime_conf.Collector_win_sys)
+	AddCollector("sys_windows", "cc[0]collector", runtime_conf.Collector_win_sys)
 	cc := GetCollectors()
 
 	fmt.Println(" ++ collectors:  ", cc)
 
+	for _, c := range cc {
+		fmt.Println(c.Name())
+	}
+
 	ch := make(chan collectorlib.MultiDataPoint)
+
+	RunCollectors(ch)
 
 	// go cc[0].Run(ch)
 	// go cc[1].Run(ch)
-	RunCollectors(ch)
 
 	done := time.After(time.Second * 30)
 	delay := time.After(time.Second * 5)
@@ -39,10 +39,6 @@ loop:
 		select {
 		case dp, err := <-ch:
 			fmt.Println("MultiDataPoint: ----------------------------------", err)
-			// case <-ch:
-			// fmt.Println(" point ---> ", dp, err)
-			// fmt.Println("-------------------")
-			// pretty.Println(dp)
 			for _, p := range dp {
 				fmt.Println(" point ---> ", p)
 			}

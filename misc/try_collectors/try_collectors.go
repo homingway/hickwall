@@ -11,24 +11,15 @@ import (
 func main() {
 	pretty.Println("")
 
-	cs := GetBuiltinCollectors()
-	cc := GetCustomizedCollectors()
+	cc := GetCollectors()
 
-	fmt.Println(" ++ builtin_collector: ", cs)
-	fmt.Println(" ++ customized_collectors:  ", cc)
+	fmt.Println(" ++ collectors:  ", cc)
 
 	ch := make(chan collectorlib.MultiDataPoint)
 
-	for _, c := range cs {
-		go c.Run(ch)
-	}
 	for _, c := range cc {
 		go c.Run(ch)
 	}
-
-	// go cs.Run(ch)
-	// go cc[0].Run(ch)
-	// go cc[1].Run(ch)
 
 	done := time.After(time.Second * 3)
 	delay := time.After(time.Second * 1)

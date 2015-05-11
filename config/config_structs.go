@@ -33,6 +33,8 @@ type RuntimeConfig struct {
 
 	Transport_influxdb []Transport_influxdb `json:"transport_influxdb"`
 
+	Collector_win_sys Conf_win_sys `json:"collector_win_sys"`
+
 	Collector_win_pdh []Conf_win_pdh `json:"collector_win_pdh"`
 	Collector_win_wmi []Conf_win_wmi `json:"collector_win_wmi"`
 
@@ -49,6 +51,10 @@ type Conf_client struct {
 	Metric_enabled     bool              `json:"metric_enabled"`
 	Metric_interval    string            `json:"metric_interval"`
 	Tags               map[string]string `json:"tags"`
+}
+
+type Conf_win_sys struct {
+	Interval string `json:"interval"`
 }
 
 type Conf_win_pdh struct {

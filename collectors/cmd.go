@@ -18,8 +18,8 @@ func init() {
 	collector_factories["cmd"] = factory_cmd
 }
 
-// func factory_cmd(name string, conf interface{}) <-chan Collector {
-func factory_cmd(conf interface{}) <-chan Collector {
+func factory_cmd(name string, conf interface{}) <-chan Collector {
+	// func factory_cmd(conf interface{}) <-chan Collector {
 	defer utils.Recover_and_log()
 
 	var out = make(chan Collector)
@@ -50,7 +50,7 @@ func factory_cmd(conf interface{}) <-chan Collector {
 				out <- &IntervalCollector{
 					F:            c_cmd,
 					Enable:       nil,
-					name:         fmt.Sprintf("cmd_%d", idx),
+					name:         fmt.Sprintf("cmd_%s_%d", name, idx),
 					states:       state,
 					Interval:     state.Interval,
 					factory_name: "cmd",

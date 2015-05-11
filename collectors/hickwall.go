@@ -1,40 +1,40 @@
 package collectors
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/utils"
-	log "github.com/oliveagle/seelog"
+	// log "github.com/oliveagle/seelog"
 	"runtime"
-	"time"
+	// "time"
 )
 
 func init() {
 	defer utils.Recover_and_log()
 
-	client_conf := config.GetRuntimeConf().Client
+	// client_conf := config.GetRuntimeConf().Client
 
-	interval := time.Duration(1) * time.Second
-	if client_conf.Metric_interval != "" {
-		ival, err := collectorlib.ParseInterval(client_conf.Metric_interval)
-		if err != nil {
-			log.Errorf("cannot parse interval of client.Metric_interval: %s - %v", client_conf.Metric_interval, err)
-		}
-		interval = ival
-	}
+	// interval := time.Duration(1) * time.Second
+	// if client_conf.Metric_interval != "" {
+	// 	ival, err := collectorlib.ParseInterval(client_conf.Metric_interval)
+	// 	if err != nil {
+	// 		log.Errorf("cannot parse interval of client.Metric_interval: %s - %v", client_conf.Metric_interval, err)
+	// 	}
+	// 	interval = ival
+	// }
 
-	builtin_collectors = append(builtin_collectors, &IntervalCollector{
-		F: C_hickwall,
-		Enable: func() bool {
-			fmt.Println("c_hickwall: enabled: ", client_conf.Metric_enabled)
-			return client_conf.Metric_enabled
-		},
-		name:         "hickwall_client",
-		states:       nil,
-		Interval:     interval,
-		factory_name: "hickwall_client",
-	})
+	// builtin_collectors = append(builtin_collectors, &IntervalCollector{
+	// 	F: C_hickwall,
+	// 	Enable: func() bool {
+	// 		fmt.Println("c_hickwall: enabled: ", client_conf.Metric_enabled)
+	// 		return client_conf.Metric_enabled
+	// 	},
+	// 	name:         "hickwall_client",
+	// 	states:       nil,
+	// 	Interval:     interval,
+	// 	factory_name: "hickwall_client",
+	// })
 }
 
 // hickwall process metrics, only runtime stats

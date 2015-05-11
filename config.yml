@@ -12,7 +12,7 @@ client:
     # minimal interval is 1s
     heartbeat_interval: 5s
 
-    metric_enabled: false
+    metric_enabled: true
     metric_interval: 2s
 
     # these tags will be appended into metrics' tags field. 
@@ -148,6 +148,18 @@ transport_kafka:
 # builtin collectors will always working without configurations
 
 #TODO: different collector type: gauge, counter 
+
+collector_win_sys:
+    interval: 2s
+
+    ## if omit `collect` option, this collector will collect all possible metrics.
+    # collect:
+    #     - "sys.cpu.load.1m"
+    #     - "sys.cpu.load.5m"
+    #     - "sys.cpu.load.15m"
+    #     - "sys.processes.count"
+    #     - "sys.memory.available.bytes"
+    #     - "sys.memory.total"
 
 collector_win_pdh:
     - 

@@ -345,13 +345,14 @@ func init() {
 
 	collector_factories["win_pdh"] = factory_win_pdh
 
-	for collector := range builtin_win_pdh() {
-		builtin_collectors = append(builtin_collectors, collector)
-	}
+	// for collector := range builtin_win_pdh() {
+	// 	builtin_collectors = append(builtin_collectors, collector)
+	// }
 }
 
 func builtin_win_pdh() <-chan Collector {
 	defer utils.Recover_and_log()
+	config_list := []config.Conf_win_pdh{}
 
 	queries := []config.Conf_win_pdh_query{}
 
@@ -368,28 +369,35 @@ func builtin_win_pdh() <-chan Collector {
 		Query:  "\\Memory\\Cache Bytes",
 		Metric: "win.memory.cache.bytes"})
 
+	config_list = append(config_list, config.Conf_win_pdh{
+		Interval: "2s",
+		Queries:  queries,
+	})
+
+	//TODO: hickwall internal metrics should not dependend on any third party dll/so.
+	client_perf_queries := []config.Conf_win_pdh_query{}
+
 	// private memory size
-	queries = append(queries, config.Conf_win_pdh_query{
+	client_perf_queries = append(client_perf_queries, config.Conf_win_pdh_query{
 		Query:  "\\Process(hickwall)\\Working Set - Private",
 		Metric: "hickwall.client.mem.private_working_set.bytes"})
-	queries = append(queries, config.Conf_win_pdh_query{
+	client_perf_queries = append(client_perf_queries, config.Conf_win_pdh_query{
 		Query:  "\\Process(hickwall)\\Working Set",
 		Metric: "hickwall.client.mem.working_set.bytes"})
 
-	conf := []config.Conf_win_pdh{
-		config.Conf_win_pdh{
-			Interval: "2s",
-			Queries:  queries,
-		},
-	}
+	config_list = append(config_list, config.Conf_win_pdh{
+		Interval: "2s",
+		Queries:  client_perf_queries,
+	})
 
-	return factory_win_pdh(conf)
+	return factory_win_pdh("builtin_win_pdh", config_list)
 }
 
-func factory_win_pdh(conf interface{}) <-chan Collector {
+func factory_win_pdh(name string, conf interface{}) <-chan Collector {
 	defer utils.Recover_and_log()
 
 	log.Debug("factory_win_pdh")
+	log.Criticalf("factory_win_pdh: conf: %+v", conf)
 
 	var out = make(chan Collector)
 
@@ -432,7 +440,7 @@ func factory_win_pdh(conf interface{}) <-chan Collector {
 				out <- &IntervalCollector{
 					F:            c_win_pdh,
 					Enable:       nil,
-					name:         fmt.Sprintf("win_pdh_%d", collector_idx),
+					name:         fmt.Sprintf("win_pdh_%s_%d", name, collector_idx),
 					states:       states,
 					Interval:     states.Interval,
 					factory_name: "win_pdh",

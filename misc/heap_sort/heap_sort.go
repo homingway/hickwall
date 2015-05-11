@@ -46,6 +46,7 @@ func main() {
 	url := "http://10.211.55.8:6060/debug/pprof/heap?debug=1"
 
 	argsWithoutProg := os.Args[1:]
+	// fmt.Println("args: ", argsWithoutProg)
 	if len(argsWithoutProg) == 2 {
 		list_cnt, err = strconv.Atoi(argsWithoutProg[0])
 		if err != nil {
@@ -55,7 +56,9 @@ func main() {
 		url = argsWithoutProg[1]
 	}
 
-	pat := regexp.MustCompile(`^#.*(github.com\\oliveagle\\.*:\d+)$`)
+	// pat := regexp.MustCompile(`^#.*(github.com\\oliveagle\\.*:\d+)$`)
+	// pat := regexp.MustCompile(`#.*(github.com\\oliveagle\\.*)$`)
+	pat := regexp.MustCompile(`.*(oliveagle.*)`)
 
 	client := http.Client{}
 	resp, err := client.Get(url)
@@ -63,6 +66,7 @@ func main() {
 		fmt.Println("Error to request: ", err)
 		return
 	}
+	// fmt.Println("resp: ", resp)
 	defer resp.Body.Close()
 
 	lines := map[string]int{}
@@ -71,7 +75,9 @@ func main() {
 	line, isPrefix, err := r.ReadLine()
 	for err == nil && !isPrefix {
 		s := string(line)
+		// fmt.Println(s)
 		for _, ss := range pat.FindAllStringSubmatch(s, -1) {
+			// fmt.Println("ss: ", ss)
 			if len(ss) > 1 {
 				// fmt.Println(ss[1])
 				key := ss[1]
@@ -83,7 +89,6 @@ func main() {
 				}
 			}
 		}
-		// fmt.Println(s)
 		line, isPrefix, err = r.ReadLine()
 	}
 

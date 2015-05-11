@@ -25,15 +25,15 @@ import (
 
 //TODO, detect duplicated metric keys in configuration
 // type collector_factory_func func(name string, conf interface{}) Collector
-// type collector_factory_func func(name string, conf interface{}) <-chan Collector
-type collector_factory_func func(conf interface{}) <-chan Collector
+type collector_factory_func func(name string, conf interface{}) <-chan Collector
+
+// type collector_factory_func func(conf interface{}) <-chan Collector
 
 var (
 	// collector factories
 	collector_factories = make(map[string](collector_factory_func))
 
-	builtin_collectors    []Collector
-	customized_collectors []Collector
+	collectors []Collector
 
 	metric_keys = make(map[string]bool)
 
@@ -96,19 +96,6 @@ func ValidateKey(key string) (string, error) {
 func GetCollectorFactoryByName(name string) (collector_factory_func, bool) {
 	factory, ok := collector_factories[name]
 	return factory, ok
-}
-
-func GetBuiltinCollectorByName(name string) Collector {
-	for _, c := range builtin_collectors {
-		if c.Name() == name {
-			return c
-		}
-	}
-	return nil
-}
-
-func GetBuiltinCollectors() []Collector {
-	return builtin_collectors
 }
 
 // AddTS is the same as Add but lets you specify the timestamp
@@ -304,21 +291,6 @@ func enableURL(url string) func() bool {
 	}
 }
 
-func RunAllCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
-	RunBuiltinCollectors(mdCh)
-	RunCustomizedCollectors(mdCh)
-}
-
-func RunBuiltinCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
-	defer utils.Recover_and_log()
-
-	for _, c := range builtin_collectors {
-		go c.Run(mdCh)
-	}
-
-	go run_heartbeat(mdCh)
-}
-
 func run_heartbeat(mdCh chan<- collectorlib.MultiDataPoint) {
 	for {
 		var md collectorlib.MultiDataPoint
@@ -347,66 +319,60 @@ func run_heartbeat(mdCh chan<- collectorlib.MultiDataPoint) {
 	}
 }
 
-func StopBuiltinCollectors() {
-	for _, c := range builtin_collectors {
-		// fmt.Println("name: ", c.Name())
-		c.Stop()
-	}
+// Collectors ---------------------------------------------------------------
+
+func GetCollectors() []Collector {
+	return collectors
 }
 
-// Customized Collectors ---------------------------------------------------------------
-
-func GetCustomizedCollectors() []Collector {
-	return customized_collectors
-}
-
-func AddCustomizedCollectorByName(factory_name, collector_name string, config interface{}) bool {
+func AddCollector(factory_name, collector_name string, config interface{}) bool {
 	defer log.Flush()
 
 	factory, ok := GetCollectorFactoryByName(factory_name)
 	log.Debugf("factory: %s, ok: %v", factory_name, ok)
 	if ok == true {
-		// for collector := range factory(collector_name, config) {
-		for collector := range factory(config) {
+		for collector := range factory(collector_name, config) {
 			log.Debugf("collector created with config: %s", collector.Name())
-			customized_collectors = append(customized_collectors, collector)
+			collectors = append(collectors, collector)
 		}
 
 	}
 	return ok
 }
 
-func RemoveAllCustomizedCollectors() {
-	customized_collectors = nil
+func RemoveAllCollectors() {
+	collectors = nil
 }
 
-func RunCustomizedCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
+func RunCollectors(mdCh chan<- collectorlib.MultiDataPoint) {
 	defer utils.Recover_and_log()
 
-	for _, c := range customized_collectors {
+	go run_heartbeat(mdCh)
+
+	for _, c := range collectors {
 		go c.Run(mdCh)
 	}
 }
 
-func StopCustomizedCollectors() {
-	for _, c := range customized_collectors {
+func StopCollectors() {
+	for _, c := range collectors {
 		c.Stop()
 	}
 }
 
-func CreateCustomizedCollectorsFromRuntimeConf() {
+func CreateCollectorsFromRuntimeConf() {
 	runtime_conf := config.GetRuntimeConf()
-	CreateCustomizedCollectorsFromConf(runtime_conf)
+	CreateCollectorsFromConf(runtime_conf)
 }
 
-func CreateCustomizedCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
+func CreateCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 	defer log.Flush()
 
 	log.Debug("Creating Customized Collectors")
 
-	AddCustomizedCollectorByName("win_pdh", "win_pdh", runtime_conf.Collector_win_pdh)
+	AddCollector("win_pdh", "win_pdh", runtime_conf.Collector_win_pdh)
 	log.Debug("Created win_pdh")
 
-	AddCustomizedCollectorByName("win_wmi", "win_wmi", runtime_conf.Collector_win_wmi)
+	AddCollector("win_wmi", "win_wmi", runtime_conf.Collector_win_wmi)
 	log.Debug("Created All Customized Collectors")
 }

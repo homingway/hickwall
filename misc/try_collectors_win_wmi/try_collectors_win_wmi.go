@@ -17,23 +17,15 @@ func main() {
 	runtime_conf := config.GetRuntimeConf()
 	fmt.Println(runtime_conf.Collector_win_wmi)
 
-	// cs := collectors.GetBuiltinCollectorByName("builtin_win_wmi")
-	cs := collectors.GetBuiltinCollectors()
+	// collectors.AddCollector("win_wmi", "cc[0]collector", runtime_conf.Collector_win_wmi[0])
+	collectors.AddCollector("win_wmi", "cc[0]collector", runtime_conf.Collector_win_wmi)
+	cc := collectors.GetCollectors()
 
-	// collectors.AddCustomizedCollectorByName("win_wmi", "cc[0]collector", runtime_conf.Collector_win_wmi[0])
-	collectors.AddCustomizedCollectorByName("win_wmi", "cc[0]collector", runtime_conf.Collector_win_wmi)
-	cc := collectors.GetCustomizedCollectors()
-
-	// collectors.RunBuiltinCollectors()
-
-	fmt.Println(" ++ builtin_collector: ", cs)
-	fmt.Println(" ++ customized_collectors:  ", cc)
+	fmt.Println(" ++ collectors:  ", cc)
 
 	ch := make(chan collectorlib.MultiDataPoint)
 
-	collectors.RunBuiltinCollectors(ch)
-	// go cs.Run(ch)
-	// collectors.RunCustomizedCollectors(ch)
+	collectors.RunCollectors(ch)
 
 	done := time.After(time.Second * 6)
 loop:
