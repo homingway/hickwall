@@ -23,8 +23,8 @@ func factory_win_sys(name string, conf interface{}) <-chan Collector {
 
 	log.Debug("factory_win_sys")
 
-	_win_sys_pdh("1s")
-	_win_sys_wmi("15s")
+	_win_sys_pdh("100ms")
+	_win_sys_wmi("60s")
 
 	var out = make(chan Collector)
 	go func() {

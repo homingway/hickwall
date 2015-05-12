@@ -65,7 +65,7 @@ func GetBackendByNameVersion(name, version string) (TSWriter, bool) {
 func WriteToBackends(md collectorlib.MultiDataPoint) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	log.Info("write to backends ")
+	// log.Info("write to backends ")
 
 	for _, bk := range backends {
 		if bk.Enabled() == true {

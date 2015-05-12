@@ -6,6 +6,7 @@ import (
 	"code.google.com/p/winsvc/svc"
 	// "fmt"
 	"github.com/oliveagle/hickwall/backends"
+	// "runtime"
 	// "github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
@@ -13,8 +14,18 @@ import (
 	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
+	// "runtime/debug"
+	"os"
+	// "runtime/pprof"
+	// "strconv"
 	"time"
 )
+
+var pid int
+
+func init() {
+	pid = os.Getpid()
+}
 
 func start_service_if_stopped(service *servicelib.Service) {
 	defer utils.Recover_and_log()
@@ -38,6 +49,24 @@ func start_service_if_stopped(service *servicelib.Service) {
 
 type serviceHandler struct{}
 
+func runWithoutService() {
+	var (
+		args    = []string{}
+		r       = make(chan svc.ChangeRequest)
+		changes = make(chan svc.Status)
+	)
+
+	go func() {
+		for {
+			select {
+			case <-changes:
+			}
+		}
+	}()
+
+	runAsPrimaryService(args, r, changes)
+}
+
 func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	defer utils.Recover_and_log()
 	log.Info("runAsPrimaryService")
@@ -49,8 +78,17 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	//http://localhost:6060/debug/pprof/
 	utils.HttpPprofServe(6060)
 
+	after := time.After(time.Duration(3) * time.Minute)
+	// f, _ := os.Create("d:\\cpu-" + strconv.Itoa(pid) + ".pprof")
+	// pprof.StartCPUProfile(f)
+	// defer pprof.StopCPUProfile()
+
+	utils.StartCPUProfile()
+	defer utils.StopCPUProfile()
+
 	go LoadConfigAndWatching()
 
+	// reload won't lower memory usage.
 	// go func() {
 	// 	for {
 	// 		<-time.After(time.Second * time.Duration(15))
@@ -58,10 +96,20 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	// 	}
 	// }()
 
+	// go func() {
+	// 	for {
+	// 		<-time.After(time.Second * time.Duration(15))
+	// 		debug.FreeOSMemory()
+	// 	}
+	// }()
+
 	// major loop for signal processing.
 loop:
 	for {
 		select {
+		case <-after:
+			log.Info("time is up")
+			break loop
 		case md, _ := <-collectors.GetDataChan():
 			for _, p := range md {
 				log.Trace(" point ---> ", p)

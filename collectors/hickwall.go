@@ -5,36 +5,36 @@ import (
 	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/utils"
-	// log "github.com/oliveagle/seelog"
+	log "github.com/oliveagle/seelog"
 	"runtime"
-	// "time"
+	"time"
 )
 
 func init() {
 	defer utils.Recover_and_log()
 
-	// client_conf := config.GetRuntimeConf().Client
+	collector_factories["hickwall_client"] = factory_hickwall
+}
 
-	// interval := time.Duration(1) * time.Second
-	// if client_conf.Metric_interval != "" {
-	// 	ival, err := collectorlib.ParseInterval(client_conf.Metric_interval)
-	// 	if err != nil {
-	// 		log.Errorf("cannot parse interval of client.Metric_interval: %s - %v", client_conf.Metric_interval, err)
-	// 	}
-	// 	interval = ival
-	// }
+func factory_hickwall(name string, conf interface{}) <-chan Collector {
+	defer utils.Recover_and_log()
 
-	// builtin_collectors = append(builtin_collectors, &IntervalCollector{
-	// 	F: C_hickwall,
-	// 	Enable: func() bool {
-	// 		fmt.Println("c_hickwall: enabled: ", client_conf.Metric_enabled)
-	// 		return client_conf.Metric_enabled
-	// 	},
-	// 	name:         "hickwall_client",
-	// 	states:       nil,
-	// 	Interval:     interval,
-	// 	factory_name: "hickwall_client",
-	// })
+	log.Debug("factory_hickwall")
+
+	var out = make(chan Collector)
+	go func() {
+		var interval = time.Duration(1) * time.Second
+
+		out <- &IntervalCollector{
+			F:            C_hickwall,
+			name:         "factory_hickwall",
+			states:       nil,
+			Interval:     interval,
+			factory_name: "factory_hickwall",
+		}
+		close(out)
+	}()
+	return out
 }
 
 // hickwall process metrics, only runtime stats

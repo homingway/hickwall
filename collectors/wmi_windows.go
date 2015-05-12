@@ -34,37 +34,61 @@ var (
 	win_wmi_pat_field, _  = regexp.Compile(`\{\{\.\w+((_?)+\w+)+\}\}`)
 )
 
-func WmiQueryWithFields(query string, fields []string) []map[string]string {
+func WmiQueryWithFields(query string, fields []string) ([]map[string]string, error) {
 	defer utils.Recover_and_log()
+
+	resultMap := []map[string]string{}
 
 	// init COM, oh yeah
 	ole.CoInitialize(0)
 	defer ole.CoUninitialize()
 
-	unknown, _ := oleutil.CreateObject("WbemScripting.SWbemLocator")
+	unknown, err := oleutil.CreateObject("WbemScripting.SWbemLocator")
+	if err != nil {
+		log.Error("oleutil.CreateObject Failed: ", err)
+		return resultMap, err
+	}
 	defer unknown.Release()
 
-	wmi, _ := unknown.QueryInterface(ole.IID_IDispatch)
+	wmi, err := unknown.QueryInterface(ole.IID_IDispatch)
+	if err != nil {
+		log.Error("QueryInterface Failed: ", err)
+		return resultMap, err
+	}
 	defer wmi.Release()
 
-	serviceRaw, _ := oleutil.CallMethod(wmi, "ConnectServer")
+	serviceRaw, err := oleutil.CallMethod(wmi, "ConnectServer")
+	if err != nil {
+		log.Error("Connect to Server Failed", err)
+		return resultMap, err
+	}
 	service := serviceRaw.ToIDispatch()
 	defer service.Release()
 
-	resultRaw, _ := oleutil.CallMethod(service, "ExecQuery", query)
+	resultRaw, err := oleutil.CallMethod(service, "ExecQuery", query)
+	if err != nil {
+		log.Error("ExecQuery Failed: ", err)
+		return resultMap, err
+	}
 
 	result := resultRaw.ToIDispatch()
 	defer result.Release()
 
-	countVar, _ := oleutil.GetProperty(result, "Count")
+	countVar, err := oleutil.GetProperty(result, "Count")
+	if err != nil {
+		log.Error("Get result count Failed: ", err)
+		return resultMap, err
+	}
 	count := int(countVar.Val)
-
-	resultMap := []map[string]string{}
 
 	for i := 0; i < count; i++ {
 		itemMap := make(map[string]string)
 
-		itemRaw, _ := oleutil.CallMethod(result, "ItemIndex", i)
+		itemRaw, err := oleutil.CallMethod(result, "ItemIndex", i)
+		if err != nil {
+			log.Error("ItemIndex failed: ", err)
+			return resultMap, err
+		}
 
 		item := itemRaw.ToIDispatch()
 		defer item.Release()
@@ -82,7 +106,7 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 		resultMap = append(resultMap, itemMap)
 	}
 
-	return resultMap
+	return resultMap, nil
 }
 
 func builtin_win_wmi() <-chan Collector {
@@ -332,7 +356,10 @@ func c_win_wmi(states interface{}) (collectorlib.MultiDataPoint, error) {
 
 		fields := get_fields_of_query(query)
 
-		results := WmiQueryWithFields(query.Query, fields)
+		results, err := WmiQueryWithFields(query.Query, fields)
+		if err != nil {
+			continue
+		}
 		if len(results) > 0 {
 			for _, record := range results {
 				for _, item := range query.Metrics {

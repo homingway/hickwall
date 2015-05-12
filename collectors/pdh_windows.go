@@ -397,7 +397,7 @@ func factory_win_pdh(name string, conf interface{}) <-chan Collector {
 	defer utils.Recover_and_log()
 
 	log.Debug("factory_win_pdh")
-	log.Criticalf("factory_win_pdh: conf: %+v", conf)
+	// log.Criticalf("factory_win_pdh: conf: %+v", conf)
 
 	var out = make(chan Collector)
 

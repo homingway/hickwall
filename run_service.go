@@ -9,6 +9,7 @@ import (
 	log "github.com/oliveagle/seelog"
 
 	"sync"
+	// "time"
 )
 
 var (
@@ -26,7 +27,7 @@ func ReloadConfig(runtime_conf *config.RuntimeConfig) {
 
 	defer utils.Recover_and_log()
 
-	log.Critical("resp.Config: %+v", runtime_conf)
+	// log.Critical("resp.Config: %+v", runtime_conf)
 
 	log.Debug("new config is comming")
 

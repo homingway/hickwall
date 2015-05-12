@@ -174,6 +174,8 @@ type IntervalCollector struct {
 	isrunning     bool
 
 	factory_name string
+
+	closeFunc func()
 }
 
 func (c *IntervalCollector) Init() {
@@ -235,7 +237,7 @@ func (c *IntervalCollector) Run(dpchan chan<- collectorlib.MultiDataPoint) {
 
 			next := time.After(interval)
 			if c.Enabled() {
-
+				//TODO: memory leak here
 				md, err := c.F(c.states)
 
 				if err != nil {
@@ -288,6 +290,10 @@ func (c *IntervalCollector) Stop() {
 	if c.isrunning == true && c.chstop != nil {
 		log.Debugf("stopping collector: %s", c.name)
 		c.chstop <- 1
+
+		if c.closeFunc != nil {
+			c.closeFunc()
+		}
 	}
 }
 
@@ -393,6 +399,8 @@ func CreateCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 	AddCollector("win_wmi", "win_wmi", runtime_conf.Collector_win_wmi)
 
 	AddCollector("win_sys", "win_sys", runtime_conf.Collector_win_sys)
+
+	AddCollector("hickwall_client", "hickwall_client", nil)
 
 	log.Debug("Created All Collectors")
 }

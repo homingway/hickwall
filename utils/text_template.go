@@ -12,6 +12,7 @@ var txt_tpl_pat_field, _ = regexp.Compile(`\{\{\.(\w+(([_|\.]?)+\w+)+)\}\}`)
 
 func ExecuteTemplate(tpl string, data interface{}, post_process func(string) string) (string, error) {
 	var buf bytes.Buffer
+	defer buf.Reset()
 
 	t, err := template.New("").Parse(tpl)
 	if err != nil {

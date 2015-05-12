@@ -74,7 +74,6 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 		itemRaw, _ := oleutil.CallMethod(result, "ItemIndex", i)
 
 		item := itemRaw.ToIDispatch()
-		defer item.Release()
 
 		for _, field := range fields {
 			asString, err := oleutil.GetProperty(item, field)
@@ -90,6 +89,8 @@ func WmiQueryWithFields(query string, fields []string) []map[string]string {
 
 		// fmt.Println(itemMap)
 		resultMap = append(resultMap, itemMap)
+
+		item.Release()
 	}
 
 	return resultMap
@@ -135,7 +136,6 @@ func WmiQuery(query string) []map[string]string {
 		itemRaw, _ := oleutil.CallMethod(result, "ItemIndex", i)
 
 		item := itemRaw.ToIDispatch()
-		defer item.Release()
 
 		for _, field := range fields {
 			asString, err := oleutil.GetProperty(item, field)
@@ -154,6 +154,8 @@ func WmiQuery(query string) []map[string]string {
 
 		// fmt.Println(itemMap)
 		resultMap = append(resultMap, itemMap)
+
+		item.Release()
 	}
 
 	return resultMap

@@ -101,7 +101,7 @@ func main() {
 			Usage:     "run as daemon",
 			Action: func(c *cli.Context) {
 				fmt.Println("Running as Daemon")
-				runService(false)
+				runWithoutService()
 			},
 		},
 	}
