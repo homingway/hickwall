@@ -16,8 +16,12 @@ GOIMG="golang:1.4.2-cross"
 
 VER=$(cat $APP_ROOT/release-version)
 
+cd $SCRIPT_ROOT
+
+$(bash make_win_helper.sh)
+
 cd $APP_ROOT
 
 sed -i "s/\(app.Version.*\"\)\(.*\)\"$/\1v$VER\"/g" hickwall.go
 
-go build -v -o hickwall.exe && cp hickwall.exe bin/hickwall-windows-386.exe 
+go build -v -o hickwall.exe && cp hickwall.exe bin/hickwall-windows-386.exe && upx bin/hickwall-windows-386.exe

@@ -77,7 +77,7 @@ func HandleCmd(isrv IService, cmd string, args ...string) (err error) {
 	return
 }
 
-func exePath() (string, error) {
+func ExePath() (string, error) {
 	prog := os.Args[0]
 	p, err := filepath.Abs(prog)
 	if err != nil {
@@ -107,15 +107,26 @@ type Service struct {
 	daemon.Daemon
 	name string
 	desc string
+	path string
 }
 
 func NewService(name, desc string) *Service {
+	exepath, err := ExePath()
+	if err != nil {
+		fmt.Println("NewServiceFromPath failed: exePath error: ", err)
+		os.Exit(1)
+	}
+
+	return NewServiceFromPath(name, desc, exepath)
+}
+
+func NewServiceFromPath(name, desc, path string) *Service {
 	srv, err := daemon.New(name, desc)
 	if err != nil {
 		fmt.Println("Error: cannot create daemon Service: ", err)
 		os.Exit(1)
 	}
-	return &Service{srv, name, desc}
+	return &Service{srv, name, desc, path}
 }
 
 func (this *Service) Name() string {

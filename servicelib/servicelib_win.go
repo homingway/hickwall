@@ -33,12 +33,6 @@ func (this *Service) InstallService() error {
 	}
 	defer elog.Close()
 
-	exepath, err := exePath()
-	if err != nil {
-		elog.Error(3, fmt.Sprintf("install service: exePath error: %v", err))
-		return err
-	}
-
 	m, err := mgr.Connect()
 	if err != nil {
 		elog.Error(3, fmt.Sprintf("install service: cannot connect to windows service manager.", err))
@@ -53,7 +47,7 @@ func (this *Service) InstallService() error {
 		return fmt.Errorf("service %s already exists", this.name)
 	}
 
-	s, err = m.CreateService(this.name, exepath, mgr.Config{DisplayName: this.desc})
+	s, err = m.CreateService(this.name, this.path, mgr.Config{DisplayName: this.desc})
 	if err != nil {
 		elog.Error(3, fmt.Sprintf("install service: Failed to create service: %v", err))
 		return err
