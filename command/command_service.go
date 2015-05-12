@@ -16,7 +16,7 @@ func CmdServiceStatus(c *cli.Context) {
 	state, err := HelperService.Status()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s is %s\n", HelperService.Name(), servicelib.StateToString(state))
 		log.Debugf("service %s is %s\n", HelperService.Name(), servicelib.StateToString(state))
@@ -25,7 +25,7 @@ func CmdServiceStatus(c *cli.Context) {
 	state, err = PrimaryService.Status()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s is %s\n", PrimaryService.Name(), servicelib.StateToString(state))
 		log.Debugf("service %s is %s\n", PrimaryService.Name(), servicelib.StateToString(state))
@@ -49,7 +49,7 @@ func CmdServiceInstall(c *cli.Context) {
 	err := HelperService.InstallService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s installed\n", HelperService.Name())
 		log.Debugf("service %s installed\n", HelperService.Name())
@@ -58,7 +58,7 @@ func CmdServiceInstall(c *cli.Context) {
 	err = PrimaryService.InstallService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s installed\n", PrimaryService.Name())
 		log.Debugf("service %s installed\n", PrimaryService.Name())
@@ -73,7 +73,7 @@ func CmdServiceRemove(c *cli.Context) {
 	err := HelperService.RemoveService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s removed\n", HelperService.Name())
 		log.Debugf("service %s removed\n", HelperService.Name())
@@ -82,7 +82,7 @@ func CmdServiceRemove(c *cli.Context) {
 	err = PrimaryService.RemoveService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s removed\n", PrimaryService.Name())
 		log.Debugf("service %s removed\n", PrimaryService.Name())
@@ -96,7 +96,7 @@ func CmdServiceStart(c *cli.Context) {
 	err := HelperService.StartService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s started\n", HelperService.Name())
 		log.Debugf("service %s started\n", HelperService.Name())
@@ -105,7 +105,7 @@ func CmdServiceStart(c *cli.Context) {
 	err = PrimaryService.StartService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s started\n", PrimaryService.Name())
 		log.Debugf("service %s started\n", PrimaryService.Name())
@@ -118,7 +118,7 @@ func CmdServiceStop(c *cli.Context) {
 	err := HelperService.StopService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s stopped\n", HelperService.Name())
 		log.Debugf("service %s stopped\n", HelperService.Name())
@@ -127,7 +127,7 @@ func CmdServiceStop(c *cli.Context) {
 	err = PrimaryService.StopService()
 	if err != nil {
 		fmt.Println("error: ", err)
-		log.Error("error: ", err)
+		log.Debug("error: ", err)
 	} else {
 		fmt.Printf("service %s stopped\n", PrimaryService.Name())
 		log.Debugf("service %s stopped\n", PrimaryService.Name())
