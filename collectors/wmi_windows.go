@@ -258,7 +258,7 @@ func factory_win_wmi(name string, conf interface{}) <-chan Collector {
 
 				out <- &IntervalCollector{
 					F:            c_win_wmi,
-					Enable:       nil,
+					EnableFunc:   nil,
 					name:         fmt.Sprintf("win_wmi_%s_%d", name, idx),
 					states:       states,
 					Interval:     states.Interval,

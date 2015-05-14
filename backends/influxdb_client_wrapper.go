@@ -265,17 +265,18 @@ func (c *InfluxdbClient_v088) Query(q client090.Query) (*client090.Results, erro
 	// 	Err     error             `json:"err,omitempty"`
 	// }
 	// fmt.Println("-------------------------")
-
+outer:
 	for _, ss := range series {
 		// fmt.Println(ss.Name)
 		// fmt.Println(ss.GetColumns())
 		// fmt.Println(ss.GetPoints())
 
 		idx_time := -1
+	inner:
 		for idx, v := range ss.GetColumns() {
 			if v == "time" {
 				idx_time = idx
-				break
+				break inner
 			}
 		}
 		points := ss.GetPoints()
@@ -287,7 +288,7 @@ func (c *InfluxdbClient_v088) Query(q client090.Query) (*client090.Results, erro
 				ms, err := client090.EpochToTime(int64(point[idx_time].(float64)), "ms")
 				if err != nil {
 					points = ss.GetPoints()
-					break
+					break outer
 				}
 				point[idx_time] = ms
 			}

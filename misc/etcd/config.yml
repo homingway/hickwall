@@ -333,6 +333,7 @@ collector_ping:
             - "www.12306.com"
         timeout: 50ms
         packets: 5
+        # TODO:  去掉collect 选项。默认全部都收集。
         collect:
             - "time_min"
             - "time_avg"

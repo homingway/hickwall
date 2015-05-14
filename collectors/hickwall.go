@@ -23,7 +23,8 @@ func factory_hickwall(name string, conf interface{}) <-chan Collector {
 
 	var out = make(chan Collector)
 	go func() {
-		var interval = time.Duration(1) * time.Second
+		// var interval = time.Duration(1) * time.Second
+		var interval = time.Duration(1) * time.Millisecond
 
 		out <- &IntervalCollector{
 			F:            C_hickwall,

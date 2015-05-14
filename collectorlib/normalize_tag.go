@@ -14,22 +14,27 @@ var (
 )
 
 func NormalizeTag(tag string) string {
+	var tmp string
 
-	tag = Re_Trim.ReplaceAllString(tag, "")
+	tmp = Re_Trim.ReplaceAllString(tag, "")
 
-	tag = ntag_pat_s.ReplaceAllString(tag, "_")
+	tmp = ntag_pat_s.ReplaceAllString(tmp, "_")
 	// fmt.Printf("*%s*\n", tag)
 
-	tag = ntag_pat_remove.ReplaceAllString(tag, "")
+	tmp = ntag_pat_remove.ReplaceAllString(tmp, "")
 	// fmt.Printf("*%s*\n", tag)
 
-	return tag
+	return tmp
 }
 
 func NormalizeTags(tags map[string]string) map[string]string {
 	tmp := map[string]string{}
 	for key, value := range tags {
-		tmp[NormalizeTag(key)] = NormalizeTag(value)
+		// tmp[NormalizeTag(key)] = NormalizeTag(value)
+		nkey := NormalizeTag(key)
+		nvalue := NormalizeTag(value)
+		tmp[nkey] = nvalue
+
 	}
 	return tmp
 }

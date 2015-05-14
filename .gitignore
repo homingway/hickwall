@@ -36,3 +36,7 @@ hickwall.exe
 Readme.html
 
 .*
+pprofs
+*.txt
+
+*.pprof.*

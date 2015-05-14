@@ -1,0 +1,189 @@
+
+
+# Group 1 Template
+win_web_train:
+    collector_win_pdh:
+        - 
+            interval: 1s
+            tags: {
+                "bu": "train"
+            }
+            queries:
+                -
+                    query: "\\System\\Processes"
+                    metric: "win.pdh.process_cnt"
+                    # metric: "win.processes.count"     duplicated metric key: win.processes.count
+                - 
+                    query: "\\Memory\\Available Bytes"
+                    metric: "win.pdh.memory.available_bytes"
+
+    collector_cmd:
+        - 
+            cmd: 
+                - 'c:\python27\python.exe'
+                - 'D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\hickwall\misc\collector_cmd.py'
+            # interval: s - seconds, m - minutes, h - hours
+            interval: 1s
+
+
+# Group 2 Template
+
+web_web_ticket:
+    collector_win_pdh:
+        - 
+            interval: 1s
+            tags: {
+                "bu": "train"
+            }
+            queries:
+                -
+                    query: "\\System\\Processes"
+                    metric: "win.pdh.process_cnt"
+                    # metric: "win.processes.count"     duplicated metric key: win.processes.count
+                - 
+                    query: "\\Memory\\Available Bytes"
+                    metric: "win.pdh.memory.available_bytes"
+
+# stage ------------------------------------------
+
+# agent要用的Group
+win_web_train:
+    collector_win_pdh:
+        - 
+            interval: 1s
+            tags: {
+                "bu": "train"
+            }
+            queries:
+                -
+                    query: "\\System\\Processes"
+                    metric: "win.pdh.process_cnt"
+                    # metric: "win.processes.count"     duplicated metric key: win.processes.count
+                - 
+                    query: "\\Memory\\Available Bytes"
+                    metric: "win.pdh.memory.available_bytes"
+
+web_web_ticket:
+    collector_win_pdh:
+        - 
+            interval: 1s
+            tags: {
+                "bu": "train"
+            }
+            queries:
+                -
+                    query: "\\System\\Processes"
+                    metric: "win.pdh.process_cnt"
+                    # metric: "win.processes.count"     duplicated metric key: win.processes.count
+                - 
+                    query: "\\Memory\\Available Bytes"
+                    metric: "win.pdh.memory.available_bytes"
+
+
+# stage ------------------------------------------
+# Agent Override 
+
+win_web_train:
+    collector_win_pdh:
+        - 
+            interval: 1s
+            queries:
+                - 
+                    query: "\\Memory\\Available Bytes"
+                    metric: "win.pdh.memory.available.bytes.hhahah"
+
+web_web_ticket:
+    collector_win_pdh:
+        - 
+            interval: 1s
+
+
+# ==========================================   方案二 ================================================
+
+# CollectorType, abstract
+Collector_Pdh:
+    interval: 1s
+    queries:
+        - "a"
+
+# Collector, 具体干事的 
+collector_pdh_vms_cpu:
+    Collector_Pdh:
+        interval: 1s
+        queries:
+            - "a"
+
+    Override:
+        interval: 5s
+
+
+
+collector_pdh_vms_fs:
+    Collector_Pdh:
+        interval: 1s
+        queries:
+            - "c"
+
+    Override:
+        interval: 15s
+        queries:
+            - "b"
+
+
+collector_pdh_iis:
+    Collector_Pdh:
+        interval: 1s
+        queries:
+            - "a"
+
+    Override:
+        interval: 15s
+        queries:
+            - "b"
+
+
+# Group
+group_vms:
+    -
+        "collector_pdh_vms_cpu"
+        "collector_pdh_vms_fs"
+
+group_app_train:
+    -
+        "collector_app_train_order_pending"
+        "collector_app_train_order_finished"
+
+group_error:
+    -
+        "collector_pdh_vms_cpu"
+        "collector_pdh_vms_fs"
+        "collector_app_train_order_pending"
+        "collector_app_train_order_finished"
+
+group_webserver:
+    - 
+        "collector_pdh_vms_cpu"
+        "collector_pdh_vms_fs"
+        "collector_pdh_iis"
+
+group_webserver(group_vms):
+    - 
+        "collector_pdh_iis"
+
+group_vms_web_train(group_vms, group_app_train):
+    -
+        "collector_pdh_iis"
+
+
+# 显示最终的merge结果
+group_vms_from_err(group_vms, group_error):
+    -
+        "collector_pdh_vms_cpu"
+        "collector_pdh_vms_fs"
+        "collector_app_train_order_pending"
+        "collector_app_train_order_finished"
+
+
+Agent:
+    - "group_vms"
+    - "group_webserver"

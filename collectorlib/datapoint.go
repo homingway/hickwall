@@ -6,10 +6,13 @@ import (
 	"math"
 	"math/big"
 	"strconv"
+	// "strings"
+	"bufio"
+	"bytes"
 	"time"
 )
 
-type MultiDataPoint []DataPoint
+type MultiDataPoint []*DataPoint
 
 var bigMaxInt64 = big.NewInt(math.MaxInt64)
 
@@ -18,26 +21,63 @@ type DataPoint struct {
 	Timestamp time.Time         `json:"timestamp"`
 	Value     interface{}       `json:"value"`
 	Tags      TagSet            `json:"tags"`
-	Meta      map[string]string `json:"meta"`
+	Meta      map[string]string `json:"meta,omitempty"`
 }
 
-func (d *DataPoint) MarshalJSON() ([]byte, error) {
+// func (d *DataPoint) MarshalJSON() ([]byte, error) {
+
+// 	d.Clean()
+
+// 	return json.Marshal(struct {
+// 		Metric    string            `json:"metric"`
+// 		Timestamp time.Time         `json:"timestamp"`
+// 		Value     interface{}       `json:"value"`
+// 		Tags      TagSet            `json:"tags"`
+// 		Meta      map[string]string `json:"meta"`
+// 	}{
+// 		d.Metric,
+// 		d.Timestamp,
+// 		d.Value,
+// 		d.Tags,
+// 		d.Meta,
+// 	})
+// }
+
+func (d *DataPoint) MarshalJSON2String() (string, error) {
 
 	d.Clean()
 
-	return json.Marshal(struct {
-		Metric    string            `json:"metric"`
-		Timestamp time.Time         `json:"timestamp"`
-		Value     interface{}       `json:"value"`
-		Tags      TagSet            `json:"tags"`
-		Meta      map[string]string `json:"meta"`
-	}{
-		d.Metric,
-		d.Timestamp,
-		d.Value,
-		d.Tags,
-		d.Meta,
-	})
+	// res, err := json.Marshal(struct {
+	// 	Metric    string            `json:"metric"`
+	// 	Timestamp time.Time         `json:"timestamp"`
+	// 	Value     interface{}       `json:"value"`
+	// 	Tags      TagSet            `json:"tags"`
+	// 	Meta      map[string]string `json:"meta"`
+	// }{
+	// 	d.Metric,
+	// 	d.Timestamp,
+	// 	d.Value,
+	// 	d.Tags,
+	// 	d.Meta,
+	// })
+
+	// res, err := json.Marshal(d)
+	// v := string(res)
+	// res = nil
+
+	var b bytes.Buffer
+	defer b.Reset()
+
+	writer := bufio.NewWriter(&b)
+
+	enc := json.NewEncoder(writer)
+
+	err := enc.Encode(d)
+	writer.Flush()
+
+	v := b.String()
+
+	return v, err
 }
 
 func (d *DataPoint) Clean() error {

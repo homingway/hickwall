@@ -31,7 +31,7 @@ var (
 	LOG_FILEPATH       = ""
 	CoreConf           CoreConfig // only file
 	core_viper         = viper.New()
-	rconf              RuntimeConfig // can retrived from file or etcd
+	rconf              *RuntimeConfig // can retrived from file or etcd
 	RuntimeConfChan    = make(chan *RuntimeConfig, 1)
 	core_conf_loaded   bool
 )
@@ -173,6 +173,7 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 			}
 		}
 
+	loop:
 		// watch changes
 		for {
 			var (
@@ -182,7 +183,7 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 			select {
 			case <-stop:
 				log.Debugf("stop watching etcd remote config.")
-				break
+				break loop
 			default:
 				log.Debugf("watching etcd remote config: %s, %s", CoreConf.Etcd_url, CoreConf.Etcd_path)
 				err := runtime_viper.WatchRemoteConfig()
@@ -258,9 +259,9 @@ func init() {
 }
 
 func UpdateRuntimeConf(conf *RuntimeConfig) {
-	rconf = *conf
+	rconf = conf
 }
 
 func GetRuntimeConf() *RuntimeConfig {
-	return &rconf
+	return rconf
 }

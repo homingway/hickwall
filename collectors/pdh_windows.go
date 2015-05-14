@@ -420,6 +420,7 @@ func factory_win_pdh(name string, conf interface{}) <-chan Collector {
 					log.Errorf("cannot parse interval of collector_pdh: %s - %v", cf.Interval, err)
 					interval = default_interval
 				}
+
 				states.Interval = interval
 
 				states.hPdh = NewPdhCollector()
@@ -439,7 +440,7 @@ func factory_win_pdh(name string, conf interface{}) <-chan Collector {
 
 				out <- &IntervalCollector{
 					F:            c_win_pdh,
-					Enable:       nil,
+					EnableFunc:   nil,
 					name:         fmt.Sprintf("win_pdh_%s_%d", name, collector_idx),
 					states:       states,
 					Interval:     states.Interval,

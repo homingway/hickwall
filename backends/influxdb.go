@@ -186,17 +186,16 @@ func (w *InfluxdbWriter) Ping() {
 		defer utils.Recover_and_log()
 
 		err_cnt := 0
-		fasttick := influxdb_ping_fast_tick
-		slowtick := influxdb_ping_slowtick
-		tick := fasttick
+		tick := influxdb_ping_fast_tick
 		failing_pint_cnt := 5
 		ping_avg_cnt := 5
 		sma := utils.SMA{N: ping_avg_cnt}
+	loop:
 		for {
 			select {
 			case <-tick:
 				if w.is_closed == true {
-					break
+					break loop
 				}
 
 				t, v, err := w.iclient.Ping()
@@ -213,7 +212,7 @@ func (w *InfluxdbWriter) Ping() {
 							err_cnt += failing_pint_cnt
 							w.ping_time_avg = 999999999
 							w.is_host_alive = false
-							tick = slowtick
+							tick = influxdb_ping_slowtick
 							continue
 						}
 					}
@@ -226,7 +225,7 @@ func (w *InfluxdbWriter) Ping() {
 					}
 
 					err_cnt = 0
-					tick = fasttick
+					tick = influxdb_ping_fast_tick
 					w.is_host_alive = true
 					log.Debugf("%v: Fast-PING: host: %s, resp_time: %v, influxdb ver: %s, q Len: %d, buf size: %d, pingAvg: %d", &w, w.conf.Host, t, v, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
@@ -237,7 +236,7 @@ func (w *InfluxdbWriter) Ping() {
 
 				if err_cnt > failing_pint_cnt {
 					w.is_host_alive = false
-					tick = slowtick
+					tick = influxdb_ping_slowtick
 					log.Debugf("%v: SLOW-PING: host: %s, Wait for influxdb host back online again! q Len: %d, buf size: %d, pingAvg: %d", &w, w.conf.Host, w.q.Size(), len(w.buf), w.ping_time_avg)
 				}
 
@@ -252,27 +251,28 @@ func (w *InfluxdbWriter) Run() {
 
 	go w.Ping()
 
+loop:
 	for {
-		// if w.is_closed == true {
-		// 	break
-		// }
 		select {
 		case md := <-w.mdCh:
 			if w.is_closed == true {
-				break
+				break loop
 			}
 			w.addMD2Buf(md)
 		case <-w.tick:
 			if w.is_closed == true {
-				break
+				break loop
 			}
 			w.flushToQueue()
-			go w.consume()
+			//TODO: memory leaking here.
+			w.consume()
+			// go w.consume()
 		case <-w.tickBkf:
 			if w.is_closed == true {
-				break
+				break loop
 			}
-			go w.backfill()
+			w.backfill()
+			// go w.backfill()
 		}
 	}
 }
@@ -353,6 +353,7 @@ func (w *InfluxdbWriter) consume() {
 	// Do something
 	log.Debugf(" * md len:%d [influxdb] consuming: boltQ len: %d , mdCh len: %d, buf size: %d\n", len(md), w.q.Size(), len(w.mdCh), len(w.buf))
 
+	//TODO: memory leaking here.
 	err = w.writeMd(md)
 	w.check1()
 
@@ -438,6 +439,7 @@ func (w *InfluxdbWriter) writeMd(md collectorlib.MultiDataPoint) error {
 		RetentionPolicy: w.conf.RetentionPolicy,
 		Points:          points,
 	}
+	//TODO: memory leaking here.
 	res, err := w.iclient.Write(write)
 	if err != nil {
 		log.Debug(" -E- writeMD failed: ", err)

@@ -49,7 +49,7 @@ func factory_cmd(name string, conf interface{}) <-chan Collector {
 
 				out <- &IntervalCollector{
 					F:            c_cmd,
-					Enable:       nil,
+					EnableFunc:   nil,
 					name:         fmt.Sprintf("cmd_%s_%d", name, idx),
 					states:       state,
 					Interval:     state.Interval,

@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"container/list"
 	"github.com/oliveagle/hickwall/config"
 )
 
@@ -40,17 +41,20 @@ var (
 	DefaultFreq = time.Second * 1
 	AddTags     collectorlib.TagSet
 
-	timestamp = time.Now()
-	tlock     sync.Mutex
-	md_chan   chan collectorlib.MultiDataPoint
+	timestamp        = time.Now()
+	tlock            sync.Mutex
+	md_chan          chan collectorlib.MultiDataPoint
+	chstop_heartbeat chan bool
+
+	// running_collecotrs [](chan<- bool)
+	running_collecotrs *list.List
 )
 
 type Collector interface {
-	Run(chan<- collectorlib.MultiDataPoint)
+	Run(chan<- collectorlib.MultiDataPoint) chan<- bool
 	Name() string
 	Init()
-	Enabled() bool
-	Stop()
+	IsEnabled() bool
 	FactoryName() string
 }
 
@@ -71,7 +75,12 @@ func init() {
 		}
 	}()
 
-	md_chan = make(chan collectorlib.MultiDataPoint)
+	// md_chan = make(chan collectorlib.MultiDataPoint)
+	md_chan = make(chan collectorlib.MultiDataPoint, 1000)
+
+	chstop_heartbeat = make(chan bool)
+
+	running_collecotrs = list.New()
 }
 
 func now() (t time.Time) {
@@ -110,41 +119,47 @@ func GetCollectorFactoryByName(name string) (collector_factory_func, bool) {
 }
 
 // AddTS is the same as Add but lets you specify the timestamp
-func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
-	tags := t.Copy()
-	if rate != metadata.Unknown {
-		metadata.AddMeta(name, nil, "rate", rate, false)
-	}
-	if unit != "" {
-		metadata.AddMeta(name, nil, "unit", unit, false)
-	}
-	if desc != "" {
-		metadata.AddMeta(name, tags, "desc", desc, false)
-	}
-	if host, present := tags["host"]; !present {
+func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, tags collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
+	// tags := t.Copy()
+	// if rate != metadata.Unknown {
+	// 	metadata.AddMeta(name, nil, "rate", rate, false)
+	// }
+	// if unit != "" {
+	// 	metadata.AddMeta(name, nil, "unit", unit, false)
+	// }
+	// if desc != "" {
+	// 	metadata.AddMeta(name, tags, "desc", desc, false)
+	// }
+	if _, present := tags["host"]; !present {
 		tags["host"] = collectorlib.Hostname
-	} else if host == "" {
+	} else if tags["host"] == "" {
 		delete(tags, "host")
 	}
 
-	conf := config.GetRuntimeConf().Client
-	if conf.Hostname != "" {
+	conf := config.GetRuntimeConf()
+	if conf.Client.Hostname != "" {
 		// hostname should be english
-		hostname := collectorlib.NormalizeMetricKey(conf.Hostname)
+		hostname := collectorlib.NormalizeMetricKey(conf.Client.Hostname)
 		if hostname != "" {
 			tags["host"] = hostname
 		}
 	}
+	// tags = AddTags.Copy().Merge(tags)
 
-	tags = AddTags.Copy().Merge(tags)
-	d := collectorlib.DataPoint{
+	// d := collectorlib.DataPoint{
+	// 	Metric:    name,
+	// 	Timestamp: ts,
+	// 	Value:     value,
+	// 	Tags:      tags,
+	// }
+	// log.Debugf("DataPoint: %v", d)
+	// *md = append(*md, d)
+	*md = append(*md, &collectorlib.DataPoint{
 		Metric:    name,
 		Timestamp: ts,
 		Value:     value,
 		Tags:      tags,
-	}
-	// log.Debugf("DataPoint: %v", d)
-	*md = append(*md, d)
+	})
 }
 
 // Add appends a new data point with given metric name, value, and tags. Tags
@@ -156,9 +171,9 @@ func Add(md *collectorlib.MultiDataPoint, name string, value interface{}, t coll
 }
 
 type IntervalCollector struct {
-	F        func(states interface{}) (collectorlib.MultiDataPoint, error)
-	Interval time.Duration // default to DefaultFreq
-	Enable   func() bool
+	F          func(states interface{}) (collectorlib.MultiDataPoint, error)
+	Interval   time.Duration // default to DefaultFreq
+	EnableFunc func() bool
 
 	name string
 	init func()
@@ -167,11 +182,10 @@ type IntervalCollector struct {
 
 	// internal use
 	sync.Mutex
-	enabled bool
+	enabled  bool
+	stopping bool
 
-	chstop        chan (int)
-	chstop_enable chan (int)
-	isrunning     bool
+	done chan bool
 
 	factory_name string
 
@@ -179,8 +193,6 @@ type IntervalCollector struct {
 }
 
 func (c *IntervalCollector) Init() {
-	c.chstop = make(chan int, 1)
-
 	if c.init != nil {
 		c.init()
 	}
@@ -190,83 +202,93 @@ func (c *IntervalCollector) SetInterval(d time.Duration) {
 	c.Interval = d
 }
 
-func (c *IntervalCollector) Run(dpchan chan<- collectorlib.MultiDataPoint) {
-	c.Lock()
-	if c.chstop == nil {
-		c.chstop = make(chan int, 1)
-		c.chstop_enable = make(chan int, 1)
+func (c *IntervalCollector) loop(dpchan chan<- collectorlib.MultiDataPoint, done chan bool) {
+	defer utils.Recover_and_log()
+
+	// while reloading configuration, consumers maybe closed before
+	// internal_buf := make(chan collectorlib.MultiDataPoint, 1000)
+
+	log.Infof("START IntervalCollector! %08x, name: %s,  wait on done: %08x", &c, c.Name(), &done)
+
+	interval := c.Interval
+	if interval == 0 {
+		interval = DefaultFreq
 	}
-	c.Unlock()
 
-	if c.isrunning == false {
-		c.chstop = make(chan int, 1)
+	tick := time.Tick(interval)
+	tick_enabler := time.Tick(time.Minute * 5)
 
-		if c.Enable != nil {
-			go func() {
-			enable_main_loop:
-				for {
-					next := time.After(time.Minute * 5)
-					c.Lock()
-					c.enabled = c.Enable()
-					c.Unlock()
-					<-next
-				enable_wait_loop:
-					for {
-						// read stop chanel
-						select {
-						case <-c.chstop_enable:
-							// fmt.Println("Stop 3 enable_main_loop")
-							log.Infof("Stop 3 enable main loop:  %s", c.name)
-							break enable_main_loop
-						case <-next:
-							break enable_wait_loop
-						}
-					}
-				}
-			}()
-		}
-
-		c.isrunning = true
-
-	main_loop:
-		for {
-			interval := c.Interval
-			if interval == 0 {
-				interval = DefaultFreq
-			}
-
-			next := time.After(interval)
-			if c.Enabled() {
+collector_loop:
+	for {
+		select {
+		case <-tick:
+			if c.IsEnabled() {
 				//TODO: memory leak here
-				md, err := c.F(c.states)
+				// if c.stopping == true {
+				// 	break
+				// }
 
+				md, err := c.F(c.states)
 				if err != nil {
 					fmt.Errorf("%v: %v", c.Name(), err)
+					break
 				}
+
 				dpchan <- md
-			}
 
-			// <-next
-		wait_loop:
-			for {
-				// read stop chanel
-				select {
-				case <-c.chstop:
-					c.chstop_enable <- 1
-					log.Infof("Stop 2 main loop: %s", c.name)
-					break main_loop
-				case <-next:
-					break wait_loop
-				}
+				// select {
+				// case dpchan <- md:
+				// 	continue
+				// case <-done:
+				// 	log.Infof("break collector_loop: %08x - in <-tick", &c)
+				// 	// this did happened occasionally.
+				// 	// win > try_reload_config (master) 17:04:58 $ ./clean.sh && go run try_reload_config.go | grep "<-tick"
+				// 	// 2015-05-13T17:05:13.97 CST [Info] collectors.go:240(loop) break collector_loop: c08204c248 - in <-tick
+				// 	// 2015-05-13T17:05:17.96 CST [Info] collectors.go:240(loop) break collector_loop: c08204c1b0 - in <-tick
+				// 	// 2015-05-13T17:05:40.98 CST [Info] collectors.go:240(loop) break collector_loop: c08204c180 - in <-tick
+				// 	// 2015-05-13T17:05:43.98 CST [Info] collectors.go:240(loop) break collector_loop: c08204c1c8 - in <-tick
+				// 	break collector_loop
+				// }
 			}
+		case <-tick_enabler:
+			if c.EnableFunc != nil {
+				c.Lock()
+				c.enabled = c.EnableFunc()
+				c.Unlock()
+			}
+		case <-done:
+			// log.Infof("break collector_loop: %08x - in <-done", &c)
+			break collector_loop
 		}
+	}
+	log.Infof("STOP IntervalCollector! %08x", &c)
+}
 
-		c.isrunning = false
+func (c *IntervalCollector) sending(dpchan chan<- collectorlib.MultiDataPoint, md collectorlib.MultiDataPoint) {
+	// c.Lock()
+	// defer c.Unlock()
+	if c.stopping == false {
+		dpchan <- md
 	}
 }
 
-func (c *IntervalCollector) Enabled() bool {
-	if c.Enable == nil {
+func (c *IntervalCollector) setStopping(b bool) {
+	c.Lock()
+	defer c.Unlock()
+	c.stopping = b
+}
+
+func (c *IntervalCollector) Run(dpchan chan<- collectorlib.MultiDataPoint) chan<- bool {
+	c.Lock()
+	defer c.Unlock()
+
+	done := make(chan bool)
+	go c.loop(dpchan, done)
+	return done
+}
+
+func (c *IntervalCollector) IsEnabled() bool {
+	if c.EnableFunc == nil {
 		return true
 	}
 	c.Lock()
@@ -286,17 +308,6 @@ func (c *IntervalCollector) FactoryName() string {
 	return c.factory_name
 }
 
-func (c *IntervalCollector) Stop() {
-	if c.isrunning == true && c.chstop != nil {
-		log.Debugf("stopping collector: %s", c.name)
-		c.chstop <- 1
-
-		if c.closeFunc != nil {
-			c.closeFunc()
-		}
-	}
-}
-
 func enableURL(url string) func() bool {
 	return func() bool {
 		resp, err := http.Get(url)
@@ -305,34 +316,6 @@ func enableURL(url string) func() bool {
 		}
 		resp.Body.Close()
 		return resp.StatusCode == 200
-	}
-}
-
-func run_heartbeat(mdCh chan<- collectorlib.MultiDataPoint) {
-	for {
-		var md collectorlib.MultiDataPoint
-
-		// runtime_conf := config.GetRuntimeConf()
-		client_conf := config.GetRuntimeConf().Client
-		default_interval := time.Second * time.Duration(1)
-
-		interval, err := collectorlib.ParseInterval(client_conf.Heartbeat_interval)
-		if err != nil {
-			log.Errorf("cannot parse interval of heart_beat: %s - %v", client_conf.Heartbeat_interval, err)
-			interval = default_interval
-		} else {
-			if interval < default_interval {
-				interval = default_interval
-			}
-		}
-
-		next := time.After(interval)
-
-		tags := AddTags.Copy().Merge(client_conf.Tags)
-		Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
-		log.Debug("Heartbeat")
-		mdCh <- md
-		<-next
 	}
 }
 
@@ -359,16 +342,19 @@ func AddCollector(factory_name, collector_name string, config interface{}) bool 
 
 func RemoveAllCollectors() {
 	collectors = nil
+	// running_collecotrs = nil
 }
 
 func RunCollectors() error {
 	defer utils.Recover_and_log()
 
 	if md_chan != nil {
-		go run_heartbeat(md_chan)
 
+		// for _, c := range collectors {
+		// 	running_collecotrs = append(running_collecotrs, c.Run(md_chan))
+		// }
 		for _, c := range collectors {
-			go c.Run(md_chan)
+			running_collecotrs.PushBack(c.Run(md_chan))
 		}
 
 		return nil
@@ -378,9 +364,16 @@ func RunCollectors() error {
 }
 
 func StopCollectors() {
-	for _, c := range collectors {
-		c.Stop()
+
+	log.Info("StopCollectors START")
+	for el := running_collecotrs.Front(); el != nil; el = running_collecotrs.Front() {
+		done := el.Value.(chan<- bool)
+		log.Infof("sending true to done: %08x", &done)
+		done <- true
+		// done <- true
+		running_collecotrs.Remove(el)
 	}
+	log.Info("StopCollectors DONE")
 }
 
 func CreateCollectorsFromRuntimeConf() {
@@ -403,4 +396,138 @@ func CreateCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 	AddCollector("hickwall_client", "hickwall_client", nil)
 
 	log.Debug("Created All Collectors")
+}
+
+//----------------------------------- heart beat ----------------------------------------------------------
+
+// func run_heartbeat(mdCh chan<- collectorlib.MultiDataPoint, done <-chan bool) {
+// 	var (
+// 		md               collectorlib.MultiDataPoint
+// 		default_interval = time.Second * time.Duration(1)
+// 	)
+// 	client_conf := config.GetRuntimeConf().Client
+
+// 	interval, err := collectorlib.ParseInterval(client_conf.Heartbeat_interval)
+// 	if err != nil {
+// 		log.Errorf("cannot parse interval of heart_beat: %s - %v", client_conf.Heartbeat_interval, err)
+// 		interval = default_interval
+// 	} else {
+// 		if interval < default_interval {
+// 			interval = default_interval
+// 		}
+// 	}
+
+// 	tick := time.Tick(interval)
+
+// loop:
+// 	for {
+// 		select {
+// 		case <-tick:
+// 			tags := AddTags.Copy().Merge(client_conf.Tags)
+// 			Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
+// 			log.Debug("Heartbeat")
+// 			mdCh <- md
+// 			md = nil
+// 		case <-done:
+// 			log.Info("heartbeat stopped")
+// 			break loop
+// 		}
+// 	}
+// }
+
+var hb *HeartBeater
+
+func StartHeartBeat() {
+	if hb == nil {
+		hb = NewHeartBeater()
+	}
+	hb.Start()
+}
+
+func StopHeartBeat() {
+	if hb == nil {
+		hb = NewHeartBeater()
+	}
+	hb.Stop()
+}
+
+type HeartBeater struct {
+	done     chan bool
+	running  bool
+	interval time.Duration
+}
+
+func NewHeartBeater() *HeartBeater {
+	var (
+		default_interval = time.Second * time.Duration(1)
+		interval         = default_interval
+	)
+
+	conf := config.GetRuntimeConf()
+	if conf != nil {
+		client_conf := conf.Client
+
+		interval, err := collectorlib.ParseInterval(client_conf.Heartbeat_interval)
+		if err != nil {
+			log.Errorf("cannot parse interval of heart_beat: %s - %v", client_conf.Heartbeat_interval, err)
+			interval = default_interval
+		} else {
+			if interval < default_interval {
+				interval = default_interval
+			}
+		}
+	} else {
+		interval = default_interval
+	}
+
+	return &HeartBeater{
+		done:     make(chan bool),
+		interval: interval,
+	}
+}
+
+func (h *HeartBeater) IsRunning() bool {
+	return h.running
+}
+
+func (h *HeartBeater) Start() {
+	if h.IsRunning() == false {
+
+		go func() {
+			var md collectorlib.MultiDataPoint
+
+			client_conf := config.GetRuntimeConf().Client
+
+			log.Info("*HeartBeater START")
+			tick := time.Tick(h.interval)
+
+			mdCh := GetDataChan()
+
+		loop:
+			for {
+				select {
+				case <-tick:
+					tags := AddTags.Copy().Merge(client_conf.Tags)
+					Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
+					log.Debug("Heartbeat")
+					mdCh <- md
+					md = nil
+				case <-h.done:
+					log.Info("*HeartBeater STOP 2")
+					break loop
+				}
+			}
+
+			log.Info("HeartBeater: gorotuine finished.")
+		}()
+		h.running = true
+	}
+}
+
+func (h *HeartBeater) Stop() {
+	if h.IsRunning() == true {
+		log.Info("*HeartBeater STOP 1")
+		h.done <- true
+		h.running = false
+	}
 }

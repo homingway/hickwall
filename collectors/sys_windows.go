@@ -6,10 +6,11 @@ import (
 	// "github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/utils"
-	log "github.com/oliveagle/seelog"
+	// log "github.com/oliveagle/seelog"
 	"github.com/oliveagle/viper"
 	// "runtime"
 	// "time"
+	"strings"
 )
 
 func init() {
@@ -21,9 +22,10 @@ func init() {
 func factory_win_sys(name string, conf interface{}) <-chan Collector {
 	defer utils.Recover_and_log()
 
-	log.Debug("factory_win_sys")
+	// log.Debug("factory_win_sys")
 
-	_win_sys_pdh("100ms")
+	_win_sys_pdh("1000ms")
+
 	_win_sys_wmi("60s")
 
 	var out = make(chan Collector)
@@ -41,7 +43,7 @@ func _win_sys_pdh(interval string) {
 	pdh_config_str_tpl := `
 collector_win_pdh:
     -
-        interval: {{.Interval}}
+        interval: {-----}
         queries:
             -
                 query: "\\System\\Processes"
@@ -57,10 +59,14 @@ collector_win_pdh:
                 metric: "hickwall.client.mem.private_working_set.bytes"
 
 `
-	pdh_config_str, _ := utils.ExecuteTemplate(pdh_config_str_tpl, map[string]string{"Interval": interval}, nil)
+	pdh_config_str := strings.Replace(pdh_config_str_tpl, "{-----}", interval, 1)
+
+	// pdh_config_str, _ := utils.ExecuteTemplate(pdh_config_str_tpl, map[string]string{"Interval": interval}, nil)
+
 	pdh_viper := viper.New()
 	pdh_viper.SetConfigType("yaml")
-	pdh_viper.ReadBufConfig(bytes.NewBuffer([]byte(pdh_config_str)))
+	pdh_viper.ReadConfig(bytes.NewBuffer([]byte(pdh_config_str)))
+	// pdh_viper.ReadBufConfig(bytes.NewBuffer([]byte(pdh_config_str)))
 
 	var tmp_conf = config.RuntimeConfig{}
 	pdh_viper.Marshal(&tmp_conf)
@@ -71,7 +77,7 @@ func _win_sys_wmi(interval string) {
 	wmi_config_str_tpl := `
 collector_win_wmi:
     -
-        interval: {{.Interval}}
+        interval: {-----}
         queries:
             -
                 query: "select Name, NumberOfCores from Win32_Processor"
@@ -83,10 +89,13 @@ collector_win_wmi:
                         value_from: "NumberOfCores"
                         metric: "sys.cpu.numberofcores"
 `
-	wmi_config_str, _ := utils.ExecuteTemplate(wmi_config_str_tpl, map[string]string{"Interval": interval}, nil)
+	wmi_config_str := strings.Replace(wmi_config_str_tpl, "{-----}", interval, 1)
+
+	// wmi_config_str, _ := utils.ExecuteTemplate(wmi_config_str_tpl, map[string]string{"Interval": interval}, nil)
 	wmi_viper := viper.New()
 	wmi_viper.SetConfigType("yaml")
-	wmi_viper.ReadBufConfig(bytes.NewBuffer([]byte(wmi_config_str)))
+	// wmi_viper.ReadBufConfig(bytes.NewBuffer([]byte(wmi_config_str)))
+	wmi_viper.ReadConfig(bytes.NewBuffer([]byte(wmi_config_str)))
 
 	var tmp_conf = config.RuntimeConfig{}
 	wmi_viper.Marshal(&tmp_conf)

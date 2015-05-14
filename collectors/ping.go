@@ -64,7 +64,7 @@ func factory_ping(name string, conf interface{}) <-chan Collector {
 
 					out <- &IntervalCollector{
 						F:            C_ping,
-						Enable:       nil,
+						EnableFunc:   nil,
 						name:         fmt.Sprintf("ping_%s_%d_%d", name, collector_idx, target_idx),
 						states:       states,
 						Interval:     states.Interval,

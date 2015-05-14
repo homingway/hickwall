@@ -11,6 +11,7 @@ import (
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/lib"
 	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
@@ -18,6 +19,7 @@ import (
 	"os"
 	// "runtime/pprof"
 	// "strconv"
+	"github.com/davecheney/profile"
 	"time"
 )
 
@@ -78,15 +80,24 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	//http://localhost:6060/debug/pprof/
 	utils.HttpPprofServe(6060)
 
-	after := time.After(time.Duration(3) * time.Minute)
+	after := time.After(time.Duration(8) * time.Minute)
 	// f, _ := os.Create("d:\\cpu-" + strconv.Itoa(pid) + ".pprof")
 	// pprof.StartCPUProfile(f)
 	// defer pprof.StopCPUProfile()
 
-	utils.StartCPUProfile()
-	defer utils.StopCPUProfile()
+	cfg := profile.Config{
+		MemProfile:     true,
+		ProfilePath:    "./pprofs/", // store profiles in current directory
+		NoShutdownHook: true,        // do not hook SIGINT
+	}
+	p := profile.Start(&cfg)
 
-	go LoadConfigAndWatching()
+	defer p.Stop()
+
+	// utils.StartCPUProfile()
+	// defer utils.StopCPUProfile()
+
+	go lib.LoadConfigAndWatching()
 
 	// reload won't lower memory usage.
 	// go func() {

@@ -14,7 +14,8 @@ func Test_DataPoint_Clean(t *testing.T) {
 	}
 
 	d.Clean()
-	if d.Metric != "m1_2" {
+	t.Log("d: ", d)
+	if d.Metric != "m12" {
 		t.Error("clean failed")
 	}
 
@@ -28,7 +29,7 @@ func Test_DataPoint_MarshalJSON(t *testing.T) {
 		Value:     1,
 	}
 
-	v, err := d.MarshalJSON()
+	v, err := d.MarshalJSON2String()
 	t.Logf("%s, %v\n", v, err)
 	if err != nil {
 		t.Error("MarshalJSON failed")
@@ -36,7 +37,7 @@ func Test_DataPoint_MarshalJSON(t *testing.T) {
 	// t.Error("--")
 
 	var tmp_d DataPoint
-	json.Unmarshal(v, &tmp_d)
+	json.Unmarshal([]byte(v), &tmp_d)
 	t.Logf("%v", tmp_d)
 	t.Logf("%v", tmp_d.Timestamp.UnixNano())
 	// t.Error("--")
