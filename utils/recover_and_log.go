@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	log "github.com/oliveagle/seelog"
+	// log "github.com/oliveagle/seelog"
 	"runtime"
 )
 
@@ -17,8 +17,8 @@ func Recover_and_log() {
 		fmt.Println(err_msg)
 		fmt.Println(trace_msg)
 
-		log.Critical(err_msg)
-		log.Critical(trace_msg)
+		// log.Critical(err_msg)
+		// log.Critical(trace_msg)
 	}
-	log.Flush()
+	// log.Flush()
 }

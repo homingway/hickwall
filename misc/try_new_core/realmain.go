@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"runtime"
+	// "runtime/debug"
 	"time"
 )
 
@@ -9,9 +11,9 @@ import (
 type Item struct{ Title, Channel, GUID string }
 
 // A Collector fetches Items and returns the time when the next fetch should be
-// attempted.  On failure, Fetch returns a non-nil error.
+// attempted.  On failure, CollectOnce returns a non-nil error.
 type Collector interface {
-	Fetch() (items []Item, next time.Time, err error)
+	CollectOnce() (items []Item, next time.Time, err error)
 }
 
 // A Subscription delivers Items over a channel.  Close cancels the
@@ -53,7 +55,7 @@ func (s *sub) Close() error {
 
 // loop periodically fecthes Items, sends them on s.updates, and exits
 // when Close is called.
-// Fetch asynchronously.
+// CollectOnce asynchronously.
 func (s *sub) loop() {
 	const maxPending = 10
 	type fetchResult struct {
@@ -62,7 +64,7 @@ func (s *sub) loop() {
 		err     error
 	}
 
-	var fetchDone chan fetchResult // if non-nil, Fetch is running // HL
+	var fetchDone chan fetchResult // if non-nil, CollectOnce is running // HL
 
 	var pending []Item
 	var next time.Time
@@ -89,7 +91,7 @@ func (s *sub) loop() {
 		case <-startFetch: // HLfetch
 			fetchDone = make(chan fetchResult, 1) // HLfetch
 			go func() {
-				fetched, next, err := s.fetcher.Fetch()
+				fetched, next, err := s.fetcher.CollectOnce()
 				fetchDone <- fetchResult{fetched, next, err}
 			}()
 		case result := <-fetchDone: // HLfetch
@@ -171,8 +173,8 @@ func (m *merge) Close() (err error) {
 	return
 }
 
-// Fetch returns a Collector for Items from domain.
-func Fetch(domain string) Collector {
+// CollectOnce returns a Collector for Items from domain.
+func CollectOnce(domain string) Collector {
 	return realFetch(domain)
 }
 
@@ -210,7 +212,7 @@ func NewFetcher(uri string) Collector {
 	return f
 }
 
-func (f *fetcher) Fetch() (items []Item, next time.Time, err error) {
+func (f *fetcher) CollectOnce() (items []Item, next time.Time, err error) {
 	// fmt.Println("fetching", f.uri)
 	if err = f.fetch(f.uri); err != nil {
 		return
@@ -222,24 +224,44 @@ func (f *fetcher) Fetch() (items []Item, next time.Time, err error) {
 	return
 }
 
+func toHuman(bytes uint64) string {
+	return fmt.Sprintf("%0.0fk", float64(bytes)/1024)
+}
+
 func main() {
 
 	// Subscribe to some feeds, and create a merged update stream.
 	merged := Merge(
-		Subscribe(Fetch("blog.golang.org")),
-		Subscribe(Fetch("googleblog.blogspot.com")),
-		Subscribe(Fetch("googledevelopers.blogspot.com")))
+		Subscribe(CollectOnce("blog.golang.org")),
+		Subscribe(CollectOnce("googleblog.blogspot.com")),
+		Subscribe(CollectOnce("googledevelopers.blogspot.com")))
 
 	// Close the subscriptions after some time.
-	time.AfterFunc(3*time.Second, func() {
+	time.AfterFunc(300*time.Second, func() {
 		fmt.Println("closed:", merged.Close())
 	})
 
+	var a = 0
+
+	tick := time.Tick(time.Duration(1) * time.Second)
+	var mem runtime.MemStats
+
 	// Print the stream.
-	for it := range merged.Updates() {
-		fmt.Println(it.Channel, it.Title)
+	for _ = range merged.Updates() {
+		// fmt.Println(it.Channel, it.Title)
+		// fmt.Printf(".")
 		// send data to backend writer.
+		a += 1
+
+		select {
+		case <-tick:
+			runtime.ReadMemStats(&mem)
+			fmt.Printf("Alloc: %s, Sys: %s \n", toHuman(mem.Alloc), toHuman(mem.Sys))
+			fmt.Printf("HeapSys: %s, HeapAlloc: %s, HeapInuse: %s, HeapIdle: %s, HeapObjects: %d, HeapReleased: %s \n", toHuman(mem.HeapSys), toHuman(mem.HeapAlloc), toHuman(mem.HeapInuse), toHuman(mem.HeapIdle), mem.HeapObjects, toHuman(mem.HeapReleased))
+		}
 	}
 
 	panic("show me the stacks")
+
+	// On macbook, run run 300 seconds,  private memory is stabilized at 836k
 }
