@@ -9,11 +9,11 @@ type Item struct {
 	Title, Channel, GUID string
 }
 
-type Fetcher interface {
-	Fetch() (items []Item, next time.Time, err error)
+type Collector interface {
+	CollectOnce() (items []Item, next time.Time, err error)
 }
 
-func Fetch(domain string) Fetcher {
+func CollectOnce(domain string) Collector {
 
 }
 
@@ -23,10 +23,10 @@ type Subscription interface {
 }
 
 // converts Fetches to a stream
-func Subscribe(fetcher Fetcher) Subscription {
+func Subscribe(collector Collector) Subscription {
 	s := &sub{
-		fetcher: fetcher,
-		updates: make(chan Item), // for Updates
+		collector: collector,
+		updates:   make(chan Item), // for Updates
 	}
 
 	go s.loop()
@@ -34,9 +34,9 @@ func Subscribe(fetcher Fetcher) Subscription {
 }
 
 type sub struct {
-	fetcher Fetcher   // fetches items
-	updates chan Item // delivers items to the user
-	closing chan chan error
+	collector Collector // fetches items
+	updates   chan Item // delivers items to the user
+	closing   chan chan error
 }
 
 type fetchResult struct {
@@ -45,14 +45,14 @@ type fetchResult struct {
 	err     error
 }
 
-// loop fetches items using s.fetcher and sends them
+// loop fetches items using s.collector and sends them
 // on s.updates.  loop exits when s.Close is called.
 func (s *sub) loop() {
 	var pending []Item //appened by fetch; consumed by send
 	var next time.Time
 	var err error
 	var maxPending = 1000
-	var fetchDone chan fetchResult // if non-nil, Fetch is running
+	var fetchDone chan fetchResult // if non-nil, CollectOnce is running
 
 	for {
 		var first Item
@@ -84,7 +84,7 @@ func (s *sub) loop() {
 			fetchDone = make(chan fetchResult, 1)
 
 			go func() {
-				fetched, next, err := s.fetcher.Fetch()
+				fetched, next, err := s.collector.CollectOnce()
 				fetchDone <- fetchResult{fetched, next, err}
 			}()
 
@@ -126,8 +126,8 @@ func Merge(subs ...Subscription) Subscription {
 func main() {
 	// Subscribe to some feeds, and create a merged update stream.
 	merged := Merge(
-		Subscribe(Fetch("blog.golang.org")),
-		Subscribe(Fetch("www.baidu.com")),
+		Subscribe(CollectOnce("blog.golang.org")),
+		Subscribe(CollectOnce("www.baidu.com")),
 	)
 
 	// Close the subscriptions after some time.
