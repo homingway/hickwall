@@ -15,29 +15,34 @@ import (
 */
 import "C"
 
-// An Item is a stripped-down RSS item.
-type Item struct{ Title, Channel, GUID string }
+type DataPoint struct {
+	Metric    string            `json:"metric"`
+	Timestamp time.Time         `json:"timestamp"`
+	Value     interface{}       `json:"value"`
+	Tags      map[string]string `json:"tags"`
+	Meta      map[string]string `json:"meta,omitempty"`
+}
 
-// A Collector fetches Items and returns the time when the next fetch should be
+// A Collector collects Items and returns the time when the next collect should be
 // attempted.  On failure, CollectOnce returns a non-nil error.
 type Collector interface {
-	CollectOnce() (items []Item, next time.Time, err error)
+	CollectOnce() (items []*DataPoint, next time.Time, err error)
 }
 
 // A Subscription delivers Items over a channel.  Close cancels the
-// subscription, closes the Updates channel, and returns the last fetch error,
+// subscription, closes the Updates channel, and returns the last collect error,
 // if any.
 type Subscription interface {
-	Updates() <-chan Item
+	Updates() <-chan *DataPoint
 	Close() error
 }
 
-// Subscribe returns a new Subscription that uses fetcher to fetch Items.
-func Subscribe(fetcher Collector) Subscription {
+// Subscribe returns a new Subscription that uses collector to collected DataPoints.
+func Subscribe(collector Collector) Subscription {
 	s := &sub{
-		fetcher: fetcher,
-		updates: make(chan Item),       // for Updates
-		closing: make(chan chan error), // for Close
+		collector: collector,
+		updates:   make(chan *DataPoint), // for Updates
+		closing:   make(chan chan error), // for Close
 	}
 	go s.loop()
 	return s
@@ -45,12 +50,12 @@ func Subscribe(fetcher Collector) Subscription {
 
 // sub implements the Subscription interface.
 type sub struct {
-	fetcher Collector       // fetches items
-	updates chan Item       // sends items to the user
-	closing chan chan error // for Close
+	collector Collector       // collected items
+	updates   chan *DataPoint // sends items to the user
+	closing   chan chan error // for Close
 }
 
-func (s *sub) Updates() <-chan Item {
+func (s *sub) Updates() <-chan *DataPoint {
 	return s.updates
 }
 
@@ -66,53 +71,52 @@ func (s *sub) Close() error {
 // CollectOnce asynchronously.
 func (s *sub) loop() {
 	const maxPending = 10
-	type fetchResult struct {
-		fetched []Item
-		next    time.Time
-		err     error
+	type collectResult struct {
+		collected []*DataPoint
+		next      time.Time
+		err       error
 	}
 
-	var fetchDone chan fetchResult // if non-nil, CollectOnce is running // HL
+	var collectDone chan collectResult // if non-nil, CollectOnce is running // HL
 
-	var pending []Item
+	var pending []*DataPoint
 	var next time.Time
 	var err error
 	for {
-		var fetchDelay time.Duration
+		var collectDelay time.Duration
 		if now := time.Now(); next.After(now) {
-			fetchDelay = next.Sub(now)
+			collectDelay = next.Sub(now)
 		}
 
-		var startFetch <-chan time.Time
-		if fetchDone == nil && len(pending) < maxPending { // HLfetch
-			startFetch = time.After(fetchDelay) // enable fetch case
+		var startCollect <-chan time.Time
+		if collectDone == nil && len(pending) < maxPending {
+			startCollect = time.After(collectDelay) // enable collect case
 		}
 
-		var first Item
-		var updates chan Item
+		var first *DataPoint
+		var updates chan *DataPoint
 		if len(pending) > 0 {
 			first = pending[0]
 			updates = s.updates // enable send case
 		}
 
 		select {
-		case <-startFetch: // HLfetch
-			fetchDone = make(chan fetchResult, 1) // HLfetch
+		case <-startCollect:
+			collectDone = make(chan collectResult, 1)
 			go func() {
-				fetched, next, err := s.fetcher.CollectOnce()
-				fetchDone <- fetchResult{fetched, next, err}
+				collected, next, err := s.collector.CollectOnce()
+				collectDone <- collectResult{collected, next, err}
 			}()
-		case result := <-fetchDone: // HLfetch
-			fetchDone = nil // HLfetch
-			// Use result.fetched, result.next, result.err
+		case result := <-collectDone:
+			collectDone = nil
 
-			fetched := result.fetched
+			collected := result.collected
 			next, err = result.next, result.err
 			if err != nil {
 				next = time.Now().Add(10 * time.Second)
 				break
 			}
-			for _, item := range fetched {
+			for _, item := range collected {
 				pending = append(pending, item)
 			}
 		case errc := <-s.closing:
@@ -127,7 +131,7 @@ func (s *sub) loop() {
 
 type merge struct {
 	subs    []Subscription
-	updates chan Item
+	updates chan *DataPoint
 	quit    chan struct{}
 	errs    chan error
 }
@@ -138,7 +142,7 @@ func Merge(subs ...Subscription) Subscription {
 
 	m := &merge{
 		subs:    subs,
-		updates: make(chan Item),
+		updates: make(chan *DataPoint),
 		quit:    make(chan struct{}),
 		errs:    make(chan error),
 	}
@@ -146,7 +150,7 @@ func Merge(subs ...Subscription) Subscription {
 	for _, sub := range subs {
 		go func(s Subscription) {
 			for {
-				var it Item
+				var it *DataPoint
 				select {
 				case it = <-s.Updates():
 				case <-m.quit: // HL
@@ -166,7 +170,7 @@ func Merge(subs ...Subscription) Subscription {
 	return m
 }
 
-func (m *merge) Updates() <-chan Item {
+func (m *merge) Updates() <-chan *DataPoint {
 	return m.updates
 }
 
@@ -181,48 +185,46 @@ func (m *merge) Close() (err error) {
 	return
 }
 
-// CollectOnce returns a Collector for Items from domain.
-func CollectOnce(domain string) Collector {
-	return realFetch(domain)
+// CollectorFactory returns a collector
+func CollectorFactory(name string) Collector {
+	return NewCollector(name)
 }
 
-// realFetch returns a fetcher for the specified blogger domain.
-func realFetch(domain string) Collector {
-	return NewFetcher(fmt.Sprintf("http://%s/feeds/posts/default?alt=rss", domain))
-}
-
-type fetcher struct {
-	uri      string
-	items    []Item
+type collector struct {
+	name     string
+	items    []*DataPoint
 	interval time.Duration
-	fetch    func(uri string) error
+
+	// this is the function actually collector data
+	collect func() error
 }
 
-// NewFetcher returns a Collector for uri.
-func NewFetcher(uri string) Collector {
-	f := &fetcher{
-		uri: uri,
+// NewCollector returns a Collector for uri.
+func NewCollector(name string) Collector {
+	f := &collector{
+		name: name,
 	}
 
-	f.fetch = func(uri string) error {
-		for i := 0; i < 10; i++ {
-			f.items = append(f.items, Item{
-				Channel: uri,
-				GUID:    "guid",
-				Title:   "title",
+	f.collect = func() error {
+		for i := 0; i < 1; i++ {
+			f.items = append(f.items, &DataPoint{
+				Metric:    fmt.Sprintf("metric.%s", f.name),
+				Timestamp: time.Now(),
+				Value:     1,
+				Tags:      nil,
+				Meta:      nil,
 			})
 		}
 		return nil
 	}
 
 	// f.interval = time.Duration(1) * time.Second
-	f.interval = time.Duration(100) * time.Millisecond
+	f.interval = time.Duration(1000) * time.Millisecond
 	return f
 }
 
-func (f *fetcher) CollectOnce() (items []Item, next time.Time, err error) {
-	// fmt.Println("fetching", f.uri)
-	if err = f.fetch(f.uri); err != nil {
+func (f *collector) CollectOnce() (items []*DataPoint, next time.Time, err error) {
+	if err = f.collect(); err != nil {
 		return
 	}
 	items = f.items
@@ -240,13 +242,14 @@ func main() {
 
 	// Subscribe to some feeds, and create a merged update stream.
 	merged := Merge(
-		Subscribe(CollectOnce("blog.golang.org")),
-		Subscribe(CollectOnce("googleblog.blogspot.com")),
-		Subscribe(CollectOnce("googledevelopers.blogspot.com")))
+		Subscribe(CollectorFactory("c1")),
+		Subscribe(CollectorFactory("c2")),
+		Subscribe(CollectorFactory("c3")))
 
 	// Close the subscriptions after some time.
-	time.AfterFunc(300*time.Second, func() {
-		fmt.Println("closed:", merged.Close())
+	time.AfterFunc(6*time.Second, func() {
+		// fmt.Println("closed:", merged.Close())
+		merged.Close()
 	})
 
 	var a = 0
@@ -256,14 +259,18 @@ func main() {
 
 	fmt.Println("PeakRSS(k), CurrentRSS(k), Alloc(k), Sys(k), HeapSys(k), HeapAlloc(k), HeapInuse(k), HeapIdle(k), HeapReleased(k), HeapObjects")
 
-	// Print the stream.
-	for _ = range merged.Updates() {
-		// fmt.Println(it.Channel, it.Title)
-		// fmt.Printf(".")
-		// send data to backend writer.
-		a += 1
+	var dp *DataPoint
+	var channel_closed bool
 
+	for {
 		select {
+		case dp, channel_closed = <-merged.Updates():
+			if dp == nil && channel_closed == false {
+				fmt.Println("merged closed")
+				return
+			}
+			fmt.Println(dp)
+			a += 1
 		case <-tick:
 			runtime.ReadMemStats(&mem)
 			// fmt.Printf("peakRSS: %dk, curRSS:  %dk, Alloc: %s, Sys: %s, HeapSys: %s, HeapAlloc: %s, HeapInuse: %s, HeapIdle: %s, HeapObjects: %d, HeapReleased: %s \n",
@@ -272,6 +279,22 @@ func main() {
 				C.getPeakRSS()/1024, C.getCurrentRSS()/1024, mem.Alloc/1024, mem.Sys/1024, mem.HeapSys/1024, mem.HeapAlloc/1024, mem.HeapInuse/1024, mem.HeapIdle/1024, mem.HeapReleased/1024, mem.HeapObjects)
 		}
 	}
+
+	// // Print the stream.
+	// for dp := range merged.Updates() {
+	// 	// send data to backend writer.
+	// 	fmt.Println(dp)
+	// 	a += 1
+
+	// 	select {
+	// 	case <-tick:
+	// 		runtime.ReadMemStats(&mem)
+	// 		// fmt.Printf("peakRSS: %dk, curRSS:  %dk, Alloc: %s, Sys: %s, HeapSys: %s, HeapAlloc: %s, HeapInuse: %s, HeapIdle: %s, HeapObjects: %d, HeapReleased: %s \n",
+	// 		// 	C.getPeakRSS()/1024, C.getCurrentRSS()/1024, toHuman(mem.Alloc), toHuman(mem.Sys), toHuman(mem.HeapSys), toHuman(mem.HeapAlloc), toHuman(mem.HeapInuse), toHuman(mem.HeapIdle), mem.HeapObjects, toHuman(mem.HeapReleased))
+	// 		fmt.Printf("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d \n",
+	// 			C.getPeakRSS()/1024, C.getCurrentRSS()/1024, mem.Alloc/1024, mem.Sys/1024, mem.HeapSys/1024, mem.HeapAlloc/1024, mem.HeapInuse/1024, mem.HeapIdle/1024, mem.HeapReleased/1024, mem.HeapObjects)
+	// 	}
+	// }
 
 	// panic("show me the stacks")
 
