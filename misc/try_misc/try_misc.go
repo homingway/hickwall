@@ -1,18 +1,51 @@
 package main
 
 import (
-	"bytes"
+	// "bytes"
 	"fmt"
+	"time"
 )
 
+// func main() {
+
+// 	c := make(chan bool)
+// 	// send to a closed channel will panic
+// 	close(c)
+// 	c <- true
+// 	fmt.Println("hahah")
+
+// }
+func Once() string {
+	time.Sleep(time.Second * time.Duration(30))
+	return "from Once"
+}
+
 func main() {
-	buf := bytes.NewBuffer(make([]byte, 0, 10))
+	result := make(chan string)
 
-	for i := 0; i < 100; i++ {
-		fmt.Fprintf(buf, "hahah %s", "hello")
-	}
+	done := make(chan bool)
+	go func() {
+		result <- Once()
+		done <- true
+	}()
 
-	fmt.Println(buf.String())
-	buf.Reset()
+	go func() {
+		for {
+			select {
+			case <-done:
+				break
+			case <-time.After(time.Duration(2) * time.Second):
+				result <- "from Timeout"
+				break
+			}
+		}
+	}()
 
+	fmt.Println(<-result)
+	close(result)
+
+	time.AfterFunc(time.Duration(2), func() {
+		fmt.Println("haha")
+	})
+	panic("haah")
 }

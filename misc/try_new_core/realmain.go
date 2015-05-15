@@ -23,10 +23,12 @@ type DataPoint struct {
 	Meta      map[string]string `json:"meta,omitempty"`
 }
 
+type MuliDataPoint []*DataPoint
+
 // A Collector collects Items and returns the time when the next collect should be
 // attempted.  On failure, CollectOnce returns a non-nil error.
 type Collector interface {
-	CollectOnce() (items []*DataPoint, next time.Time, err error)
+	CollectOnce() (md MuliDataPoint, next time.Time, err error)
 }
 
 // A Subscription delivers Items over a channel.  Close cancels the
@@ -192,7 +194,7 @@ func CollectorFactory(name string) Collector {
 
 type collector struct {
 	name     string
-	items    []*DataPoint
+	items    MuliDataPoint
 	interval time.Duration
 
 	// this is the function actually collector data
@@ -223,7 +225,7 @@ func NewCollector(name string) Collector {
 	return f
 }
 
-func (f *collector) CollectOnce() (items []*DataPoint, next time.Time, err error) {
+func (f *collector) CollectOnce() (items MuliDataPoint, next time.Time, err error) {
 	if err = f.collect(); err != nil {
 		return
 	}
@@ -247,7 +249,7 @@ func main() {
 		Subscribe(CollectorFactory("c3")))
 
 	// Close the subscriptions after some time.
-	time.AfterFunc(6*time.Second, func() {
+	time.AfterFunc(600*time.Second, func() {
 		// fmt.Println("closed:", merged.Close())
 		merged.Close()
 	})
@@ -269,7 +271,7 @@ func main() {
 				fmt.Println("merged closed")
 				return
 			}
-			fmt.Println(dp)
+			// fmt.Println(dp)
 			a += 1
 		case <-tick:
 			runtime.ReadMemStats(&mem)
