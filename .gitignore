@@ -40,3 +40,4 @@ pprofs
 *.txt
 
 *.pprof.*
+*.csv

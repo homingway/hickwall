@@ -245,7 +245,7 @@ func main() {
 		Subscribe(CollectOnce("googledevelopers.blogspot.com")))
 
 	// Close the subscriptions after some time.
-	time.AfterFunc(300*time.Second, func() {
+	time.AfterFunc(50*time.Hour, func() {
 		fmt.Println("closed:", merged.Close())
 	})
 
