@@ -7,55 +7,65 @@ import (
 
 // CollectorFactory returns a collector
 func CollectorFactory(name string) Collector {
+
 	return NewCollector(name)
 }
 
 type collector struct {
-	name     string
-	items    MuliDataPoint
-	interval time.Duration
+	basename string // which collector type is
+	name     string // collector name
 
-	// this is the function actually collector data
-	collect func() error
+	items    MultiDataPoint
+	interval time.Duration
+	enabled  bool
+}
+
+// this is the function actually collector data
+func (c *collector) collect() error {
+	for i := 0; i < 100; i++ {
+		c.items = append(c.items, &DataPoint{
+			Metric:    fmt.Sprintf("metric.%s", c.name),
+			Timestamp: time.Now(),
+			Value:     1,
+			Tags:      nil,
+			Meta:      nil,
+		})
+	}
+	return nil
 }
 
 // NewCollector returns a Collector for uri.
 func NewCollector(name string) Collector {
 	f := &collector{
-		name: name,
+		basename: "first_collector_type",
+		name:     name,
+		enabled:  true,
+		// collect:  collect,
+		interval: time.Duration(1) * time.Millisecond,
+		// interval: time.Duration(1) * time.Millisecond,
+		// interval: time.Duration(100) * time.Microsecond,
 	}
-
-	f.collect = func() error {
-		for i := 0; i < 1; i++ {
-			f.items = append(f.items, &DataPoint{
-				Metric:    fmt.Sprintf("metric.%s", f.name),
-				Timestamp: time.Now(),
-				Value:     1,
-				Tags:      nil,
-				Meta:      nil,
-			})
-		}
-		return nil
-	}
-
-	// f.interval = time.Duration(1) * time.Second
-	f.interval = time.Duration(1) * time.Millisecond
 	return f
 }
 
-// func (f *collector) CollectOnce() (items MuliDataPoint, next time.Time, err error) {
-// 	if err = f.collect(); err != nil {
-// 		return
-// 	}
-// 	items = f.items
-// 	f.items = nil
+func (f *collector) Name() string {
+	return f.name
+}
 
-// 	next = time.Now().Add(f.interval)
-// 	return
-// }
+func (f *collector) Close() error {
+	return nil
+}
+
+func (f *collector) BaseName() string {
+	return f.basename
+}
 
 func (f *collector) IsEnabled() bool {
-	return true
+	return f.enabled
+}
+
+func (f *collector) Interval() time.Duration {
+	return f.interval
 }
 
 func (f *collector) CollectOnce() *CollectResult {
@@ -75,5 +85,4 @@ func (f *collector) CollectOnce() *CollectResult {
 		Next:      time.Now().Add(f.interval),
 		Err:       nil,
 	}
-
 }

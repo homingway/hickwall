@@ -1,20 +1,42 @@
 package newcore
 
 import (
-	// "log"
-	// "fmt"
+	"log"
 	"time"
 )
 
+type SubOptions struct {
+	MaxPending   int    // 1 is enough for most cases, if consumer is fast enough
+	DelayOnError string // duration string, delay duration on collect error, minimal is 100ms
+}
+
 // Subscribe returns a new Subscription that uses collector to collected DataPoints.
-func Subscribe(collector Collector) Subscription {
+func Subscribe(collector Collector, opt *SubOptions) Subscription {
+	var delay time.Duration
+	var err error
+
+	if opt == nil {
+		// log.Println("Subscribe: opt is nil, use default. 1, 5s")
+		opt = &SubOptions{
+			MaxPending:   1,
+			DelayOnError: "5s",
+		}
+	} else if opt.MaxPending <= 0 {
+		log.Println("opt.MaxPending is below 0, use default 1 instead")
+		opt.MaxPending = 1
+	}
+
+	if delay, err = time.ParseDuration(opt.DelayOnError); delay < time.Millisecond*time.Duration(100) || err != nil {
+		log.Println("opt.DelayOnError is too frequent, use default:  100ms ")
+		delay = time.Duration(100) * time.Millisecond
+	}
+
 	s := &sub{
 		collector:      collector,
-		updates:        make(chan *DataPoint),           // for Updates
-		closing:        make(chan chan error),           // for Close
-		maxPending:     100,                             // 100 datapoing in mem
-		delay_on_error: time.Duration(1) * time.Second,  // delay on collect error
-		timeout:        time.Duration(10) * time.Second, // tiemout on CollectOnce
+		updates:        make(chan *MultiDataPoint), // for Updates
+		closing:        make(chan chan error),      // for Close
+		maxPending:     opt.MaxPending,             //
+		delay_on_error: delay,                      // delay on collect error
 	}
 	go s.loop()
 	return s
@@ -22,15 +44,14 @@ func Subscribe(collector Collector) Subscription {
 
 // sub implements the Subscription interface.
 type sub struct {
-	collector      Collector       // collected items
-	updates        chan *DataPoint // sends items to the user
-	closing        chan chan error // for Close
+	collector      Collector            // collected items
+	updates        chan *MultiDataPoint // sends items to the user
+	closing        chan chan error      // for Close
 	maxPending     int
 	delay_on_error time.Duration
-	timeout        time.Duration // timeout while CollectOnce
 }
 
-func (s *sub) Updates() <-chan *DataPoint {
+func (s *sub) Updates() <-chan *MultiDataPoint {
 	return s.updates
 }
 
@@ -44,19 +65,14 @@ func (s *sub) Close() error {
 // when Close is called.
 // CollectOnce asynchronously.
 func (s *sub) loop() {
-	// type collectResult struct {
-	// 	collected []*DataPoint
-	// 	next      time.Time
-	// 	err       error
-	// }
 
 	var (
 		collectDone  chan *CollectResult // if non-nil, CollectOnce is running
-		pending      MuliDataPoint
+		pending      []*MultiDataPoint
 		next         time.Time
 		err          error
-		first        *DataPoint
-		updates      chan *DataPoint
+		first        *MultiDataPoint
+		updates      chan *MultiDataPoint
 		startCollect <-chan time.Time
 		collectDelay time.Duration
 		now          = time.Now()
@@ -70,7 +86,8 @@ func (s *sub) loop() {
 		if now = time.Now(); next.After(now) {
 			collectDelay = next.Sub(now)
 		}
-		if collectDone == nil && len(pending) < s.maxPending {
+
+		if s.collector.IsEnabled() && collectDone == nil && len(pending) < s.maxPending {
 			startCollect = time.After(collectDelay) // enable collect case
 		}
 
@@ -94,11 +111,10 @@ func (s *sub) loop() {
 				break
 			}
 
-			for _, item := range *result.Collected {
-				pending = append(pending, item)
-			}
+			pending = append(pending, result.Collected)
 		case errc := <-s.closing:
-			errc <- err
+			// clean up collector resource.
+			errc <- s.collector.Close()
 			close(s.updates)
 			return
 		case updates <- first:

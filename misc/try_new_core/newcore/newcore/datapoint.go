@@ -12,4 +12,4 @@ type DataPoint struct {
 	Meta      map[string]string `json:"meta,omitempty"`
 }
 
-type MuliDataPoint []*DataPoint
+type MultiDataPoint []*DataPoint

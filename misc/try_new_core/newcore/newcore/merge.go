@@ -2,7 +2,7 @@ package newcore
 
 type merge struct {
 	subs    []Subscription
-	updates chan *DataPoint
+	updates chan *MultiDataPoint
 	quit    chan struct{}
 	errs    chan error
 }
@@ -13,7 +13,7 @@ func Merge(subs ...Subscription) Subscription {
 
 	m := &merge{
 		subs:    subs,
-		updates: make(chan *DataPoint),
+		updates: make(chan *MultiDataPoint),
 		quit:    make(chan struct{}),
 		errs:    make(chan error),
 	}
@@ -21,7 +21,8 @@ func Merge(subs ...Subscription) Subscription {
 	for _, sub := range subs {
 		go func(s Subscription) {
 			for {
-				var it *DataPoint
+				// var it *DataPoint
+				var it *MultiDataPoint
 				select {
 				case it = <-s.Updates():
 				case <-m.quit:
@@ -41,7 +42,7 @@ func Merge(subs ...Subscription) Subscription {
 	return m
 }
 
-func (m *merge) Updates() <-chan *DataPoint {
+func (m *merge) Updates() <-chan *MultiDataPoint {
 	return m.updates
 }
 
