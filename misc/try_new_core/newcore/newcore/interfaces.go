@@ -29,3 +29,13 @@ type Subscription interface {
 	Updates() <-chan *MultiDataPoint
 	Close() error
 }
+
+type Publication interface {
+	Updates() chan<- *MultiDataPoint
+	Close() error
+}
+
+type PublicationSet interface {
+	Close() error
+	Run()
+}
