@@ -14,11 +14,16 @@ var (
 func TestFanout(t *testing.T) {
 	sub := Subscribe(CollectorFactory("c1"), nil)
 
-	fset := FanOut(sub, NewStdoutBackend("b1"), NewStdoutBackend("b2"))
+	// fset := FanOut(sub,
+	// 	NewDummyBackend("b1", time.Second*10),
+	// 	NewDummyBackend("b2", 0))
+
+	fset := FanOut(sub,
+		NewDummyBackend("b1", 0, false))
 
 	fset_closed_chan := make(chan error)
 
-	time.AfterFunc(time.Second*time.Duration(2), func() {
+	time.AfterFunc(time.Second*time.Duration(1), func() {
 		// sub will be closed within FanOut
 		fset_closed_chan <- fset.Close()
 	})
@@ -32,12 +37,14 @@ main_loop:
 		select {
 		case <-fset_closed_chan:
 			fmt.Println("TestFanout.fset closed")
+			break main_loop
 		case md, openning := <-sub.Updates():
 			if openning == false {
 				fmt.Println("TestFanout.sub.Updates() closed")
 				break main_loop
 			} else {
-				fmt.Printf("TestFanout.sub.Updates() still openning: 0x%X\n", &md)
+				fmt.Printf(".")
+				// fmt.Printf("TestFanout.sub.Updates() still openning: 0x%X\n", &md)
 			}
 			a += len(*md)
 			// t.Log("md: ", md)
@@ -45,20 +52,69 @@ main_loop:
 			a = 0
 		case <-timeout:
 			t.Error("TestFanout.timed out! something is blocking")
-			return
+			break main_loop
 		}
 	}
-	// t.Error("...")
+}
+
+func TestFanoutJammingBackend(t *testing.T) {
+
+	// if backend is jamming, we will force close fanout with timeout. and left
+	// jamming backend unclosed. so if this process take's too long. there must
+	// be some other error happending
+
+	sub := Subscribe(CollectorFactory("c1"), nil)
+
+	fset := FanOut(sub,
+		NewDummyBackend("b1", time.Second*10, true),
+		NewDummyBackend("b2", 0, false))
+
+	fset_closed_chan := make(chan error)
+
+	time.AfterFunc(time.Second*time.Duration(1), func() {
+		// sub will be closed within FanOut
+		fset_closed_chan <- fset.Close()
+	})
+
+	a := 0
+	tick := time.Tick(time.Second * time.Duration(1))
+	timeout := time.After(time.Second * time.Duration(6))
+
+main_loop:
+	for {
+		select {
+		case <-fset_closed_chan:
+			fmt.Println("TestFanout.fset closed")
+			break main_loop
+		case md, openning := <-sub.Updates():
+			if openning == false {
+				fmt.Println("TestFanout.sub.Updates() closed")
+				break main_loop
+			} else {
+				fmt.Printf(".")
+				// fmt.Printf("TestFanout.sub.Updates() still openning: 0x%X\n", &md)
+			}
+			a += len(*md)
+			// t.Log("md: ", md)
+		case <-tick:
+			a = 0
+		case <-timeout:
+			t.Error("TestFanout.timed out! something is blocking")
+			time.Sleep(5) // wait to clean a little bit. test framework will clean and ignore sleep.
+			panic("")     // print stack
+			break main_loop
+		}
+	}
 }
 
 func TestCloseFanoutRepeatly(t *testing.T) {
 
-	// closed_cnt: 999
-	// closed_cnt: 1000
-	// --- PASS: TestCloseFanoutRepeatly (177.44s)
+	//         fanout_test.go:149: closed_cnt: 997
+	//         fanout_test.go:149: closed_cnt: 998
+	//         fanout_test.go:149: closed_cnt: 999
+	//         fanout_test.go:149: closed_cnt: 1000
 	// PASS
-	// 	ok      github.com/oliveagle/hickwall/misc/try_new_core/newcore/newcore 179.528s
-	// tested close 1000 times no bug and with very small amout of memory leaking
+	// ok      github.com/oliveagle/hickwall/misc/try_new_core/newcore/newcore 10.204s
 
 	closed_cnt := 0
 	expected_closed_cnt := 100
@@ -68,8 +124,8 @@ func TestCloseFanoutRepeatly(t *testing.T) {
 
 		fset := FanOut(
 			Subscribe(CollectorFactory("c1"), nil),
-			NewStdoutBackend("b1"),
-			NewStdoutBackend("b2"),
+			NewDummyBackend("b1", 0, false),
+			NewDummyBackend("b2", 0, false),
 		)
 
 		fset_closed_chan := make(chan error)
