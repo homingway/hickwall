@@ -1,7 +1,8 @@
-package newcore
+package backends
 
 import (
 	"fmt"
+	"github.com/oliveagle/hickwall/misc/try_new_core/newcore/newcore"
 	"time"
 )
 
@@ -11,17 +12,17 @@ var (
 
 type dummyBackend struct {
 	name      string
-	closing   chan chan error      // for Close
-	updates   chan *MultiDataPoint // for receive updates
-	jamming   time.Duration        // jamming a little period of time while comsuming, -1 duration disable it
-	printting bool                 // print consuming md to stdout
+	closing   chan chan error              // for Close
+	updates   chan *newcore.MultiDataPoint // for receive updates
+	jamming   time.Duration                // jamming a little period of time while comsuming, -1 duration disable it
+	printting bool                         // print consuming md to stdout
 }
 
-func newDummyBackend(name string, jamming time.Duration, printting bool) Publication {
+func NewDummyBackend(name string, jamming time.Duration, printting bool) newcore.Publication {
 	s := &dummyBackend{
 		name:      name,
 		closing:   make(chan chan error),
-		updates:   make(chan *MultiDataPoint),
+		updates:   make(chan *newcore.MultiDataPoint),
 		jamming:   jamming,
 		printting: printting,
 	}
@@ -31,7 +32,7 @@ func newDummyBackend(name string, jamming time.Duration, printting bool) Publica
 
 func (b *dummyBackend) loop() {
 	var (
-		startConsuming <-chan *MultiDataPoint
+		startConsuming <-chan *newcore.MultiDataPoint
 	)
 
 	startConsuming = b.updates
@@ -56,7 +57,7 @@ func (b *dummyBackend) loop() {
 	}
 }
 
-func (b *dummyBackend) Updates() chan<- *MultiDataPoint {
+func (b *dummyBackend) Updates() chan<- *newcore.MultiDataPoint {
 	return b.updates
 }
 

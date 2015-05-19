@@ -12,14 +12,14 @@ var (
 )
 
 func TestFanout(t *testing.T) {
-	sub := Subscribe(CollectorFactory("c1"), nil)
+	sub := Subscribe(dummyCollectorFactory("c1"), nil)
 
 	// fset := FanOut(sub,
-	// 	NewDummyBackend("b1", time.Second*10),
-	// 	NewDummyBackend("b2", 0))
+	// 	newDummyBackend("b1", time.Second*10),
+	// 	newDummyBackend("b2", 0))
 
 	fset := FanOut(sub,
-		NewDummyBackend("b1", 0, false))
+		newDummyBackend("b1", 0, false))
 
 	fset_closed_chan := make(chan error)
 
@@ -63,11 +63,11 @@ func TestFanoutJammingBackend(t *testing.T) {
 	// jamming backend unclosed. so if this process take's too long. there must
 	// be some other error happending
 
-	sub := Subscribe(CollectorFactory("c1"), nil)
+	sub := Subscribe(dummyCollectorFactory("c1"), nil)
 
 	fset := FanOut(sub,
-		NewDummyBackend("b1", time.Second*10, true),
-		NewDummyBackend("b2", 0, false))
+		newDummyBackend("b1", time.Second*10, true),
+		newDummyBackend("b2", 0, false))
 
 	fset_closed_chan := make(chan error)
 
@@ -123,9 +123,9 @@ func TestCloseFanoutRepeatly(t *testing.T) {
 		// a := 0
 
 		fset := FanOut(
-			Subscribe(CollectorFactory("c1"), nil),
-			NewDummyBackend("b1", 0, false),
-			NewDummyBackend("b2", 0, false),
+			Subscribe(dummyCollectorFactory("c1"), nil),
+			newDummyBackend("b1", 0, false),
+			newDummyBackend("b2", 0, false),
 		)
 
 		fset_closed_chan := make(chan error)

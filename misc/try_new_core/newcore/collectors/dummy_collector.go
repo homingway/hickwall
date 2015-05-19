@@ -1,14 +1,10 @@
-package newcore
+package collectors
 
 import (
 	"fmt"
+	"github.com/oliveagle/hickwall/misc/try_new_core/newcore/newcore"
 	"time"
 )
-
-// dummyCollectorFactory returns a collector
-func dummyCollectorFactory(name string) Collector {
-	return newCollector(name, time.Duration(10)*time.Millisecond)
-}
 
 type dummy_collector struct {
 	name     string // collector name
@@ -17,7 +13,7 @@ type dummy_collector struct {
 }
 
 // newCollector returns a Collector for uri.
-func newCollector(name string, interval time.Duration) Collector {
+func NewDummyCollector(name string, interval time.Duration) newcore.Collector {
 	f := &dummy_collector{
 		name:     name,
 		enabled:  true,
@@ -46,11 +42,11 @@ func (f *dummy_collector) Interval() time.Duration {
 	return f.interval
 }
 
-func (f *dummy_collector) CollectOnce() *CollectResult {
-	var items MultiDataPoint
+func (f *dummy_collector) CollectOnce() *newcore.CollectResult {
+	var items newcore.MultiDataPoint
 
 	for i := 0; i < 100; i++ {
-		items = append(items, &DataPoint{
+		items = append(items, &newcore.DataPoint{
 			Metric:    fmt.Sprintf("metric.%s", f.name),
 			Timestamp: time.Now(),
 			Value:     1,
@@ -59,7 +55,7 @@ func (f *dummy_collector) CollectOnce() *CollectResult {
 		})
 	}
 
-	return &CollectResult{
+	return &newcore.CollectResult{
 		Collected: &items,
 		Next:      time.Now().Add(f.interval),
 		Err:       nil,

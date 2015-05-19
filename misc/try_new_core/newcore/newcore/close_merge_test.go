@@ -7,9 +7,9 @@ import (
 
 func TestCloseMerged(t *testing.T) {
 	merged := Merge(
-		Subscribe(CollectorFactory("c1"), nil),
-		Subscribe(CollectorFactory("c2"), nil),
-		Subscribe(CollectorFactory("c3"), nil))
+		Subscribe(dummyCollectorFactory("c1"), nil),
+		Subscribe(dummyCollectorFactory("c2"), nil),
+		Subscribe(dummyCollectorFactory("c3"), nil))
 
 	// Close the subscriptions after some time.
 	time.AfterFunc(1*time.Second, func() {
@@ -44,9 +44,9 @@ outer_loop:
 	for {
 
 		merged := Merge(
-			Subscribe(CollectorFactory("c1"), nil),
-			Subscribe(CollectorFactory("c2"), nil),
-			Subscribe(CollectorFactory("c3"), nil))
+			Subscribe(dummyCollectorFactory("c1"), nil),
+			Subscribe(dummyCollectorFactory("c2"), nil),
+			Subscribe(dummyCollectorFactory("c3"), nil))
 
 		// Close the subscriptions after some time.
 		// time.AfterFunc(1*time.Second, func() {
