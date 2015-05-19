@@ -15,8 +15,8 @@ var (
 
 func TestDummyBackend(t *testing.T) {
 	merge := newcore.Merge(
-		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100), nil),
-		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100), nil),
+		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100, 100), nil),
+		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 100), nil),
 	)
 
 	fset := newcore.FanOut(merge,

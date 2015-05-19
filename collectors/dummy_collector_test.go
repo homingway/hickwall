@@ -8,7 +8,7 @@ import (
 
 func TestDummyCollector(t *testing.T) {
 
-	sub := newcore.Subscribe(NewDummyCollector("c1", time.Millisecond*100), nil)
+	sub := newcore.Subscribe(NewDummyCollector("c1", time.Millisecond*100, 100), nil)
 
 	time.AfterFunc(time.Second*1, func() {
 		sub.Close()
