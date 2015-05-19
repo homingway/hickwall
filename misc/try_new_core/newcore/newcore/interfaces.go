@@ -18,7 +18,7 @@ type Collector interface {
 	Interval() time.Duration
 	IsEnabled() bool
 	Name() string
-	BaseName() string
+	ClassName() string
 	Close() error
 }
 
@@ -27,15 +27,16 @@ type Collector interface {
 // if any.
 type Subscription interface {
 	Updates() <-chan *MultiDataPoint
+	Name() string
 	Close() error
 }
 
 type Publication interface {
 	Updates() chan<- *MultiDataPoint
+	Name() string
 	Close() error
 }
 
 type PublicationSet interface {
-	Close() error
-	Run()
+	Close() error // close subscription, backends, and fanout
 }

@@ -56,3 +56,7 @@ func (m *merge) Close() (err error) {
 	close(m.updates)
 	return
 }
+
+func (m *merge) Name() string {
+	return "merge"
+}

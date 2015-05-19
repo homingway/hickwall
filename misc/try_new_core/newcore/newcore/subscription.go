@@ -55,6 +55,10 @@ func (s *sub) Updates() <-chan *MultiDataPoint {
 	return s.updates
 }
 
+func (s *sub) Name() string {
+	return s.collector.Name()
+}
+
 func (s *sub) Close() error {
 	errc := make(chan error)
 	s.closing <- errc
