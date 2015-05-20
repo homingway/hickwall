@@ -3,7 +3,6 @@ package collectors
 import (
 	"fmt"
 	"github.com/GaryBoone/GoStats/stats"
-	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/tatsushid/go-fastping"
 	"log"
@@ -42,11 +41,7 @@ func NewPingCollector(name string, conf config_single_pinger) newcore.Collector 
 		// return nil
 	}
 
-	var runtime_conf = config.GetRuntimeConf()
 	tags := conf.Tags.Copy()
-	if runtime_conf != nil {
-		tags = tags.Merge(runtime_conf.Client.Tags)
-	}
 	tags["target"] = conf.Target
 
 	if conf.Packets <= 0 {
@@ -146,27 +141,20 @@ func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 		d.Update(rtt)
 	}
 
-	newcore.Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
-	newcore.Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
-	newcore.Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
+	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
+	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
+	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
 
 	std := d.SampleStandardDeviation()
 	if math.IsNaN(std) {
 		std = 0
 	}
-	newcore.Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", "")
-	newcore.Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", "")
+	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", "")
+	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", "")
 
 	lost_pct := float64((c.config.Packets-d.Count())/c.config.Packets) * 100
-	newcore.Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
+	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
 
-	md = append(md, &newcore.DataPoint{
-		Metric:    newcore.Metric(fmt.Sprintf("metric.%s", c.name)),
-		Timestamp: time.Now(),
-		Value:     1,
-		Tags:      c.tags,
-		Meta:      nil,
-	})
 	// log.Println("ping_collector: CollectOnce Finished")
 	return &newcore.CollectResult{
 		Collected: &md,

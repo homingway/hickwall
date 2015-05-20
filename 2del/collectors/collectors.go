@@ -50,45 +50,45 @@ var (
 	running_collecotrs *list.List
 )
 
-type Collector interface {
-	Run(chan<- collectorlib.MultiDataPoint) chan<- bool
-	Name() string
-	Init()
-	IsEnabled() bool
-	FactoryName() string
-}
+// type Collector interface {
+// 	Run(chan<- collectorlib.MultiDataPoint) chan<- bool
+// 	Name() string
+// 	Init()
+// 	IsEnabled() bool
+// 	FactoryName() string
+// }
 
-func SetDataChan(mdChan chan collectorlib.MultiDataPoint) {
-	md_chan = mdChan
-}
+// func SetDataChan(mdChan chan collectorlib.MultiDataPoint) {
+// 	md_chan = mdChan
+// }
 
-func GetDataChan() chan collectorlib.MultiDataPoint {
-	return md_chan
-}
+// func GetDataChan() chan collectorlib.MultiDataPoint {
+// 	return md_chan
+// }
 
-func init() {
-	go func() {
-		for t := range time.Tick(time.Second) {
-			tlock.Lock()
-			timestamp = t
-			tlock.Unlock()
-		}
-	}()
+// func init() {
+// 	go func() {
+// 		for t := range time.Tick(time.Second) {
+// 			tlock.Lock()
+// 			timestamp = t
+// 			tlock.Unlock()
+// 		}
+// 	}()
 
-	// md_chan = make(chan collectorlib.MultiDataPoint)
-	md_chan = make(chan collectorlib.MultiDataPoint, 1000)
+// 	// md_chan = make(chan collectorlib.MultiDataPoint)
+// 	md_chan = make(chan collectorlib.MultiDataPoint, 1000)
 
-	chstop_heartbeat = make(chan bool)
+// 	chstop_heartbeat = make(chan bool)
 
-	running_collecotrs = list.New()
-}
+// 	running_collecotrs = list.New()
+// }
 
-func now() (t time.Time) {
-	tlock.Lock()
-	t = timestamp
-	tlock.Unlock()
-	return
-}
+// func now() (t time.Time) {
+// 	tlock.Lock()
+// 	t = timestamp
+// 	tlock.Unlock()
+// 	return
+// }
 
 /*
 false,  already exists
@@ -118,206 +118,206 @@ func GetCollectorFactoryByName(name string) (collector_factory_func, bool) {
 	return factory, ok
 }
 
-// AddTS is the same as Add but lets you specify the timestamp
-func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, tags collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
-	// tags := t.Copy()
-	// if rate != metadata.Unknown {
-	// 	metadata.AddMeta(name, nil, "rate", rate, false)
-	// }
-	// if unit != "" {
-	// 	metadata.AddMeta(name, nil, "unit", unit, false)
-	// }
-	// if desc != "" {
-	// 	metadata.AddMeta(name, tags, "desc", desc, false)
-	// }
-	if _, present := tags["host"]; !present {
-		tags["host"] = collectorlib.Hostname
-	} else if tags["host"] == "" {
-		delete(tags, "host")
-	}
+// // AddTS is the same as Add but lets you specify the timestamp
+// func AddTS(md *collectorlib.MultiDataPoint, name string, ts time.Time, value interface{}, tags collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
+// 	// tags := t.Copy()
+// 	// if rate != metadata.Unknown {
+// 	// 	metadata.AddMeta(name, nil, "rate", rate, false)
+// 	// }
+// 	// if unit != "" {
+// 	// 	metadata.AddMeta(name, nil, "unit", unit, false)
+// 	// }
+// 	// if desc != "" {
+// 	// 	metadata.AddMeta(name, tags, "desc", desc, false)
+// 	// }
+// 	if _, present := tags["host"]; !present {
+// 		tags["host"] = collectorlib.Hostname
+// 	} else if tags["host"] == "" {
+// 		delete(tags, "host")
+// 	}
 
-	conf := config.GetRuntimeConf()
-	if conf.Client.Hostname != "" {
-		// hostname should be english
-		hostname := collectorlib.NormalizeMetricKey(conf.Client.Hostname)
-		if hostname != "" {
-			tags["host"] = hostname
-		}
-	}
-	// tags = AddTags.Copy().Merge(tags)
+// 	conf := config.GetRuntimeConf()
+// 	if conf.Client.Hostname != "" {
+// 		// hostname should be english
+// 		hostname := collectorlib.NormalizeMetricKey(conf.Client.Hostname)
+// 		if hostname != "" {
+// 			tags["host"] = hostname
+// 		}
+// 	}
+// 	// tags = AddTags.Copy().Merge(tags)
 
-	// d := collectorlib.DataPoint{
-	// 	Metric:    name,
-	// 	Timestamp: ts,
-	// 	Value:     value,
-	// 	Tags:      tags,
-	// }
-	// log.Debugf("DataPoint: %v", d)
-	// *md = append(*md, d)
-	*md = append(*md, &collectorlib.DataPoint{
-		Metric:    name,
-		Timestamp: ts,
-		Value:     value,
-		Tags:      tags,
-	})
-}
+// 	// d := collectorlib.DataPoint{
+// 	// 	Metric:    name,
+// 	// 	Timestamp: ts,
+// 	// 	Value:     value,
+// 	// 	Tags:      tags,
+// 	// }
+// 	// log.Debugf("DataPoint: %v", d)
+// 	// *md = append(*md, d)
+// 	*md = append(*md, &collectorlib.DataPoint{
+// 		Metric:    name,
+// 		Timestamp: ts,
+// 		Value:     value,
+// 		Tags:      tags,
+// 	})
+// }
 
-// Add appends a new data point with given metric name, value, and tags. Tags
-// may be nil. If tags is nil or does not contain a host key, it will be
-// automatically added. If the value of the host key is the empty string, it
-// will be removed (use this to prevent the normal auto-adding of the host tag).
-func Add(md *collectorlib.MultiDataPoint, name string, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
-	AddTS(md, name, now(), value, t, rate, unit, desc)
-}
+// // Add appends a new data point with given metric name, value, and tags. Tags
+// // may be nil. If tags is nil or does not contain a host key, it will be
+// // automatically added. If the value of the host key is the empty string, it
+// // will be removed (use this to prevent the normal auto-adding of the host tag).
+// func Add(md *collectorlib.MultiDataPoint, name string, value interface{}, t collectorlib.TagSet, rate metadata.RateType, unit string, desc string) {
+// 	AddTS(md, name, now(), value, t, rate, unit, desc)
+// }
 
-type IntervalCollector struct {
-	F          func(states interface{}) (collectorlib.MultiDataPoint, error)
-	Interval   time.Duration // default to DefaultFreq
-	EnableFunc func() bool
+// type IntervalCollector struct {
+// 	F          func(states interface{}) (collectorlib.MultiDataPoint, error)
+// 	Interval   time.Duration // default to DefaultFreq
+// 	EnableFunc func() bool
 
-	name string
-	init func()
+// 	name string
+// 	init func()
 
-	states interface{}
+// 	states interface{}
 
-	// internal use
-	sync.Mutex
-	enabled  bool
-	stopping bool
+// 	// internal use
+// 	sync.Mutex
+// 	enabled  bool
+// 	stopping bool
 
-	done chan bool
+// 	done chan bool
 
-	factory_name string
+// 	factory_name string
 
-	closeFunc func()
-}
+// 	closeFunc func()
+// }
 
-func (c *IntervalCollector) Init() {
-	if c.init != nil {
-		c.init()
-	}
-}
+// func (c *IntervalCollector) Init() {
+// 	if c.init != nil {
+// 		c.init()
+// 	}
+// }
 
-func (c *IntervalCollector) SetInterval(d time.Duration) {
-	c.Interval = d
-}
+// func (c *IntervalCollector) SetInterval(d time.Duration) {
+// 	c.Interval = d
+// }
 
-func (c *IntervalCollector) loop(dpchan chan<- collectorlib.MultiDataPoint, done chan bool) {
-	defer utils.Recover_and_log()
+// func (c *IntervalCollector) loop(dpchan chan<- collectorlib.MultiDataPoint, done chan bool) {
+// 	defer utils.Recover_and_log()
 
-	// while reloading configuration, consumers maybe closed before
-	// internal_buf := make(chan collectorlib.MultiDataPoint, 1000)
+// 	// while reloading configuration, consumers maybe closed before
+// 	// internal_buf := make(chan collectorlib.MultiDataPoint, 1000)
 
-	log.Infof("START IntervalCollector! %08x, name: %s,  wait on done: %08x", &c, c.Name(), &done)
+// 	log.Infof("START IntervalCollector! %08x, name: %s,  wait on done: %08x", &c, c.Name(), &done)
 
-	interval := c.Interval
-	if interval == 0 {
-		interval = DefaultFreq
-	}
+// 	interval := c.Interval
+// 	if interval == 0 {
+// 		interval = DefaultFreq
+// 	}
 
-	tick := time.Tick(interval)
-	tick_enabler := time.Tick(time.Minute * 5)
+// 	tick := time.Tick(interval)
+// 	tick_enabler := time.Tick(time.Minute * 5)
 
-collector_loop:
-	for {
-		select {
-		case <-tick:
-			if c.IsEnabled() {
-				//TODO: memory leak here
-				// if c.stopping == true {
-				// 	break
-				// }
+// collector_loop:
+// 	for {
+// 		select {
+// 		case <-tick:
+// 			if c.IsEnabled() {
+// 				//TODO: memory leak here
+// 				// if c.stopping == true {
+// 				// 	break
+// 				// }
 
-				md, err := c.F(c.states)
-				if err != nil {
-					fmt.Errorf("%v: %v", c.Name(), err)
-					break
-				}
+// 				md, err := c.F(c.states)
+// 				if err != nil {
+// 					fmt.Errorf("%v: %v", c.Name(), err)
+// 					break
+// 				}
 
-				dpchan <- md
+// 				dpchan <- md
 
-				// select {
-				// case dpchan <- md:
-				// 	continue
-				// case <-done:
-				// 	log.Infof("break collector_loop: %08x - in <-tick", &c)
-				// 	// this did happened occasionally.
-				// 	// win > try_reload_config (master) 17:04:58 $ ./clean.sh && go run try_reload_config.go | grep "<-tick"
-				// 	// 2015-05-13T17:05:13.97 CST [Info] collectors.go:240(loop) break collector_loop: c08204c248 - in <-tick
-				// 	// 2015-05-13T17:05:17.96 CST [Info] collectors.go:240(loop) break collector_loop: c08204c1b0 - in <-tick
-				// 	// 2015-05-13T17:05:40.98 CST [Info] collectors.go:240(loop) break collector_loop: c08204c180 - in <-tick
-				// 	// 2015-05-13T17:05:43.98 CST [Info] collectors.go:240(loop) break collector_loop: c08204c1c8 - in <-tick
-				// 	break collector_loop
-				// }
-			}
-		case <-tick_enabler:
-			if c.EnableFunc != nil {
-				c.Lock()
-				c.enabled = c.EnableFunc()
-				c.Unlock()
-			}
-		case <-done:
-			// log.Infof("break collector_loop: %08x - in <-done", &c)
-			break collector_loop
-		}
-	}
-	log.Infof("STOP IntervalCollector! %08x", &c)
-}
+// 				// select {
+// 				// case dpchan <- md:
+// 				// 	continue
+// 				// case <-done:
+// 				// 	log.Infof("break collector_loop: %08x - in <-tick", &c)
+// 				// 	// this did happened occasionally.
+// 				// 	// win > try_reload_config (master) 17:04:58 $ ./clean.sh && go run try_reload_config.go | grep "<-tick"
+// 				// 	// 2015-05-13T17:05:13.97 CST [Info] collectors.go:240(loop) break collector_loop: c08204c248 - in <-tick
+// 				// 	// 2015-05-13T17:05:17.96 CST [Info] collectors.go:240(loop) break collector_loop: c08204c1b0 - in <-tick
+// 				// 	// 2015-05-13T17:05:40.98 CST [Info] collectors.go:240(loop) break collector_loop: c08204c180 - in <-tick
+// 				// 	// 2015-05-13T17:05:43.98 CST [Info] collectors.go:240(loop) break collector_loop: c08204c1c8 - in <-tick
+// 				// 	break collector_loop
+// 				// }
+// 			}
+// 		case <-tick_enabler:
+// 			if c.EnableFunc != nil {
+// 				c.Lock()
+// 				c.enabled = c.EnableFunc()
+// 				c.Unlock()
+// 			}
+// 		case <-done:
+// 			// log.Infof("break collector_loop: %08x - in <-done", &c)
+// 			break collector_loop
+// 		}
+// 	}
+// 	log.Infof("STOP IntervalCollector! %08x", &c)
+// }
 
-func (c *IntervalCollector) sending(dpchan chan<- collectorlib.MultiDataPoint, md collectorlib.MultiDataPoint) {
-	// c.Lock()
-	// defer c.Unlock()
-	if c.stopping == false {
-		dpchan <- md
-	}
-}
+// func (c *IntervalCollector) sending(dpchan chan<- collectorlib.MultiDataPoint, md collectorlib.MultiDataPoint) {
+// 	// c.Lock()
+// 	// defer c.Unlock()
+// 	if c.stopping == false {
+// 		dpchan <- md
+// 	}
+// }
 
-func (c *IntervalCollector) setStopping(b bool) {
-	c.Lock()
-	defer c.Unlock()
-	c.stopping = b
-}
+// func (c *IntervalCollector) setStopping(b bool) {
+// 	c.Lock()
+// 	defer c.Unlock()
+// 	c.stopping = b
+// }
 
-func (c *IntervalCollector) Run(dpchan chan<- collectorlib.MultiDataPoint) chan<- bool {
-	c.Lock()
-	defer c.Unlock()
+// func (c *IntervalCollector) Run(dpchan chan<- collectorlib.MultiDataPoint) chan<- bool {
+// 	c.Lock()
+// 	defer c.Unlock()
 
-	done := make(chan bool)
-	go c.loop(dpchan, done)
-	return done
-}
+// 	done := make(chan bool)
+// 	go c.loop(dpchan, done)
+// 	return done
+// }
 
-func (c *IntervalCollector) IsEnabled() bool {
-	if c.EnableFunc == nil {
-		return true
-	}
-	c.Lock()
-	defer c.Unlock()
-	return c.enabled
-}
+// func (c *IntervalCollector) IsEnabled() bool {
+// 	if c.EnableFunc == nil {
+// 		return true
+// 	}
+// 	c.Lock()
+// 	defer c.Unlock()
+// 	return c.enabled
+// }
 
-func (c *IntervalCollector) Name() string {
-	if c.name != "" {
-		return c.name
-	}
-	v := runtime.FuncForPC(reflect.ValueOf(c.F).Pointer())
-	return v.Name()
-}
+// func (c *IntervalCollector) Name() string {
+// 	if c.name != "" {
+// 		return c.name
+// 	}
+// 	v := runtime.FuncForPC(reflect.ValueOf(c.F).Pointer())
+// 	return v.Name()
+// }
 
-func (c *IntervalCollector) FactoryName() string {
-	return c.factory_name
-}
+// func (c *IntervalCollector) FactoryName() string {
+// 	return c.factory_name
+// }
 
-func enableURL(url string) func() bool {
-	return func() bool {
-		resp, err := http.Get(url)
-		if err != nil {
-			return false
-		}
-		resp.Body.Close()
-		return resp.StatusCode == 200
-	}
-}
+// func enableURL(url string) func() bool {
+// 	return func() bool {
+// 		resp, err := http.Get(url)
+// 		if err != nil {
+// 			return false
+// 		}
+// 		resp.Body.Close()
+// 		return resp.StatusCode == 200
+// 	}
+// }
 
 // Collectors ---------------------------------------------------------------
 
@@ -435,99 +435,99 @@ func CreateCollectorsFromConf(runtime_conf *config.RuntimeConfig) {
 // 	}
 // }
 
-var hb *HeartBeater
+// var hb *HeartBeater
 
-func StartHeartBeat() {
-	if hb == nil {
-		hb = NewHeartBeater()
-	}
-	hb.Start()
-}
+// func StartHeartBeat() {
+// 	if hb == nil {
+// 		hb = NewHeartBeater()
+// 	}
+// 	hb.Start()
+// }
 
-func StopHeartBeat() {
-	if hb == nil {
-		hb = NewHeartBeater()
-	}
-	hb.Stop()
-}
+// func StopHeartBeat() {
+// 	if hb == nil {
+// 		hb = NewHeartBeater()
+// 	}
+// 	hb.Stop()
+// }
 
-type HeartBeater struct {
-	done     chan bool
-	running  bool
-	interval time.Duration
-}
+// type HeartBeater struct {
+// 	done     chan bool
+// 	running  bool
+// 	interval time.Duration
+// }
 
-func NewHeartBeater() *HeartBeater {
-	var (
-		default_interval = time.Second * time.Duration(1)
-		interval         = default_interval
-	)
+// func NewHeartBeater() *HeartBeater {
+// 	var (
+// 		default_interval = time.Second * time.Duration(1)
+// 		interval         = default_interval
+// 	)
 
-	conf := config.GetRuntimeConf()
-	if conf != nil {
-		client_conf := conf.Client
+// 	conf := config.GetRuntimeConf()
+// 	if conf != nil {
+// 		client_conf := conf.Client
 
-		interval, err := collectorlib.ParseInterval(client_conf.Heartbeat_interval)
-		if err != nil {
-			log.Errorf("cannot parse interval of heart_beat: %s - %v", client_conf.Heartbeat_interval, err)
-			interval = default_interval
-		} else {
-			if interval < default_interval {
-				interval = default_interval
-			}
-		}
-	} else {
-		interval = default_interval
-	}
+// 		interval, err := collectorlib.ParseInterval(client_conf.Heartbeat_interval)
+// 		if err != nil {
+// 			log.Errorf("cannot parse interval of heart_beat: %s - %v", client_conf.Heartbeat_interval, err)
+// 			interval = default_interval
+// 		} else {
+// 			if interval < default_interval {
+// 				interval = default_interval
+// 			}
+// 		}
+// 	} else {
+// 		interval = default_interval
+// 	}
 
-	return &HeartBeater{
-		done:     make(chan bool),
-		interval: interval,
-	}
-}
+// 	return &HeartBeater{
+// 		done:     make(chan bool),
+// 		interval: interval,
+// 	}
+// }
 
-func (h *HeartBeater) IsRunning() bool {
-	return h.running
-}
+// func (h *HeartBeater) IsRunning() bool {
+// 	return h.running
+// }
 
-func (h *HeartBeater) Start() {
-	if h.IsRunning() == false {
+// func (h *HeartBeater) Start() {
+// 	if h.IsRunning() == false {
 
-		go func() {
-			var md collectorlib.MultiDataPoint
+// 		go func() {
+// 			var md collectorlib.MultiDataPoint
 
-			client_conf := config.GetRuntimeConf().Client
+// 			client_conf := config.GetRuntimeConf().Client
 
-			log.Info("*HeartBeater START")
-			tick := time.Tick(h.interval)
+// 			log.Info("*HeartBeater START")
+// 			tick := time.Tick(h.interval)
 
-			mdCh := GetDataChan()
+// 			mdCh := GetDataChan()
 
-		loop:
-			for {
-				select {
-				case <-tick:
-					tags := AddTags.Copy().Merge(client_conf.Tags)
-					Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
-					log.Debug("Heartbeat")
-					mdCh <- md
-					md = nil
-				case <-h.done:
-					log.Info("*HeartBeater STOP 2")
-					break loop
-				}
-			}
+// 		loop:
+// 			for {
+// 				select {
+// 				case <-tick:
+// 					tags := AddTags.Copy().Merge(client_conf.Tags)
+// 					Add(&md, "hickwall.client.alive", 1, tags, "", "", "")
+// 					log.Debug("Heartbeat")
+// 					mdCh <- md
+// 					md = nil
+// 				case <-h.done:
+// 					log.Info("*HeartBeater STOP 2")
+// 					break loop
+// 				}
+// 			}
 
-			log.Info("HeartBeater: gorotuine finished.")
-		}()
-		h.running = true
-	}
-}
+// 			log.Info("HeartBeater: gorotuine finished.")
+// 		}()
+// 		h.running = true
+// 	}
+// }
 
-func (h *HeartBeater) Stop() {
-	if h.IsRunning() == true {
-		log.Info("*HeartBeater STOP 1")
-		h.done <- true
-		h.running = false
-	}
-}
+// func (h *HeartBeater) Stop() {
+// 	if h.IsRunning() == true {
+// 		log.Info("*HeartBeater STOP 1")
+// 		h.done <- true
+// 		h.running = false
+// 	}
+// }

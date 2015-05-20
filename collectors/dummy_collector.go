@@ -13,7 +13,6 @@ type dummy_collector struct {
 	points   int
 }
 
-// newCollector returns a Collector for uri.
 func NewDummyCollector(name string, interval time.Duration, points int) newcore.Collector {
 	if points <= 0 {
 		points = 1

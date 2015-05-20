@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	// "github.com/spf13/viper"
+	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/viper"
 	"reflect"
 
@@ -47,10 +48,10 @@ type RuntimeConfig struct {
 
 type Conf_client struct {
 	Hostname           string
-	Heartbeat_interval string            `json:"heartbeat_interval"`
-	Metric_enabled     bool              `json:"metric_enabled"`
-	Metric_interval    string            `json:"metric_interval"`
-	Tags               map[string]string `json:"tags"`
+	Heartbeat_interval string         `json:"heartbeat_interval"`
+	Metric_enabled     bool           `json:"metric_enabled"`
+	Metric_interval    string         `json:"metric_interval"`
+	Tags               newcore.TagSet `json:"tags"`
 }
 
 type Conf_win_sys struct {

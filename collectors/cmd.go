@@ -115,7 +115,7 @@ func (f *cmd_collector) CollectOnce() *newcore.CollectResult {
 				return nil
 			}
 
-			newcore.AddTS(&items, metric, timestamp, value, f.tags, "", "", "")
+			AddTS(&items, metric, timestamp, value, f.tags, "", "", "")
 
 			//TODO: add DataType Support for Cmd collector.
 			// } else if len(slices) == 5 {

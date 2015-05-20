@@ -2,8 +2,9 @@ package newcore
 
 type Metric string
 
-func NewMetric(m string) Metric {
-	return Metric(NormalizeMetricKey(m))
+func NewMetric(m string) *Metric {
+	mt := Metric(NormalizeMetricKey(m))
+	return &mt
 }
 
 //TODO: add more tests

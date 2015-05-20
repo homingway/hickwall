@@ -6,6 +6,11 @@ import (
 
 type Interval string
 
+func NewInterval(v string) *Interval {
+	intv := Interval(v)
+	return &intv
+}
+
 func (i *Interval) MustDuration(dft time.Duration) time.Duration {
 	res := dft
 	if res < 0 {

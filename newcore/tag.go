@@ -6,6 +6,10 @@ import (
 
 type TagSet map[string]string
 
+var (
+	AddTags TagSet
+)
+
 // Copy creates a new TagSet from t.
 func (t TagSet) Copy() TagSet {
 	n := make(TagSet)

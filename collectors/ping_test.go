@@ -4,6 +4,7 @@ import (
 	"github.com/oliveagle/hickwall/newcore"
 
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
@@ -37,6 +38,14 @@ main_loop:
 				} else {
 					for _, dp := range *md {
 						fmt.Println("dp: ---> ", dp)
+						if _, ok := dp.Tags["host"]; ok == false {
+							t.Error("host is not in tags")
+							return
+						}
+						if !strings.HasPrefix(dp.Metric.Clean(), "ping.") {
+							t.Error("metric wrong")
+							return
+						}
 					}
 				}
 			} else {
