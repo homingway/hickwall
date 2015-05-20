@@ -80,6 +80,7 @@ main_loop:
 		t.Error("failed counting lines", err)
 		return
 	}
+	// on windows this may fail!
 	os.Remove(test_file_path)
 
 	// 1s / 100 ms = 10 batch x 1 for each x 2 collectors = 20

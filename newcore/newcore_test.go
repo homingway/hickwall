@@ -1,6 +1,7 @@
 package newcore
 
 import (
+	"math"
 	"testing"
 	"time"
 )
@@ -15,26 +16,51 @@ func TestGetHostname(t *testing.T) {
 	}
 }
 
-func TestNow(t *testing.T) {
-	now1 := Now()
-	now2 := Now()
-	now3 := Now()
-	time.AfterFunc(time.Second*1, func() {
-		now3 = Now()
-	})
+func equal_float64(a, b float64, percision float64) bool {
+	diff := math.Abs(a - b)
+	if a == b {
+		return true
+	} else {
+		if diff <= math.Abs(percision) {
+			return true
+		} else {
+			return false
+		}
+	}
+}
 
-	time.Sleep(time.Second * 1)
+func TestNow(t *testing.T) {
+	var (
+		now1, now2, now3 time.Time
+	)
+
+	now1 = Now()
+	now2 = Now()
 	t.Log(now1)
 	t.Log(now2)
-	t.Log(now3)
 	if now1 != now2 {
 		t.Error("now1 and now2 are differnt: ", now1, now2)
 	}
 
-	s := now3.Sub(now2)
-	t.Log(s, s.Seconds())
+	// first_tick := time.After(time.Millisecond * 1000)
+	second_tick := time.After(time.Millisecond * 1000)
 
-	if s.Seconds() != 1 {
-		t.Error("tick is not 1 second", now3.Sub(now2))
+	for {
+		select {
+		// case <-first_tick:
+
+		case <-second_tick:
+			now3 = Now()
+			t.Log(now3)
+			s := now3.Sub(now2)
+			t.Log(s, s.Seconds())
+
+			if !equal_float64(s.Seconds(), 1, 0.001) {
+				t.Error("tick is not 1 second", now3.Sub(now2))
+			}
+
+			return
+		}
 	}
+
 }

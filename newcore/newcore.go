@@ -13,8 +13,11 @@ var (
 
 func init() {
 	go func() {
+		// first tick
 		timestamp = time.Now()
-		for t := range time.Tick(time.Second) {
+
+		for t := range time.Tick(time.Millisecond * 1000) {
+			// for t := range time.Tick(time.Millisecond * 998) {
 			timestamp = t
 		}
 	}()
