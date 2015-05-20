@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-//FIXME: cannot explicit set "0" interval
+//FIXME: dft should also > 0
 func MustPositiveInterval(interval string, dft time.Duration) time.Duration {
 	if interval == "" {
 		return dft

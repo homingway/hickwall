@@ -52,7 +52,7 @@ func (f *dummy_collector) CollectOnce() *newcore.CollectResult {
 
 	for i := 0; i < f.points; i++ {
 		items = append(items, &newcore.DataPoint{
-			Metric:    fmt.Sprintf("metric.%s", f.name),
+			Metric:    newcore.Metric(fmt.Sprintf("metric.%s", f.name)),
 			Timestamp: time.Now(),
 			Value:     1,
 			Tags:      nil,

@@ -51,7 +51,7 @@ func (f *dummy_collector) CollectOnce() *CollectResult {
 
 	for i := 0; i < 100; i++ {
 		items = append(items, &DataPoint{
-			Metric:    fmt.Sprintf("metric.%s", f.name),
+			Metric:    Metric(fmt.Sprintf("metric.%s", f.name)),
 			Timestamp: time.Now(),
 			Value:     1,
 			Tags:      nil,

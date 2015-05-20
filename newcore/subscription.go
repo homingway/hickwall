@@ -107,14 +107,23 @@ func (s *sub) loop() {
 		select {
 		case <-startCollect:
 			collectDone = make(chan *CollectResult, 1) // enable CollectOnce
-		case collectDone <- s.collector.CollectOnce():
-			break
+
+			// TODO: add unittest for this.
+			// collectOnce should be call async, otherwise, will block consuming result.
+			go func() {
+				collectDone <- s.collector.CollectOnce()
+			}()
+		// case collectDone <- s.collector.CollectOnce():
+		// 	break
 		case result := <-collectDone:
+			log.Println("result := <- collectDone", result)
 			collectDone = nil
 
 			next, err = result.Next, result.Err
 			if err != nil {
 				// sub default delay if error happens while collecting data
+				//TODO: add unittest for delay_on_error.
+				log.Printf("ERROR: collector(%s) error: %v", s.collector.Name(), err)
 				next = time.Now().Add(s.delay_on_error)
 				break
 			}
@@ -124,7 +133,10 @@ func (s *sub) loop() {
 				next = time.Now().Add(minimal_next_interval)
 			}
 
-			pending = append(pending, result.Collected)
+			//TODO: whatif result.Collected is nil ??
+			if result.Collected != nil {
+				pending = append(pending, result.Collected)
+			}
 		case errc := <-s.closing:
 			// clean up collector resource.
 			errc <- s.collector.Close()
