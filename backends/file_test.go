@@ -40,9 +40,8 @@ func TestFileBackend(t *testing.T) {
 	os.Remove(test_file_path)
 
 	conf := &config.Transport_file{
-		Enabled:        true,
-		Flush_Interval: "100ms",
-		Path:           test_file_path,
+		Enabled: true,
+		Path:    test_file_path,
 	}
 
 	merge := newcore.Merge(

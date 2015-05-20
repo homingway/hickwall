@@ -63,7 +63,6 @@ transport_stdout:
 transport_file:
     # output data into file
     enabled: false
-    flush_interval: 100ms
     # path: "/var/lib/hickwall/fileoutput.txt"
     path: "/var/lib/hickwall/fileoutput.txt"
     # TODO: max_size, max_rotation

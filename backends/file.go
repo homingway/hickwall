@@ -6,7 +6,6 @@ package backends
 import (
 	"bytes"
 	"fmt"
-	"github.com/oliveagle/hickwall/collectorlib"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"log"
@@ -24,39 +23,19 @@ type fileBackend struct {
 	name    string
 	closing chan chan error              // for Close
 	updates chan *newcore.MultiDataPoint // for receive updates
-	// path    string
 
+	// file backend specific attributes
 	output *os.File
-	// once       sync.Once
-	flush_tick <-chan time.Time
-	conf       *config.Transport_file
+	conf   *config.Transport_file
 }
 
 func NewFileBackend(name string, conf *config.Transport_file) newcore.Publication {
-
-	var default_interval = time.Duration(10) * time.Millisecond
-
-	interval, err := collectorlib.ParseInterval(conf.Flush_Interval)
-	if err != nil {
-		log.Println("ERROR: cannot parse interval of FileWriter: %s - %v", conf.Flush_Interval, err)
-		interval = default_interval
-	}
-
 	s := &fileBackend{
-		name:       name,
-		closing:    make(chan chan error),
-		updates:    make(chan *newcore.MultiDataPoint),
-		flush_tick: time.Tick(interval),
-		conf:       conf,
+		name:    name,
+		closing: make(chan chan error),
+		updates: make(chan *newcore.MultiDataPoint),
+		conf:    conf,
 	}
-
-	// open output laziness
-	// abspath, _ := filepath.Abs(conf.Path)
-	// f, err := s.openFile(abspath)
-	// if err != nil {
-	// 	log.Println("CRITICAL: fileBackend cannot open file: %s, err: %v", abspath, err)
-	// }
-	// s.output = f
 
 	go s.loop()
 	return s
