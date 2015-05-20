@@ -22,43 +22,43 @@ var (
 	tlock        sync.Mutex
 )
 
-// Clean cleans a hostname based on the current FullHostname setting.
-func Clean(s string, full bool) string {
-	if !full {
-		s = strings.SplitN(s, ".", 2)[0]
-	}
-	return strings.ToLower(s)
-}
+// // Clean cleans a hostname based on the current FullHostname setting.
+// func Clean(s string, full bool) string {
+// 	if !full {
+// 		s = strings.SplitN(s, ".", 2)[0]
+// 	}
+// 	return strings.ToLower(s)
+// }
 
-// Set sets Hostntame based on the current preferences.
-func SetHostname() {
-	h, err := os.Hostname()
-	if err != nil {
-		h = "unknown"
-	}
-	Hostname = Clean(h, false)
-	FullHostname = Clean(h, true)
-}
+// // Set sets Hostntame based on the current preferences.
+// func SetHostname() {
+// 	h, err := os.Hostname()
+// 	if err != nil {
+// 		h = "unknown"
+// 	}
+// 	Hostname = Clean(h, false)
+// 	FullHostname = Clean(h, true)
+// }
 
-func init() {
-	SetHostname()
+// func init() {
+// 	SetHostname()
 
-	// timestamp
-	go func() {
-		for t := range time.Tick(time.Second) {
-			tlock.Lock()
-			timestamp = t.Unix()
-			tlock.Unlock()
-		}
-	}()
-}
+// 	// timestamp
+// 	go func() {
+// 		for t := range time.Tick(time.Second) {
+// 			tlock.Lock()
+// 			timestamp = t.Unix()
+// 			tlock.Unlock()
+// 		}
+// 	}()
+// }
 
-func Now() (t int64) {
-	tlock.Lock()
-	t = timestamp
-	tlock.Unlock()
-	return
-}
+// func Now() (t int64) {
+// 	tlock.Lock()
+// 	t = timestamp
+// 	tlock.Unlock()
+// 	return
+// }
 
 // IsDigit returns true if s consists of decimal digits.
 func IsDigit(s string) bool {
@@ -112,10 +112,6 @@ func ReadLine(fname string, line func(string) error) error {
 	}
 	return scanner.Err()
 }
-
-var (
-	pat_parse_interval = regexp.MustCompile(`(\d+)(\w+)`)
-)
 
 func ParseInterval(interval string) (d time.Duration, err error) {
 	d, err = time.ParseDuration(interval)
