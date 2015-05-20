@@ -11,6 +11,12 @@ func TestMustPositiveIntervalEmptyDefault(t *testing.T) {
 	if d != time.Second {
 		t.Error("...")
 	}
+
+	d = MustPositiveInterval("100", time.Second)
+	t.Log(d)
+	if d != time.Second {
+		t.Error("...")
+	}
 }
 
 func TestMustPositiveIntervalZero(t *testing.T) {
