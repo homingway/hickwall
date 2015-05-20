@@ -55,7 +55,7 @@ func TestNow(t *testing.T) {
 			s := now3.Sub(now2)
 			t.Log(s, s.Seconds())
 
-			if !equal_float64(s.Seconds(), 1, 0.001) {
+			if !equal_float64(s.Seconds(), 1, 0.005) {
 				t.Error("tick is not 1 second", now3.Sub(now2))
 			}
 
