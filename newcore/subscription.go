@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+const (
+	minimal_next_interval = time.Millisecond * 100
+)
+
 type SubOptions struct {
 	MaxPending   int    // 1 is enough for most cases, if consumer is fast enough
 	DelayOnError string // duration string, delay duration on collect error, minimal is 100ms
@@ -113,6 +117,11 @@ func (s *sub) loop() {
 				// sub default delay if error happens while collecting data
 				next = time.Now().Add(s.delay_on_error)
 				break
+			}
+
+			//TODO: add unittest
+			if next.Sub(time.Now()) < minimal_next_interval {
+				next = time.Now().Add(minimal_next_interval)
 			}
 
 			pending = append(pending, result.Collected)
