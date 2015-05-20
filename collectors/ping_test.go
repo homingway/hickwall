@@ -14,7 +14,7 @@ func TestPing(t *testing.T) {
 	conf := config_single_pinger{
 		Interval: "200ms",
 		Metric:   "ping",
-		Timeout:  "10ms",
+		Timeout:  "100ms",
 		Target:   "www.baidu.com",
 		Packets:  5,
 	}

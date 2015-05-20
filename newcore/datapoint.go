@@ -130,7 +130,7 @@ func AddTS(md *MultiDataPoint, name string, ts time.Time, value interface{}, tag
 	// log.Debugf("DataPoint: %v", d)
 	// *md = append(*md, d)
 	*md = append(*md, &DataPoint{
-		Metric:    Metric(name),
+		Metric:    NewMetric(name),
 		Timestamp: ts,
 		Value:     value,
 		Tags:      tags,

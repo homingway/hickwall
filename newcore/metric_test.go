@@ -6,6 +6,16 @@ import (
 	"testing"
 )
 
+func TestNewMetric(t *testing.T) {
+	exp := "win.wmi.fs.d.cdfs.free_space.bytes"
+	res := NewMetric("win.wmi.fs.d.cdfs.free_space.bytes\r\n")
+
+	t.Logf("*%s*", res)
+	if res.Clean() != exp {
+		t.Error("failed")
+	}
+}
+
 func TestMetric(t *testing.T) {
 	var metric Metric
 	// metric := Metric("win.wmi.fs.d.cdfs.free_space.bytes\r\n")

@@ -2,6 +2,10 @@ package newcore
 
 type Metric string
 
+func NewMetric(m string) Metric {
+	return Metric(NormalizeMetricKey(m))
+}
+
 //TODO: add more tests
 func (m *Metric) Clean() string {
 	return NormalizeMetricKey(string(*m))

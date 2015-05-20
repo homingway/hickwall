@@ -116,7 +116,7 @@ func (s *sub) loop() {
 		// case collectDone <- s.collector.CollectOnce():
 		// 	break
 		case result := <-collectDone:
-			log.Println("result := <- collectDone", result)
+			// log.Println("result := <- collectDone", result)
 			collectDone = nil
 
 			next, err = result.Next, result.Err

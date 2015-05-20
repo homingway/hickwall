@@ -47,7 +47,6 @@ func NewPingCollector(name string, conf config_single_pinger) newcore.Collector 
 	if runtime_conf != nil {
 		tags = tags.Merge(runtime_conf.Client.Tags)
 	}
-
 	tags["target"] = conf.Target
 
 	if conf.Packets <= 0 {
