@@ -10,7 +10,9 @@ type dummy_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
-	points   int
+
+	// dummy_collector specific attributes
+	points int
 }
 
 func NewDummyCollector(name string, interval time.Duration, points int) newcore.Collector {

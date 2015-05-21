@@ -87,9 +87,3 @@ func (d *DataPoint) Clean() error {
 	}
 	return nil
 }
-
-// func (d *DataPoint) GetFlatMetric(tpl string) (string, error) {
-// 	return FlatMetricKeyAndTags(tpl, d.Metric, d.Tags)
-// }
-
-//TODO: move this function to other place
