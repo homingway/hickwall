@@ -133,8 +133,8 @@ func (s *sub) loop() {
 				next = time.Now().Add(minimal_next_interval)
 			}
 
-			//TODO: whatif result.Collected is nil ??
 			if result.Collected != nil {
+				// don't consuming nil collected result.
 				pending = append(pending, result.Collected)
 			}
 		case errc := <-s.closing:
