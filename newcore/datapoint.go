@@ -4,13 +4,20 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	// "errors"
+	"fmt"
 	"math"
 	"math/big"
 	"strconv"
+	"sync"
 	"time"
 )
 
-var bigMaxInt64 = big.NewInt(math.MaxInt64)
+var (
+	bigMaxInt64 = big.NewInt(math.MaxInt64)
+	// timestamp_layout = time.RFC3339
+	// "Jan 2, 2006 at 3:04pm (MST)"
+)
 
 type DataPoint struct {
 	Metric    Metric            `json:"metric"`
@@ -22,8 +29,45 @@ type DataPoint struct {
 
 type MultiDataPoint []*DataPoint
 
-func (d *DataPoint) MarshalJSON2String() (string, error) {
+var ppFree = sync.Pool{
+	New: func() interface{} {
+		var buf = make([]byte, 200)
+		return bytes.NewBuffer(buf)
+	},
+}
 
+// json.Encoding will have too much overhead.
+func (d *DataPoint) Json() string {
+	d.Clean()
+
+	buffer := ppFree.Get().(*bytes.Buffer)
+	buffer.WriteString(`{"metric":"`)
+	buffer.WriteString(string(d.Metric))
+	buffer.WriteString(`","timestamp":"`)
+	buffer.WriteString(d.Timestamp.Format(time.RFC3339))
+	buffer.WriteString(`","value":`)
+	buffer.WriteString(d.value2string())
+
+	//TODO: handle tags
+	//TODO: handle meta
+
+	buffer.WriteString(`}`)
+	s := buffer.String()
+	buffer.Reset()
+	ppFree.Put(buffer)
+	return s
+}
+
+func (d *DataPoint) value2string() string {
+	switch t := d.Value.(type) {
+	case bool, int, int8, int16, int32, int64, float32, float64:
+		return fmt.Sprintf("%v", d.Value)
+	default:
+		return fmt.Sprintf(`"%v"`, t)
+	}
+}
+
+func (d *DataPoint) MarshalJSON2String() (string, error) {
 	d.Clean()
 
 	// res, err := json.Marshal(struct {
