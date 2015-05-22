@@ -1,13 +1,11 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	log "github.com/oliveagle/seelog"
-	"github.com/oliveagle/stringio"
 	"os"
-	// "path"
 	"path/filepath"
-	// "runtime"
 	"strings"
 	"text/template"
 )
@@ -49,16 +47,16 @@ func Mkdir_p_logdir(logfile string) {
 }
 
 func evalTpl(tpl string, data interface{}) (str string, err error) {
-	sio := stringio.NewStringIO()
-	defer sio.Close()
+	buffer := bytes.NewBuffer(make([]byte, 200))
 
 	t := template.Must(template.New("tmp").Parse(tpl))
-	err = t.Execute(sio, data)
+	err = t.Execute(buffer, data)
 	if err != nil {
 		fmt.Printf("Error to eval logging tpl err: %v", err)
 		return "", err
 	}
-	return sio.GetValueString(), err
+	defer buffer.Reset()
+	return buffer.String(), err
 }
 
 func setLoggerDefaults() {
