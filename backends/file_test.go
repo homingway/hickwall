@@ -91,44 +91,44 @@ main_loop:
 
 }
 
-// func TestFileBackendLongLoop(t *testing.T) {
-// 	os.Remove(test_file_path)
+func TestFileBackendLongLoop(t *testing.T) {
+	os.Remove(test_file_path)
 
-// 	conf := &config.Transport_file{
-// 		Enabled:        true,
-// 		Flush_Interval: "100ms",
-// 		Path:           test_file_path,
-// 	}
+	conf := &config.Transport_file{
+		Enabled:        true,
+		Flush_Interval: "100ms",
+		Path:           test_file_path,
+	}
 
-// 	merge := newcore.Merge(
-// 		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100, 1), nil),
-// 		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
-// 	)
+	merge := newcore.Merge(
+		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100, 1), nil),
+		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
+	)
 
-// 	fset := newcore.FanOut(merge,
-// 		NewFileBackend("b1", conf),
-// 	)
+	fset := newcore.FanOut(merge,
+		NewFileBackend("b1", conf),
+	)
 
-// 	fset_closed_chan := make(chan error)
+	fset_closed_chan := make(chan error)
 
-// 	time.AfterFunc(time.Second*time.Duration(100), func() {
-// 		// merge will be closed within FanOut
-// 		fset_closed_chan <- fset.Close()
-// 	})
+	time.AfterFunc(time.Second*time.Duration(100), func() {
+		// merge will be closed within FanOut
+		fset_closed_chan <- fset.Close()
+	})
 
-// 	timeout := time.After(time.Second * time.Duration(101))
+	timeout := time.After(time.Second * time.Duration(101))
 
-// main_loop:
-// 	for {
-// 		select {
-// 		case <-fset_closed_chan:
-// 			fmt.Println("fset closed")
-// 			break main_loop
-// 		case <-timeout:
-// 			t.Error("timed out! something is blocking")
-// 			break main_loop
-// 		}
-// 	}
+main_loop:
+	for {
+		select {
+		case <-fset_closed_chan:
+			fmt.Println("fset closed")
+			break main_loop
+		case <-timeout:
+			t.Error("timed out! something is blocking")
+			break main_loop
+		}
+	}
 
-// 	os.Remove(test_file_path)
-// }
+	os.Remove(test_file_path)
+}
