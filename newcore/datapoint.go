@@ -37,7 +37,7 @@ var ppFree = sync.Pool{
 }
 
 // json.Encoding will have too much overhead.
-func (d *DataPoint) Json() string {
+func (d *DataPoint) Json() []byte {
 	d.Clean()
 
 	buffer := ppFree.Get().(*bytes.Buffer)
@@ -52,7 +52,8 @@ func (d *DataPoint) Json() string {
 	//TODO: handle meta
 
 	buffer.WriteString(`}`)
-	s := buffer.String()
+	// s := buffer.String()
+	s := buffer.Bytes()
 	buffer.Reset()
 	ppFree.Put(buffer)
 	return s

@@ -77,7 +77,7 @@ func Test_DataPoint_Json(t *testing.T) {
 	t.Log(d.Json())
 
 	var d2 DataPoint
-	err := json.Unmarshal([]byte(d.Json()), &d2)
+	err := json.Unmarshal(d.Json(), &d2)
 	if err != nil {
 		t.Error("failed to unmarshal d.Json()")
 	}
@@ -176,7 +176,7 @@ func Benchmark_DataPoint_Json(b *testing.B) {
 	}
 
 	for n := 0; n < b.N; n++ {
-		value = d.Json()
+		value = string(d.Json())
 	}
 	b.Log(value)
 }
