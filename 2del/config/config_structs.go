@@ -143,35 +143,35 @@ type Transport_influxdb struct {
 	Merge_Requests bool `json:"merge_requests"`
 }
 
-type c_mysql_query struct {
-	Metric_key string               `json:"metric_key"`
-	Tags       [][]string           `json:"tags"`
-	Host       string               `json:"host"`
-	Port       int                  `json:"port"`
-	Username   string               `json:"username"`
-	Password   string               `json:"password"`
-	Queries    []c_mysql_query_item `json:"queries"`
-}
+// type c_mysql_query struct {
+// 	Metric_key string               `json:"metric_key"`
+// 	Tags       [][]string           `json:"tags"`
+// 	Host       string               `json:"host"`
+// 	Port       int                  `json:"port"`
+// 	Username   string               `json:"username"`
+// 	Password   string               `json:"password"`
+// 	Queries    []c_mysql_query_item `json:"queries"`
+// }
 
-type c_mysql_query_item struct {
-	Metric_key string     `json:"metric_key"`
-	Tags       [][]string `json:"tags"`
-	Database   string     `json:"database"`
-	Desc       string     `json:"desc"`
-	Query      string     `json:"query"`
-	ValuesFrom string     `json:"valuesfrom"`
-	Comment    string     `json:"comment"`
-}
+// type c_mysql_query_item struct {
+// 	Metric_key string     `json:"metric_key"`
+// 	Tags       [][]string `json:"tags"`
+// 	Database   string     `json:"database"`
+// 	Desc       string     `json:"desc"`
+// 	Query      string     `json:"query"`
+// 	ValuesFrom string     `json:"valuesfrom"`
+// 	Comment    string     `json:"comment"`
+// }
 
-type Conf_ping struct {
-	Interval   string     `json:"interval"`
-	Metric_key string     `json:"metric_key"`
-	Tags       [][]string `json:"tags"`
-	Targets    []string   `json:"targets"`
-	Timeout    string     `json:"timeout"`
-	Packets    int        `json:"packets"`
-	Collect    []string   `json:"collect"`
-}
+// type Conf_ping struct {
+// 	Interval   string     `json:"interval"`
+// 	Metric_key string     `json:"metric_key"`
+// 	Tags       [][]string `json:"tags"`
+// 	Targets    []string   `json:"targets"`
+// 	Timeout    string     `json:"timeout"`
+// 	Packets    int        `json:"packets"`
+// 	Collect    []string   `json:"collect"`
+// }
 
 func (c *RuntimeConfig) setDefaultByKey(key string, val interface{}) (err error) {
 
