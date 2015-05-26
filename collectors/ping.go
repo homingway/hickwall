@@ -3,6 +3,7 @@ package collectors
 import (
 	"fmt"
 	"github.com/GaryBoone/GoStats/stats"
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/tatsushid/go-fastping"
 	"log"
@@ -11,22 +12,13 @@ import (
 	"time"
 )
 
-type config_single_pinger struct {
-	Metric   string           `json:"metric"`
-	Tags     newcore.TagSet   `json:"tags"`
-	Target   string           `json:"target"`
-	Packets  int              `json:"packets"`
-	Timeout  newcore.Interval `json:"timeout"`
-	Interval newcore.Interval `json:"interval"`
-}
-
 type ping_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
 
 	// ping collector specific attributes
-	config  config_single_pinger
+	config  config.Config_single_pinger
 	timeout time.Duration
 	tags    newcore.TagSet
 }
@@ -34,7 +26,7 @@ type ping_collector struct {
 // func NewPingCollectorFactory(configs []*Config_ping) []newcore.Collector {
 // }
 
-func NewPingCollector(name string, conf config_single_pinger) newcore.Collector {
+func NewPingCollector(name string, conf config.Config_single_pinger) newcore.Collector {
 
 	if conf.Target == "" {
 		log.Println("CRITICAL: we cannot ping empty target.")

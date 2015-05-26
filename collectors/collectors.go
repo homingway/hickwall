@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+var (
+	collector_configs map[string]interface{}
+)
+
 // AddTS is the same as Add but lets you specify the timestamp
 func AddTS(md *newcore.MultiDataPoint, name string, ts time.Time, value interface{}, t newcore.TagSet, datatype string, unit string, desc string) {
 	tags := newcore.AddTags.Copy().Merge(t)

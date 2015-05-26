@@ -2,6 +2,7 @@ package collectors
 
 import (
 	"fmt"
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"strings"
 	"testing"
@@ -9,9 +10,9 @@ import (
 )
 
 func TestWinPdhCollector(t *testing.T) {
-	opts := config_win_pdh_collector{
+	opts := config.Config_win_pdh_collector{
 		Interval: "100ms",
-		Queries: []*config_win_pdh_query{
+		Queries: []*config.Config_win_pdh_query{
 			{
 				Query:  "\\System\\Processes",
 				Metric: "processes.1",

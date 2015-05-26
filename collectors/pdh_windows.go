@@ -2,7 +2,7 @@ package collectors
 
 import (
 	"fmt"
-	// "github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/lib/pdh"
 	"github.com/oliveagle/hickwall/newcore"
 	"log"
@@ -13,30 +13,18 @@ var (
 	_ = fmt.Sprint("")
 )
 
-type config_win_pdh_query struct {
-	Query  string         `json:"query"`
-	Metric newcore.Metric `json:"metric"`
-	Tags   newcore.TagSet `json:"tags"`
-}
-
-type config_win_pdh_collector struct {
-	Interval newcore.Interval        `json:"interval"`
-	Tags     newcore.TagSet          `json:"tags"`
-	Queries  []*config_win_pdh_query `json:"queries"`
-}
-
 type win_pdh_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
 
 	// win_pdh_collector specific attributes
-	config      config_win_pdh_collector
+	config      config.Config_win_pdh_collector
 	hPdh        *pdh.PdhCollector
-	map_queries map[string]*config_win_pdh_query
+	map_queries map[string]*config.Config_win_pdh_query
 }
 
-func NewWinPdhCollector(name string, opts config_win_pdh_collector) newcore.Collector {
+func NewWinPdhCollector(name string, opts config.Config_win_pdh_collector) newcore.Collector {
 
 	c := &win_pdh_collector{
 		name:        name,
@@ -44,7 +32,7 @@ func NewWinPdhCollector(name string, opts config_win_pdh_collector) newcore.Coll
 		interval:    opts.Interval.MustDuration(time.Second),
 		config:      opts,
 		hPdh:        pdh.NewPdhCollector(),
-		map_queries: make(map[string]*config_win_pdh_query),
+		map_queries: make(map[string]*config.Config_win_pdh_query),
 	}
 
 	for _, q := range opts.Queries {

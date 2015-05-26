@@ -1,6 +1,7 @@
 package collectors
 
 import (
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 
 	"fmt"
@@ -12,7 +13,7 @@ import (
 func TestPing(t *testing.T) {
 	_ = fmt.Sprintf("")
 
-	conf := config_single_pinger{
+	conf := config.Config_single_pinger{
 		Interval: "200ms",
 		Metric:   "ping",
 		Timeout:  "100ms",

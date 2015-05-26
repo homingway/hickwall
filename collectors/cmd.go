@@ -2,7 +2,7 @@ package collectors
 
 import (
 	"fmt"
-	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/hickwall/utils"
 	"log"
@@ -15,21 +15,13 @@ var (
 	_ = fmt.Sprintf("")
 )
 
-type config_command struct {
-	Metric   newcore.Metric   `json:"metric"`
-	Cmd      []string         `json:"cmd"`
-	Interval newcore.Interval `json:"interval"` // default 1s
-	Tags     newcore.TagSet   `json:"tags"`
-	Timeout  newcore.Interval `json:"timeout"`
-}
-
 type cmd_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
 
 	// cmd_collector specific attributes
-	config   config_command
+	config   config.Config_command
 	timeout  time.Duration
 	cmd_name string
 	cmd_args []string
@@ -37,12 +29,11 @@ type cmd_collector struct {
 }
 
 // newCollector returns a Collector for uri.
-func NewCmdCollector(name string, conf config_command) newcore.Collector {
+func NewCmdCollector(name string, conf config.Config_command) newcore.Collector {
 
 	var (
-		cmd_name     string
-		cmd_args     []string
-		runtime_conf = config.GetRuntimeConf()
+		cmd_name string
+		cmd_args []string
 	)
 
 	if len(conf.Cmd) > 0 {
@@ -50,11 +41,6 @@ func NewCmdCollector(name string, conf config_command) newcore.Collector {
 	}
 	if len(conf.Cmd) > 1 {
 		cmd_args = conf.Cmd[1:]
-	}
-
-	tags := conf.Tags.Copy()
-	if runtime_conf != nil {
-		tags = tags.Merge(runtime_conf.Client.Tags)
 	}
 
 	f := &cmd_collector{
@@ -65,7 +51,7 @@ func NewCmdCollector(name string, conf config_command) newcore.Collector {
 		timeout:  conf.Interval.MustDuration(time.Second * 10),
 		cmd_name: cmd_name,
 		cmd_args: cmd_args,
-		tags:     tags,
+		tags:     conf.Tags.Copy(),
 	}
 	return f
 }
