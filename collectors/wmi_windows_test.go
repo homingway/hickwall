@@ -3,6 +3,7 @@ package collectors
 import (
 	"bytes"
 	"fmt"
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/viper"
 	"strings"
@@ -11,11 +12,11 @@ import (
 )
 
 func TestWinWmiCollector(t *testing.T) {
-	opts := Config_win_wmi{
+	opts := config.Config_win_wmi{
 		Interval: "1s",
-		Queries: []config_win_wmi_query{
+		Queries: []config.Config_win_wmi_query{
 			{Query: "select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12",
-				Metrics: []config_win_wmi_query_metric{
+				Metrics: []config.Config_win_wmi_query_metric{
 					{Value_from: "Size",
 						Metric: "win.wmi.fs.size.bytes",
 						Tags: newcore.TagSet{
@@ -95,7 +96,7 @@ queries:
                 }
 `)
 	vp := viper.New()
-	var opts Config_win_wmi
+	var opts config.Config_win_wmi
 
 	vp.SetConfigType("yaml")
 	vp.ReadConfig(bytes.NewBuffer(opts_str))

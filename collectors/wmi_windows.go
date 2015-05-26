@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mattn/go-ole"
 	"github.com/mattn/go-ole/oleutil"
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/hickwall/utils"
 	"log"
@@ -26,25 +27,6 @@ func oleCoUninitialize() {
 
 }
 
-type Config_win_wmi struct {
-	Tags     newcore.TagSet         `json:"tags"`
-	Interval newcore.Interval       `json:"interval"`
-	Queries  []config_win_wmi_query `json:"queries"`
-}
-type config_win_wmi_query struct {
-	Query   string                        `json:"query"`
-	Tags    newcore.TagSet                `json:"tags"`
-	Metrics []config_win_wmi_query_metric `json:"metrics"`
-}
-type config_win_wmi_query_metric struct {
-	//TODO: Meta
-	Value_from string            `json:"value_from"`
-	Metric     newcore.Metric    `json:"metric"`
-	Tags       newcore.TagSet    `json:"tags"`
-	Meta       map[string]string `json:"meta"`
-	Default    interface{}       `json:"default"`
-}
-
 type win_wmi_collector struct {
 	name     string // collector name
 	interval time.Duration
@@ -52,10 +34,10 @@ type win_wmi_collector struct {
 
 	// win_wmi_collector specific attributes
 	service *ole.IDispatch
-	config  Config_win_wmi
+	config  config.Config_win_wmi
 }
 
-func NewWinWmiCollector(name string, opts Config_win_wmi) newcore.Collector {
+func NewWinWmiCollector(name string, opts config.Config_win_wmi) newcore.Collector {
 
 	// // use COINIT_MULTITHREADED model
 	// ole.CoInitializeEx(0, ole.COINIT_MULTITHREADED)
@@ -208,7 +190,7 @@ func (c *win_wmi_collector) c_win_wmi_parse_tags(tags map[string]string, data ma
 	return res, nil
 }
 
-func (c *win_wmi_collector) get_fields_of_query(query config_win_wmi_query) []string {
+func (c *win_wmi_collector) get_fields_of_query(query config.Config_win_wmi_query) []string {
 	fields := map[string]bool{}
 	for _, item := range query.Metrics {
 		if len(item.Value_from) > 0 {
