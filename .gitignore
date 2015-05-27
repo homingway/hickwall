@@ -31,7 +31,7 @@ bin
 .idea
 *.queue
 
-hickwall
+#hickwall
 hickwall.exe
 Readme.html
 

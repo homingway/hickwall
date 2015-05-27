@@ -39,6 +39,7 @@ func (b *HookBackend) loop() {
 			startConsuming = nil // stop comsuming
 			errc <- nil
 			close(b.updates)
+			close(b.hook)
 			return
 		}
 	}

@@ -31,11 +31,11 @@ type MultiDataPoint []*DataPoint
 
 var ppFree = sync.Pool{
 	New: func() interface{} {
-		var buf = make([]byte, 200)
-		return bytes.NewBuffer(buf)
+		return new(bytes.Buffer)
 	},
 }
 
+//TODO: test to make sure buffer don't return heading zero bytes. e.g. [00 00 00 13 42]
 // json.Encoding will have too much overhead.
 func (d *DataPoint) Json() []byte {
 	d.Clean()
