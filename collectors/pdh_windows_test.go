@@ -48,7 +48,7 @@ main_loop:
 							t.Error("query is not in tags")
 							return
 						}
-						if !strings.HasPrefix(dp.Metric.Clean(), "processes.") {
+						if !strings.HasPrefix(dp.Metric.Clean(), "prefix.processes.") {
 							t.Error("metric wrong")
 							return
 						}

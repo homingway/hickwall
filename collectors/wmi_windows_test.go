@@ -50,7 +50,7 @@ main_loop:
 							t.Error("host is not in tags")
 							return
 						}
-						if !strings.HasPrefix(dp.Metric.Clean(), "win.wmi.") {
+						if !strings.HasPrefix(dp.Metric.Clean(), "prefix.win.wmi.") {
 							t.Error("metric wrong")
 							return
 						}
@@ -128,7 +128,7 @@ main_loop:
 							t.Error("host is not in tags")
 							return
 						}
-						if !strings.HasPrefix(dp.Metric.Clean(), "win.wmi.") {
+						if !strings.HasPrefix(dp.Metric.Clean(), "prefix.win.wmi.") {
 							t.Error("metric wrong")
 							return
 						}
