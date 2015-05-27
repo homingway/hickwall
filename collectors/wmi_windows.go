@@ -31,13 +31,14 @@ type win_wmi_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
+	prefix   string
 
 	// win_wmi_collector specific attributes
 	service *ole.IDispatch
 	config  config.Config_win_wmi
 }
 
-func NewWinWmiCollector(name string, opts config.Config_win_wmi) newcore.Collector {
+func NewWinWmiCollector(name, prefix string, opts config.Config_win_wmi) newcore.Collector {
 
 	// // use COINIT_MULTITHREADED model
 	// ole.CoInitializeEx(0, ole.COINIT_MULTITHREADED)
@@ -45,6 +46,7 @@ func NewWinWmiCollector(name string, opts config.Config_win_wmi) newcore.Collect
 	c := &win_wmi_collector{
 		name:     name,
 		enabled:  true,
+		prefix:   prefix,
 		interval: opts.Interval.MustDuration(time.Second * 15),
 
 		config: opts,
@@ -264,11 +266,11 @@ func (c *win_wmi_collector) CollectOnce() (res *newcore.CollectResult) {
 
 					if value, ok := record[item.Value_from]; ok == true {
 
-						Add(&items, metric, value, tags, "", "", "")
+						Add(&items, c.prefix, metric, value, tags, "", "", "")
 
 					} else if item.Default != "" {
 
-						Add(&items, metric, item.Default, tags, "", "", "")
+						Add(&items, c.prefix, metric, item.Default, tags, "", "", "")
 
 					}
 				}
@@ -288,7 +290,7 @@ func (c *win_wmi_collector) CollectOnce() (res *newcore.CollectResult) {
 
 					tags := newcore.AddTags.Copy().Merge(query.Tags).Merge(item.Tags)
 
-					Add(&items, item.Metric.Clean(), item.Default, tags, "", "", "")
+					Add(&items, c.prefix, item.Metric.Clean(), item.Default, tags, "", "", "")
 				}
 			}
 		}

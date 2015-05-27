@@ -19,6 +19,7 @@ type cmd_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
+	prefix   string
 
 	// cmd_collector specific attributes
 	config   config.Config_command
@@ -29,7 +30,7 @@ type cmd_collector struct {
 }
 
 // newCollector returns a Collector for uri.
-func NewCmdCollector(name string, conf config.Config_command) newcore.Collector {
+func NewCmdCollector(name, prefix string, conf config.Config_command) newcore.Collector {
 
 	var (
 		cmd_name string
@@ -46,6 +47,7 @@ func NewCmdCollector(name string, conf config.Config_command) newcore.Collector 
 	f := &cmd_collector{
 		name:     name,
 		enabled:  true,
+		prefix:   prefix,
 		interval: conf.Interval.MustDuration(time.Second),
 		config:   conf,
 		timeout:  conf.Interval.MustDuration(time.Second * 10),
@@ -101,7 +103,7 @@ func (f *cmd_collector) CollectOnce() *newcore.CollectResult {
 				return nil
 			}
 
-			AddTS(&items, metric, timestamp, value, f.tags, "", "", "")
+			AddTS(&items, f.prefix, metric, timestamp, value, f.tags, "", "", "")
 
 			//TODO: add DataType Support for Cmd collector.
 			// } else if len(slices) == 5 {

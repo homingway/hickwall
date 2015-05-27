@@ -11,10 +11,10 @@ var (
 )
 
 // AddTS is the same as Add but lets you specify the timestamp
-func AddTS(md *newcore.MultiDataPoint, name string, ts time.Time, value interface{}, t newcore.TagSet, datatype string, unit string, desc string) {
+func AddTS(md *newcore.MultiDataPoint, prefix, name string, ts time.Time, value interface{}, t newcore.TagSet, datatype string, unit string, desc string) {
 	tags := newcore.AddTags.Copy().Merge(t)
 
-	conf := config.GetRuntimeConf()
+	conf := config.GetRuntimeConfig()
 	if conf != nil {
 		tags = tags.Merge(conf.Client.Tags)
 	}
@@ -44,7 +44,7 @@ func AddTS(md *newcore.MultiDataPoint, name string, ts time.Time, value interfac
 	}
 
 	*md = append(*md, &newcore.DataPoint{
-		Metric:    *newcore.NewMetric(name),
+		Metric:    *newcore.NewMetric(prefix + "." + name),
 		Timestamp: ts,
 		Value:     value,
 		Tags:      tags,
@@ -55,6 +55,6 @@ func AddTS(md *newcore.MultiDataPoint, name string, ts time.Time, value interfac
 // may be nil. If tags is nil or does not contain a host key, it will be
 // automatically added. If the value of the host key is the empty string, it
 // will be removed (use this to prevent the normal auto-adding of the host tag).
-func Add(md *newcore.MultiDataPoint, name string, value interface{}, t newcore.TagSet, datatype string, unit string, desc string) {
-	AddTS(md, name, newcore.Now(), value, t, datatype, unit, desc)
+func Add(md *newcore.MultiDataPoint, prefix, name string, value interface{}, t newcore.TagSet, datatype string, unit string, desc string) {
+	AddTS(md, prefix, name, newcore.Now(), value, t, datatype, unit, desc)
 }

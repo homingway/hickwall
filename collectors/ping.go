@@ -16,6 +16,7 @@ type ping_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
+	prefix   string
 
 	// ping collector specific attributes
 	config  config.Config_single_pinger
@@ -26,7 +27,25 @@ type ping_collector struct {
 // func NewPingCollectorFactory(configs []*Config_ping) []newcore.Collector {
 // }
 
-func NewPingCollector(name string, conf config.Config_single_pinger) newcore.Collector {
+func NewPingCollectors(name, prefix string, conf config.Config_Ping) []newcore.Collector {
+	var sconf config.Config_single_pinger
+	var pings []newcore.Collector
+
+	sconf.Interval = conf.Interval
+	sconf.Metric = conf.Metric
+	sconf.Packets = conf.Packets
+	sconf.Tags = conf.Tags
+	sconf.Timeout = conf.Timeout
+
+	for idx, target := range conf.Targets {
+		sconf.Target = target
+		ping := NewSinglePingCollector(fmt.Sprintf("%s_%d", name, idx), prefix, sconf)
+		pings = append(pings, ping)
+	}
+	return pings
+}
+
+func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinger) newcore.Collector {
 
 	if conf.Target == "" {
 		log.Println("CRITICAL: we cannot ping empty target.")
@@ -44,6 +63,7 @@ func NewPingCollector(name string, conf config.Config_single_pinger) newcore.Col
 		name:    name,
 		enabled: true,
 		config:  conf,
+		prefix:  prefix,
 
 		interval: conf.Interval.MustDuration(time.Second),
 		timeout:  conf.Timeout.MustDuration(time.Millisecond * 500),
@@ -133,19 +153,19 @@ func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 		d.Update(rtt)
 	}
 
-	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
-	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
-	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
+	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
+	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
+	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
 
 	std := d.SampleStandardDeviation()
 	if math.IsNaN(std) {
 		std = 0
 	}
-	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", "")
-	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", "")
+	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", "")
+	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", "")
 
 	lost_pct := float64((c.config.Packets-d.Count())/c.config.Packets) * 100
-	Add(&md, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
+	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
 
 	// log.Println("ping_collector: CollectOnce Finished")
 	return &newcore.CollectResult{

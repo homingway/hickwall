@@ -52,19 +52,19 @@ func (c *hickwall_collector) CollectOnce() *newcore.CollectResult {
 
 	runtime.ReadMemStats(&c.mem_stats)
 
-	Add(&md, "hickwall.client.NumGoroutine", runtime.NumGoroutine(), nil, "", "", "")
-	Add(&md, "hickwall.client.mem.Alloc", c.mem_stats.Alloc, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.TotalAlloc", c.mem_stats.TotalAlloc, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.Heap.Sys", c.mem_stats.HeapSys, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.Heap.Alloc", c.mem_stats.HeapAlloc, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.Heap.Idle", c.mem_stats.HeapIdle, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.Heap.Inuse", c.mem_stats.HeapInuse, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.Heap.Released", c.mem_stats.HeapReleased, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.Heap.Objects", c.mem_stats.HeapObjects, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.GC.NextGC", c.mem_stats.NextGC, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.GC.LastGC", c.mem_stats.LastGC, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.GC.NumGC", c.mem_stats.NumGC, nil, "", "", "")
-	Add(&md, "hickwall.client.mem.GC.EnableGC", c.mem_stats.EnableGC, nil, "", "", "")
+	Add(&md, "hickwall.client", "NumGoroutine", runtime.NumGoroutine(), nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.Alloc", c.mem_stats.Alloc, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.TotalAlloc", c.mem_stats.TotalAlloc, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.Heap.Sys", c.mem_stats.HeapSys, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.Heap.Alloc", c.mem_stats.HeapAlloc, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.Heap.Idle", c.mem_stats.HeapIdle, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.Heap.Inuse", c.mem_stats.HeapInuse, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.Heap.Released", c.mem_stats.HeapReleased, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.Heap.Objects", c.mem_stats.HeapObjects, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.GC.NextGC", c.mem_stats.NextGC, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.GC.LastGC", c.mem_stats.LastGC, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.GC.NumGC", c.mem_stats.NumGC, nil, "", "", "")
+	Add(&md, "hickwall.client", "mem.GC.EnableGC", c.mem_stats.EnableGC, nil, "", "", "")
 
 	return &newcore.CollectResult{
 		Collected: &md,

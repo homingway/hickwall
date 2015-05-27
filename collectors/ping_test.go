@@ -10,6 +10,21 @@ import (
 	"time"
 )
 
+func TestNewPingCollectors(t *testing.T) {
+	conf := config.Config_Ping{
+		Interval: "200ms",
+		Metric:   "ping",
+		Timeout:  "100ms",
+		Targets:  []string{"www.baidu.com", "www.123.com"},
+		Packets:  5,
+	}
+
+	cs := NewPingCollectors("test", "prefix", conf)
+	if len(cs) != 2 {
+		t.Error("")
+	}
+}
+
 func TestPing(t *testing.T) {
 	_ = fmt.Sprintf("")
 
@@ -21,7 +36,7 @@ func TestPing(t *testing.T) {
 		Packets:  5,
 	}
 
-	sub := newcore.Subscribe(NewPingCollector("p1", conf), nil)
+	sub := newcore.Subscribe(NewSinglePingCollector("p1", "prefix", conf), nil)
 
 	time.AfterFunc(time.Second*3, func() {
 		sub.Close()
@@ -43,7 +58,7 @@ main_loop:
 							t.Error("host is not in tags")
 							return
 						}
-						if !strings.HasPrefix(dp.Metric.Clean(), "ping.") {
+						if !strings.HasPrefix(dp.Metric.Clean(), "prefix.ping.") {
 							t.Error("metric wrong")
 							return
 						}

@@ -17,6 +17,7 @@ type win_pdh_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
+	prefix   string
 
 	// win_pdh_collector specific attributes
 	config      config.Config_win_pdh_collector
@@ -24,11 +25,12 @@ type win_pdh_collector struct {
 	map_queries map[string]*config.Config_win_pdh_query
 }
 
-func NewWinPdhCollector(name string, opts config.Config_win_pdh_collector) newcore.Collector {
+func NewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_collector) newcore.Collector {
 
 	c := &win_pdh_collector{
 		name:        name,
 		enabled:     true,
+		prefix:      prefix,
 		interval:    opts.Interval.MustDuration(time.Second),
 		config:      opts,
 		hPdh:        pdh.NewPdhCollector(),
@@ -78,7 +80,7 @@ func (c *win_pdh_collector) CollectOnce() *newcore.CollectResult {
 			if pd.Err == nil {
 				query, ok := c.map_queries[pd.Query]
 				if ok == true && query != nil {
-					Add(&items, query.Metric.Clean(), pd.Value, query.Tags, "", "", "")
+					Add(&items, c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", "")
 				}
 			} else {
 				log.Println("win_pdh_collector ERROR: ", pd.Err)

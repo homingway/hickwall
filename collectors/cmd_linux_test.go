@@ -2,8 +2,8 @@ package collectors
 
 import (
 	"fmt"
+	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
-	// "github.com/oliveagle/hickwall/config"
 	// "log"
 	// "os"
 	// "path/filepath"
@@ -14,7 +14,7 @@ import (
 func TestCmd(t *testing.T) {
 	_ = fmt.Sprintf("")
 
-	conf := config_command{
+	conf := config.Config_command{
 		Cmd: []string{
 			"bash",
 			"./tests/cmd_linux.sh",
@@ -22,7 +22,7 @@ func TestCmd(t *testing.T) {
 		Interval: "1s",
 	}
 
-	sub := newcore.Subscribe(NewCmdCollector("p1", conf), nil)
+	sub := newcore.Subscribe(NewCmdCollector("p1", "prefix", conf), nil)
 
 	time.AfterFunc(time.Second*1, func() {
 		sub.Close()
