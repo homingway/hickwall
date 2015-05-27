@@ -15,3 +15,8 @@ func PathExists(path string) (bool, error) {
 	}
 	return false, err
 }
+
+func IsDirectory(path string) (bool, error) {
+	fileInfo, err := os.Stat(path)
+	return fileInfo.IsDir(), err
+}

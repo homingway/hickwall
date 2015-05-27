@@ -39,6 +39,9 @@ Readme.html
 pprofs
 *.txt
 
+*.pprof
 *.pprof.*
 *.csv
 *.iml
+config/test_registry_file
+misc/try_misc

@@ -22,7 +22,6 @@ const (
 )
 
 var (
-	config_path        []string
 	LOG_DIR            = ""
 	SHARED_DIR         = ""
 	CONF_FILEPATH      = ""
@@ -37,7 +36,7 @@ var (
 )
 
 func IsCoreConfigLoaded() bool {
-	return core_conf_loaded
+	return CoreConf != nil && core_conf_loaded
 }
 
 func LoadCoreConfig() error {
@@ -216,8 +215,6 @@ func initPathes() {
 	dir, _ = filepath.Split(dir)
 
 	SHARED_DIR, _ = filepath.Abs(path.Join(dir, "shared"))
-	// SHARED_DIR = `D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\shared`
-
 	LOG_DIR, _ = filepath.Abs(path.Join(SHARED_DIR, "logs"))
 	LOG_FILEPATH, _ = filepath.Abs(path.Join(LOG_DIR, LOG_FILE))
 

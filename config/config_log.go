@@ -47,7 +47,7 @@ func Mkdir_p_logdir(logfile string) {
 }
 
 func evalTpl(tpl string, data interface{}) (str string, err error) {
-	buffer := bytes.NewBuffer(make([]byte, 200))
+	var buffer = new(bytes.Buffer)
 
 	t := template.Must(template.New("tmp").Parse(tpl))
 	err = t.Execute(buffer, data)
@@ -60,6 +60,12 @@ func evalTpl(tpl string, data interface{}) (str string, err error) {
 }
 
 func setLoggerDefaults() {
+	// CoreConf.setDefaultByKey("Log_console_level", "info")
+	// CoreConf.setDefaultByKey("Log_level", "debug")
+	// CoreConf.setDefaultByKey("Log_file_filepath", LOG_FILEPATH)
+	// CoreConf.setDefaultByKey("Log_file_maxsize", 300)
+	// CoreConf.setDefaultByKey("Log_file_maxrolls", 5)
+
 	core_viper.SetDefault("Log_file_maxrolls", 5)
 	core_viper.SetDefault("Log_file_maxsize", 300)
 	core_viper.SetDefault("Log_console_level", "info")
@@ -243,8 +249,8 @@ func gen_config(formats_args *gen_formats_args, outputs_args *gen_outputs_args) 
 
 func ConfigLogger() error {
 	var (
-		maxsize   = 100000
-		maxrolls  = 5
+		maxsize   = 1
+		maxrolls  = 1
 		log_level = "debug"
 	)
 
