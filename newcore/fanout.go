@@ -20,7 +20,7 @@ var (
 type fanout struct {
 	bks          []Publication            // backends
 	sub          Subscription             // subscription
-	pubs         []chan<- *MultiDataPoint // publication channels from backends
+	chan_pubs    []chan<- *MultiDataPoint // publication channels from backends
 	closing      chan chan error          // for closing
 	pending      [](chan *MultiDataPoint) // pending channels
 	closing_list [](chan chan error)      // closing channels for backends
@@ -56,8 +56,8 @@ func (f *fanout) cosuming(idx int, closing chan chan error) {
 		select {
 		case first = <-pending:
 			// log.Printf("fanout.consuming -2- idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
-			pending = nil     // disable read from pending chan
-			pub = f.pubs[idx] // enable send to pub chan
+			pending = nil          // disable read from pending chan
+			pub = f.chan_pubs[idx] // enable send to pub chan
 		case pub <- first:
 			// log.Printf("fanout.consuming -3- idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
 			pub = nil   // disable send to pub chan
@@ -68,7 +68,7 @@ func (f *fanout) cosuming(idx int, closing chan chan error) {
 			pending = nil // nil startSend channel
 			pub = nil
 
-			f.pubs[idx] = nil // nil pub channel
+			f.chan_pubs[idx] = nil // nil pub channel
 
 			f.pending[idx] = nil
 
@@ -88,7 +88,7 @@ func (f *fanout) loop() {
 
 	startConsuming = f.sub.Updates()
 
-	for idx, _ := range f.pubs {
+	for idx, _ := range f.chan_pubs {
 		closing := make(chan chan error)
 		f.closing_list = append(f.closing_list, closing)
 		go f.cosuming(idx, closing)
@@ -171,7 +171,7 @@ func FanOut(sub Subscription, bks ...Publication) PublicationSet {
 	f.bks = append(f.bks, bks...)
 
 	for _, pub := range bks {
-		f.pubs = append(f.pubs, pub.Updates())
+		f.chan_pubs = append(f.chan_pubs, pub.Updates())
 		f.pending = append(f.pending, make(chan *MultiDataPoint, maxPending))
 	}
 	go f.loop()
