@@ -1,11 +1,15 @@
 package config
 
 import (
-//	"fmt"
-//	log "github.com/oliveagle/seelog"
-//	"github.com/oliveagle/viper"
-//	"reflect"
-//	"time"
+	//	"fmt"
+	//	log "github.com/oliveagle/seelog"
+	//	"github.com/oliveagle/viper"
+	//	"reflect"
+	//	"time"
+	b_conf "github.com/oliveagle/hickwall/backends/config"
+	c_conf "github.com/oliveagle/hickwall/collectors/config"
+	"github.com/oliveagle/viper"
+	"io"
 )
 
 // public variables
@@ -15,33 +19,53 @@ var (
 
 // private vairables
 var (
-//	rconf *RuntimeConfig
+	rconf *RuntimeConfig
 )
 
+func GetRuntimeConfig() *RuntimeConfig {
+	return rconf
+}
+
+func ReadRuntimeConfig(r io.Reader) (*RuntimeConfig, error) {
+	var rc RuntimeConfig
+
+	vp := viper.New()
+	vp.SetConfigType("yaml")
+	err := vp.ReadConfig(r)
+	if err != nil {
+		return nil, err
+	}
+	err = vp.Marshal(&rc)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rc, nil
+}
+
 type RuntimeConfig struct {
-	Client ClientConfig
-	Groups []*CollectorConfigGroup
+	Client ClientConfig            `json:"client"`
+	Groups []*CollectorConfigGroup `json:"groups"`
 }
 
 type ClientConfig struct {
+	HeartBeatInterval string
+	Tags              map[string]string
+	Hostname          string
 
 	//	Transport_influxdb []Transport_influxdb `json:"transport_influxdb"`
 	Transport_influxdb string
-	Transport_stdout   string
-	Transport_file     string
+	Transport_file     *b_conf.Transport_file
 }
 
 type CollectorConfigGroup struct {
-	Collector_ping string
-	//	Collector_win_sys Conf_win_sys `json:"collector_win_sys"`
-	//
-	//	Collector_win_pdh []Conf_win_pdh `json:"collector_win_pdh"`
-	//	Collector_win_wmi []Conf_win_wmi `json:"collector_win_wmi"`
+	Prefix            string                            `json:"prefix"`
+	Collector_ping    []c_conf.Config_Ping              `json:"collector_ping"`
+	Collector_cmd     []c_conf.Config_command           `json:"collector_cmd"`
+	Collector_win_pdh []c_conf.Config_win_pdh_collector `json:"collector_win_pdh"`
+	Collector_win_wmi []c_conf.Config_win_wmi           `json:"collector_win_wmi"`
 
-	//	Collector_mysql_query []c_mysql_query `json:"collector_mysql_query"`
-	//
-	//	Collector_ping []Conf_ping `json:"collector_ping"`
-	//	Collector_cmd []Conf_cmd `json:"collector_cmd"`
+	//	Collector_win_sys Conf_win_sys `json:"collector_win_sys"`
 }
 
 //func (c *RuntimeConfig) setDefaultByKey(key string, val interface{}) (err error) {

@@ -1,11 +1,10 @@
 package backends
 
 import (
-	"fmt"
-	// "github.com/oliveagle/hickwall/collectorlib"
 	"bufio"
+	"fmt"
+	"github.com/oliveagle/hickwall/backends/config"
 	"github.com/oliveagle/hickwall/collectors"
-	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"os"
 	"testing"
@@ -49,9 +48,8 @@ func TestFileBackend(t *testing.T) {
 		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
 	)
 
-	fset := newcore.FanOut(merge,
-		NewFileBackend("b1", conf),
-	)
+	b1, _ := NewFileBackend("b1", conf)
+	fset := newcore.FanOut(merge, b1)
 
 	fset_closed_chan := make(chan error)
 
@@ -91,44 +89,54 @@ main_loop:
 
 }
 
-func TestFileBackendLongLoop(t *testing.T) {
-	os.Remove(test_file_path)
-
+func TestFileBackend_Failed(t *testing.T) {
 	conf := &config.Transport_file{
-		Enabled:        true,
-		Flush_Interval: "100ms",
-		Path:           test_file_path,
+		Enabled: true,
+		Path:    "",
 	}
-
-	merge := newcore.Merge(
-		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100, 1), nil),
-		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
-	)
-
-	fset := newcore.FanOut(merge,
-		NewFileBackend("b1", conf),
-	)
-
-	fset_closed_chan := make(chan error)
-
-	time.AfterFunc(time.Second*time.Duration(100), func() {
-		// merge will be closed within FanOut
-		fset_closed_chan <- fset.Close()
-	})
-
-	timeout := time.After(time.Second * time.Duration(101))
-
-main_loop:
-	for {
-		select {
-		case <-fset_closed_chan:
-			fmt.Println("fset closed")
-			break main_loop
-		case <-timeout:
-			t.Error("timed out! something is blocking")
-			break main_loop
-		}
+	b1, err := NewFileBackend("b1", conf)
+	if err == nil || b1 != nil {
+		t.Error("create file backend should fail but not")
 	}
-
-	os.Remove(test_file_path)
 }
+
+//func TestFileBackendLongLoop(t *testing.T) {
+//	os.Remove(test_file_path)
+//
+//	conf := &config.Transport_file{
+//		Enabled:        true,
+//		Flush_Interval: "100ms",
+//		Path:           test_file_path,
+//	}
+//
+//	merge := newcore.Merge(
+//		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100, 1), nil),
+//		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
+//	)
+//
+//	b1, _ := NewFileBackend("b1", conf)
+//	fset := newcore.FanOut(merge, b1)
+//
+//	fset_closed_chan := make(chan error)
+//
+//	time.AfterFunc(time.Second*time.Duration(100), func() {
+//		// merge will be closed within FanOut
+//		fset_closed_chan <- fset.Close()
+//	})
+//
+//	timeout := time.After(time.Second * time.Duration(101))
+//
+//main_loop:
+//	for {
+//		select {
+//		case <-fset_closed_chan:
+//			fmt.Println("fset closed")
+//			break main_loop
+//		case <-timeout:
+//			t.Error("timed out! something is blocking")
+//			break main_loop
+//		}
+//	}
+//
+//	os.Remove(test_file_path)
+//}

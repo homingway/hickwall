@@ -79,15 +79,7 @@ func load_runtime_conf(filepath string) (*RuntimeConfig, error) {
 		return nil, err
 	}
 	defer file.Close()
-
-	var rc RuntimeConfig
-
-	vp := viper.New()
-	vp.SetConfigType("yaml")
-	vp.ReadConfig(file)
-
-	vp.Marshal(&rc)
-	return &rc, nil
+	return ReadRuntimeConfig(file)
 }
 
 func load_group_conf(filepath string) (*CollectorConfigGroup, error) {

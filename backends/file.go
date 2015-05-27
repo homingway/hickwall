@@ -6,7 +6,7 @@ package backends
 import (
 	"bytes"
 	"fmt"
-	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/backends/config"
 	"github.com/oliveagle/hickwall/newcore"
 	"log"
 	"os"
@@ -29,16 +29,19 @@ type fileBackend struct {
 	conf   *config.Transport_file
 }
 
-func NewFileBackend(name string, conf *config.Transport_file) newcore.Publication {
+func NewFileBackend(name string, conf *config.Transport_file) (newcore.Publication, error) {
 	s := &fileBackend{
 		name:    name,
 		closing: make(chan chan error),
 		updates: make(chan *newcore.MultiDataPoint),
 		conf:    conf,
 	}
+	if conf.Path == "" {
+		return nil, fmt.Errorf("backend file should not be empty")
+	}
 
 	go s.loop()
-	return s
+	return s, nil
 }
 
 func (b *fileBackend) loop() {

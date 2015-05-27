@@ -9,6 +9,8 @@ import (
 	"net/url"
 	//	"os"
 	//	valid "github.com/asaskevich/govalidator"
+	"errors"
+	//	"github.com/coreos/go-etcd/etcd"
 	"github.com/oliveagle/hickwall/utils"
 	"os"
 	"regexp"
@@ -16,6 +18,10 @@ import (
 
 var (
 	ETCD_URL_PAT = regexp.MustCompile(`^http[s]?://.*(:\d+)?[/]?`)
+)
+
+var (
+	ERR_REGISTRY_REVOKED = errors.New("registry has been revoked!")
 )
 
 type RegistryInfo struct {
@@ -104,3 +110,19 @@ func ReadRegistryFile() (*RegistryInfo, error) {
 
 	return &regInfo, nil
 }
+
+// 1. Check Do we have registry info stored on disk
+// 2. if we don't, do registry process repeatedly until success. interval default is 5m
+// 3. if we do have registry info.  use etcd to get runtime config.
+// 4. if we found our registry into on etcd has been revoked, remove local registry info and
+// 	  go to step-2, start registry process again
+//func LoadConfigFromRegistry() error {
+//
+//}
+
+//func WatchEtcdRegistryInfo(url, path string) error {
+//	//TODO: remove viper and use etcd directly.
+//	client := etcd.NewClient([]string{url})
+//
+//	return nil
+//}

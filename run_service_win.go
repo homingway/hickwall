@@ -5,13 +5,13 @@ package main
 import (
 	"code.google.com/p/winsvc/svc"
 	// "fmt"
-	"github.com/oliveagle/hickwall/backends"
+	//	"github.com/oliveagle/hickwall/backends"
 	// "runtime"
 	// "github.com/oliveagle/hickwall/collectorlib"
-	"github.com/oliveagle/hickwall/collectors"
+	//	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
 	"github.com/oliveagle/hickwall/config"
-	"github.com/oliveagle/hickwall/lib"
+	//	"github.com/oliveagle/hickwall/lib"
 	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
@@ -97,7 +97,7 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	// utils.StartCPUProfile()
 	// defer utils.StopCPUProfile()
 
-	go lib.LoadConfigAndWatching()
+	//	go lib.LoadConfigAndWatching()
 
 	// reload won't lower memory usage.
 	// go func() {
@@ -121,11 +121,11 @@ loop:
 		case <-after:
 			log.Info("time is up")
 			break loop
-		case md, _ := <-collectors.GetDataChan():
-			for _, p := range md {
-				log.Trace(" point ---> ", p)
-			}
-			backends.WriteToBackends(md)
+			//		case md, _ := <-collectors.GetDataChan():
+			//			for _, p := range md {
+			//				log.Trace(" point ---> ", p)
+			//			}
+			//			backends.WriteToBackends(md)
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:

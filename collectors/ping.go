@@ -49,7 +49,6 @@ func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinge
 
 	if conf.Target == "" {
 		log.Println("CRITICAL: we cannot ping empty target.")
-		// return nil
 	}
 
 	tags := conf.Tags.Copy()
@@ -113,7 +112,6 @@ func (c *ping_collector) CollectOnce_1() *newcore.CollectResult {
 	}
 }
 
-// func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 	log.Println("ping_collector: CollectOnce Started")
 	var (
