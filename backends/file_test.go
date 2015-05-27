@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/oliveagle/hickwall/backends/config"
-	"github.com/oliveagle/hickwall/collectors"
+	//	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/newcore"
 	"os"
 	"testing"
@@ -44,8 +44,8 @@ func TestFileBackend(t *testing.T) {
 	}
 
 	merge := newcore.Merge(
-		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100, 1), nil),
-		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
+		newcore.Subscribe(newcore.NewDummyCollector("c1", time.Millisecond*100, 1), nil),
+		newcore.Subscribe(newcore.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
 	)
 
 	b1, _ := NewFileBackend("b1", conf)

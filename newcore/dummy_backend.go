@@ -17,7 +17,7 @@ type dummyBackend struct {
 	printting bool                 // print consuming md to stdout
 }
 
-func newDummyBackend(name string, jamming time.Duration, printting bool) Publication {
+func NewDummyBackend(name string, jamming time.Duration, printting bool) Publication {
 	s := &dummyBackend{
 		name:      name,
 		closing:   make(chan chan error),

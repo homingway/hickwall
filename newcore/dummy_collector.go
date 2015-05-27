@@ -5,53 +5,58 @@ import (
 	"time"
 )
 
-// dummyCollectorFactory returns a collector
-func dummyCollectorFactory(name string) Collector {
-	return newCollector(name, time.Duration(10)*time.Millisecond)
-}
-
 type dummy_collector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
+
+	// dummy_collector specific attributes
+	points int
 }
 
-// newCollector returns a Collector for uri.
-func newCollector(name string, interval time.Duration) Collector {
-	f := &dummy_collector{
+func dummyCollectorFactory(name string) Collector {
+	return NewDummyCollector(name, time.Millisecond*100, 10)
+}
+
+func NewDummyCollector(name string, interval time.Duration, points int) Collector {
+	if points <= 0 {
+		points = 1
+	}
+	c := &dummy_collector{
 		name:     name,
 		enabled:  true,
 		interval: interval,
+		points:   points,
 	}
-	return f
+	return c
 }
 
-func (f *dummy_collector) Name() string {
-	return f.name
+func (c *dummy_collector) Name() string {
+	return c.name
 }
 
-func (f *dummy_collector) Close() error {
+func (c *dummy_collector) Close() error {
 	return nil
 }
 
-func (f *dummy_collector) ClassName() string {
+func (c *dummy_collector) ClassName() string {
 	return "dummy_collector"
 }
 
-func (f *dummy_collector) IsEnabled() bool {
-	return f.enabled
+func (c *dummy_collector) IsEnabled() bool {
+	return c.enabled
 }
 
-func (f *dummy_collector) Interval() time.Duration {
-	return f.interval
+func (c *dummy_collector) Interval() time.Duration {
+	return c.interval
 }
 
-func (f *dummy_collector) CollectOnce() *CollectResult {
+func (c *dummy_collector) CollectOnce() *CollectResult {
 	var items MultiDataPoint
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < c.points; i++ {
 		items = append(items, &DataPoint{
-			Metric:    Metric(fmt.Sprintf("metric.%s", f.name)),
+			Metric:    Metric(fmt.Sprintf("metric.%s", c.name)),
 			Timestamp: time.Now(),
 			Value:     1,
 			Tags:      nil,
@@ -61,7 +66,7 @@ func (f *dummy_collector) CollectOnce() *CollectResult {
 
 	return &CollectResult{
 		Collected: &items,
-		Next:      time.Now().Add(f.interval),
+		Next:      time.Now().Add(c.interval),
 		Err:       nil,
 	}
 }

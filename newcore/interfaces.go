@@ -13,6 +13,8 @@ type CollectResult struct {
 // A Collector collects Items and returns the time when the next collect should be
 // attempted.  On failure, CollectOnce returns a non-nil error.
 // recover from panic and timeout should be handled properly with CollectOnce.
+
+//TODO: Do we have to make Collector interface so complicated?
 type Collector interface {
 	CollectOnce() *CollectResult
 	Interval() time.Duration

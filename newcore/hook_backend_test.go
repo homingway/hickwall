@@ -1,9 +1,7 @@
-package backends
+package newcore
 
 import (
 	"fmt"
-	"github.com/oliveagle/hickwall/collectors"
-	"github.com/oliveagle/hickwall/newcore"
 	"testing"
 	"time"
 )
@@ -13,16 +11,9 @@ var (
 	_ = time.Now()
 )
 
-func TestDummyBackend(t *testing.T) {
-	merge := newcore.Merge(
-		newcore.Subscribe(collectors.NewDummyCollector("c1", time.Millisecond*100, 100), nil),
-		newcore.Subscribe(collectors.NewDummyCollector("c2", time.Millisecond*100, 100), nil),
-	)
-
-	fset := newcore.FanOut(merge,
-		NewDummyBackend("b1", 0, false),
-		NewDummyBackend("b2", 0, false),
-	)
+func TestHookBackend(t *testing.T) {
+	bk := NewHookBackend()
+	fset := FanOut(Subscribe(dummyCollectorFactory("c1"), nil), bk)
 
 	fset_closed_chan := make(chan error)
 
@@ -41,16 +32,15 @@ main_loop:
 		case <-fset_closed_chan:
 			fmt.Println("fset closed")
 			break main_loop
-		case md, openning := <-merge.Updates():
+		case md, openning := <-bk.Hook():
 			if openning == false {
-				fmt.Println("merge.Updates() closed")
+				fmt.Println("HookBackend closed")
 				break main_loop
 			} else {
 				fmt.Printf(".")
-				// fmt.Printf("TestFanout.sub.Updates() still openning: 0x%X\n", &md)
 			}
 			a += len(*md)
-			// t.Log("md: ", md)
+			//			t.Log("md: ", md)
 		case <-tick:
 			a = 0
 		case <-timeout:
