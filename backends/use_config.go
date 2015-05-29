@@ -22,6 +22,14 @@ func UseConfigCreateBackends(rconf *config.RuntimeConfig) ([]newcore.Publication
 		pubs = append(pubs, b)
 	}
 
+	if rconf.Client.Transport_dummy != nil {
+		b := newcore.MustNewDummyBackend(
+			rconf.Client.Transport_dummy.Name,
+			rconf.Client.Transport_dummy.Jamming,
+			rconf.Client.Transport_dummy.Printting)
+		pubs = append(pubs, b)
+	}
+
 	return pubs[:], nil
 
 }

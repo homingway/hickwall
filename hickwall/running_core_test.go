@@ -60,20 +60,20 @@ func Test_CreateRunningCore_Alwasy_Heartbeat(t *testing.T) {
 		t.Errorf("err %v", err)
 	}
 
-	//	closed_chan := make(chan int)
+	// closed_chan := make(chan int)
 	time.AfterFunc(time.Second*1, func() {
 		core.Close()
 	})
 	timeout := time.After(time.Second * 2)
 
-	//	t.Logf("core: %+v", core)
-	//	t.Logf("hook: %+v", hook)
+	// t.Logf("core: %+v", core)
+	// t.Logf("hook: %+v", hook)
 	heartbeat_exists := false
 main_loop:
 	for {
 		select {
-		//		case <-closed_chan:
-		//			break main_loop
+		// case <-closed_chan:
+		// break main_loop
 		case md, opening := <-hook.Hook():
 			if opening == false {
 				t.Log("HookBackend closed")

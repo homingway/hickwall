@@ -24,16 +24,17 @@ groups:
                     - "www.12306.com"
                 timeout: 50ms
                 packets: 5`),
-	"collector_cmd": []byte(`
-groups:
-    -
-        prefix: "prefix"
-        collector_cmd:
-            -
-                cmd:
-                    - 'c:\python27\python.exe'
-                    - 'D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\hickwall\misc\collector_cmd.py'
-                interval: 1s`),
+	// cmd disabled for safety
+	//	"collector_cmd": []byte(`
+	//groups:
+	//    -
+	//        prefix: "prefix"
+	//        collector_cmd:
+	//            -
+	//                cmd:
+	//                    - 'c:\python27\python.exe'
+	//                    - 'D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\hickwall\misc\collector_cmd.py'
+	//                interval: 1s`),
 	"collector_pdh_win": []byte(`
 groups:
     -

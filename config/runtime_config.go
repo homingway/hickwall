@@ -8,6 +8,7 @@ import (
 	//	"time"
 	b_conf "github.com/oliveagle/hickwall/backends/config"
 	c_conf "github.com/oliveagle/hickwall/collectors/config"
+	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/viper"
 	"io"
 )
@@ -53,15 +54,24 @@ type ClientConfig struct {
 	Tags              map[string]string
 	Hostname          string
 
+	Transport_dummy *Transport_dummy // for testing purpose
+
+	Transport_file *b_conf.Transport_file
+
 	//	Transport_influxdb []Transport_influxdb `json:"transport_influxdb"`
-	Transport_influxdb string
-	Transport_file     *b_conf.Transport_file
+	//	Transport_influxdb string
+}
+
+type Transport_dummy struct {
+	Name      string
+	Jamming   newcore.Interval
+	Printting bool
 }
 
 type CollectorConfigGroup struct {
-	Prefix            string                            `json:"prefix"`
-	Collector_ping    []c_conf.Config_Ping              `json:"collector_ping"`
-	Collector_cmd     []c_conf.Config_command           `json:"collector_cmd"`
+	Prefix         string               `json:"prefix"`
+	Collector_ping []c_conf.Config_Ping `json:"collector_ping"`
+	//	Collector_cmd     []c_conf.Config_command           `json:"collector_cmd"`
 	Collector_win_pdh []c_conf.Config_win_pdh_collector `json:"collector_win_pdh"`
 	Collector_win_wmi []c_conf.Config_win_wmi           `json:"collector_win_wmi"`
 

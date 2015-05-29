@@ -35,10 +35,11 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 				clrs = append(clrs, c...)
 			}
 
-			for cid, conf := range group.Collector_cmd {
-				c := NewCmdCollector(gen_collector_name(gid, cid, "cmd"), group.Prefix, conf)
-				clrs = append(clrs, c)
-			}
+			//NOTE: execute command is too risky
+			//			for cid, conf := range group.Collector_cmd {
+			//				c := NewCmdCollector(gen_collector_name(gid, cid, "cmd"), group.Prefix, conf)
+			//				clrs = append(clrs, c)
+			//			}
 
 			for cid, conf := range group.Collector_win_pdh {
 				c := NewWinPdhCollector(gen_collector_name(gid, cid, "pdh"), group.Prefix, conf)

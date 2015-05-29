@@ -99,7 +99,7 @@ func load_group_conf(filepath string) (*CollectorConfigGroup, error) {
 	return &ccg, nil
 }
 
-func load_runtime_conf_from_files() (rc *RuntimeConfig, err error) {
+func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
 	if CONF_FILEPATH != "" {
 		rc, err = load_runtime_conf(CONF_FILEPATH)
 		if err != nil {
