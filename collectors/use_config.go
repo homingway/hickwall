@@ -16,6 +16,9 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 
 	if rconf != nil {
 		for gid, group := range rconf.Groups {
+			if group == nil {
+				continue
+			}
 
 			fmt.Printf("gid: %d, prefix: %s", gid, group.Prefix)
 			if len(group.Prefix) <= 0 {

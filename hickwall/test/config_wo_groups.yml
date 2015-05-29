@@ -1,0 +1,11 @@
+client:
+    # hostname: "test_server1"
+    heartbeat_interval: 5s
+    metric_enabled: true
+    metric_interval: 2s
+    enable_metadata: false
+    merge_metadata_to_tags: false
+
+    transport_dummy:
+        name: "dummy"
+        printting: true

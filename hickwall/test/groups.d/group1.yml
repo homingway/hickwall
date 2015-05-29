@@ -1,0 +1,73 @@
+prefix: "prefix"
+collector_win_pdh:
+    -
+        interval: 2s
+        tags: {
+            "bu": "train"
+        }
+        queries:
+            -
+                query: "\\System\\Processes"
+                metric: "win.pdh.process_cnt"
+                # metric: "win.processes.count"     duplicated metric key: win.processes.count
+            -
+                query: "\\Memory\\Available Bytes"
+                metric: "win.pdh.memory.available_bytes"
+
+collector_win_wmi:
+    -
+        interval: 2s
+        tags: {
+            "bu": "train",
+            "prodution": "短周期"
+        }
+
+        queries:
+            -
+                query: "select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12"
+                metrics:
+                    -
+                        value_from: "Size"
+                        metric: "win.wmi.fs.size.bytes"
+                        tags: {
+                            "mount": "{{.Name}}",
+                        }
+                    -
+                        value_from: "FreeSpace"
+                        metric: "win.wmi.fs.freespace.bytes"
+                        tags: {
+                            "mount": "{{.Name}}",
+                        }
+
+    -
+        interval: 5s
+        tags: {
+            "bu": "train",
+            "prodution": "长周期"
+        }
+
+        queries:
+            -
+                query: "select Name, NumberOfCores from Win32_Processor"
+                metrics:
+                    -
+                        value_from: "Name"
+                        metric: "win.wmi.cpu.name"
+                    -
+                        value_from: "NumberOfCores"
+                        metric: "win.wmi.cpu.numberofcores"
+
+# TODO: collector_ping
+collector_ping:
+    -
+        # in seconds
+        interval: 10s
+        metric_key: "ping"
+        tags: {
+          "some": "test"
+        }
+        targets:
+            - "www.baidu.com"
+            - "www.12306.com"
+        timeout: 50ms
+        packets: 5

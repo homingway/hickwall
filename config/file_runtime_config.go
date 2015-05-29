@@ -83,17 +83,33 @@ func load_runtime_conf(filepath string) (*RuntimeConfig, error) {
 }
 
 func load_group_conf(filepath string) (*CollectorConfigGroup, error) {
+	var (
+		ccg CollectorConfigGroup
+		err error
+	)
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+			err = fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
+		}
+	}()
+	//	panic("hahah")
+
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	var ccg CollectorConfigGroup
-
 	vp := viper.New()
 	vp.SetConfigType("yaml")
-	vp.ReadConfig(file)
+	fmt.Println("---------- nothing wrong ----------")
+	err = vp.ReadConfig(file)
+	fmt.Println("---------- nothing wrong ----------")
+	if err != nil {
+		return nil, fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
+	}
 
 	vp.Marshal(&ccg)
 	return &ccg, nil
@@ -107,16 +123,22 @@ func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
 		}
 	}
 
+	fmt.Println("hahah ---------------------- 1")
+
 	if CONF_GROUP_DIRECTORY != "" {
 		files, err := ioutil.ReadDir(CONF_GROUP_DIRECTORY)
 		if err == nil {
 			for _, f := range files {
 				filepath := path.Join(CONF_GROUP_DIRECTORY, f.Name())
+				fmt.Println("filepath: ", filepath)
 				if ccg, err := load_group_conf(filepath); err == nil {
 					rc.Groups = append(rc.Groups, ccg)
+				} else {
+					fmt.Println("error: ", err)
 				}
 			}
 		}
 	}
+	fmt.Println("hahah ---------------------- 2")
 	return
 }
