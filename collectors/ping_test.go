@@ -58,6 +58,11 @@ main_loop:
 							t.Error("host is not in tags")
 							return
 						}
+						if _, ok := dp.Tags["target"]; ok == false {
+							t.Error("target is not in tags")
+							return
+						}
+
 						if !strings.HasPrefix(dp.Metric.Clean(), "prefix.ping.") {
 							t.Error("metric wrong")
 							return

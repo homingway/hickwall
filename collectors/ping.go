@@ -92,25 +92,25 @@ func (c *ping_collector) Interval() time.Duration {
 	return c.interval
 }
 
-func (c *ping_collector) CollectOnce_1() *newcore.CollectResult {
-	var items newcore.MultiDataPoint
+// func (c *ping_collector) CollectOnce_1() *newcore.CollectResult {
+// 	var items newcore.MultiDataPoint
 
-	for i := 0; i < 10; i++ {
-		items = append(items, &newcore.DataPoint{
-			Metric:    newcore.Metric(fmt.Sprintf("metric.%s", c.name)),
-			Timestamp: time.Now(),
-			Value:     1,
-			Tags:      nil,
-			Meta:      nil,
-		})
-	}
+// 	for i := 0; i < 10; i++ {
+// 		items = append(items, &newcore.DataPoint{
+// 			Metric:    newcore.Metric(fmt.Sprintf("metric.%s", c.name)),
+// 			Timestamp: time.Now(),
+// 			Value:     1,
+// 			Tags:      nil,
+// 			Meta:      nil,
+// 		})
+// 	}
 
-	return &newcore.CollectResult{
-		Collected: &items,
-		Next:      time.Now().Add(c.interval),
-		Err:       nil,
-	}
-}
+// 	return &newcore.CollectResult{
+// 		Collected: &items,
+// 		Next:      time.Now().Add(c.interval),
+// 		Err:       nil,
+// 	}
+// }
 
 func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 	log.Println("ping_collector: CollectOnce Started")
@@ -151,6 +151,7 @@ func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 		d.Update(rtt)
 	}
 
+	log.Println("ping c.tags: ", c.tags)
 	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
 	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
 	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
