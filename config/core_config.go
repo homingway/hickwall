@@ -64,6 +64,7 @@ func IsCoreConfigLoaded() bool {
 }
 
 func LoadCoreConfig() error {
+
 	defer log.Flush()
 
 	core_viper.SetConfigName("core_config")
@@ -90,20 +91,15 @@ func LoadCoreConfig() error {
 	ConfigLogger()
 	if err != nil {
 		log.Errorf("LoadCoreConfFile failed: %v", err)
-		log.Error("SHARED_DIR: ", SHARED_DIR)
 		return fmt.Errorf("LoadCoreConfFile failed: %v", err)
 
 	} else {
 		log.Debug("init config, core config loaded")
-		log.Debug("LOG_DIR: ", LOG_DIR)
-		log.Debug("LOG_FILEPATH: ", LOG_FILEPATH)
 	}
 
 	log.Debug("core config file used: ", core_viper.ConfigFileUsed())
 	log.Debugf("CoreConfig:  %+v", CoreConf)
 
-	// fmt.Println("core config file used: ", core_viper.ConfigFileUsed())
-	// fmt.Println("SHARED_DIR: ", SHARED_DIR)
 	core_conf_loaded = true
 
 	log.Debug("CoreConfig Loaded")

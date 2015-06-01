@@ -14,7 +14,6 @@ var err error
 
 func main() {
 	defer utils.Recover_and_log()
-
 	log.Debug("hickwall main ---------------------------")
 
 	app := cli.NewApp()
@@ -105,9 +104,6 @@ func main() {
 			},
 		},
 	}
-
-	// log.Trace("hahaha trace")
-	// app.Run(os.Args)
 
 	if len(os.Args) >= 2 {
 		log.Debug("len os.args >= 2")

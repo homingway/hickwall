@@ -123,7 +123,7 @@ func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
 		}
 	}
 
-	fmt.Println("hahah ---------------------- 1")
+	//	fmt.Println("hahah ---------------------- 1")
 
 	if CONF_GROUP_DIRECTORY != "" {
 		files, err := ioutil.ReadDir(CONF_GROUP_DIRECTORY)
@@ -139,6 +139,6 @@ func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
 			}
 		}
 	}
-	fmt.Println("hahah ---------------------- 2")
+	//	fmt.Println("hahah ---------------------- 2")
 	return
 }

@@ -18,8 +18,8 @@ func TestDummyBackend(t *testing.T) {
 	)
 
 	fset := FanOut(merge,
-		MustNewDummyBackend("b1", "0", false),
-		MustNewDummyBackend("b2", "0", false),
+		MustNewDummyBackend("b1", "0", false, false),
+		MustNewDummyBackend("b2", "0", false, false),
 	)
 
 	fset_closed_chan := make(chan error)

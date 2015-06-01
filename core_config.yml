@@ -29,4 +29,3 @@ etcd_enabled: false
 # current only support etcd
 etcd_url: "http://192.168.59.103:4001"
 etcd_path: "/config/host/DST54869.yml"
-

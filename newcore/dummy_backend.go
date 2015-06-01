@@ -15,15 +15,17 @@ type dummyBackend struct {
 	updates   chan *MultiDataPoint // for receive updates
 	jamming   time.Duration        // jamming a little period of time while comsuming, 0 duration disable it
 	printting bool                 // print consuming md to stdout
+	detail    bool                 // if true print every datapoing
 }
 
-func MustNewDummyBackend(name string, jamming Interval, printting bool) Publication {
+func MustNewDummyBackend(name string, jamming Interval, printting bool, detail bool) Publication {
 	s := &dummyBackend{
 		name:      name,
 		closing:   make(chan chan error),
 		updates:   make(chan *MultiDataPoint),
 		jamming:   jamming.MustDuration(time.Second),
 		printting: printting,
+		detail:    detail,
 	}
 	go s.loop()
 	return s
@@ -40,10 +42,17 @@ func (b *dummyBackend) loop() {
 		select {
 		case md := <-startConsuming:
 			if b.printting {
-				fmt.Printf("dummyBackend.loop name:%s, consuming md: 0x%X \n", b.name, &md)
+				if b.detail == true {
+					for _, dp := range *md {
+						fmt.Printf("dummy(%s) --> %s \n", b.name, dp.Json())
+					}
+				} else {
+					fmt.Printf("dummyBackend.loop name:%s, consuming md: 0x%X \n", b.name, &md)
+				}
+
 			}
 			if b.jamming > 0 {
-				fmt.Println("jamming")
+				fmt.Println("jamming: ", b.jamming)
 				time.Sleep(b.jamming)
 			}
 		case errc := <-b.closing:

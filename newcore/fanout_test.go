@@ -19,7 +19,7 @@ func TestFanout(t *testing.T) {
 	// 	newDummyBackend("b2", 0))
 
 	fset := FanOut(sub,
-		MustNewDummyBackend("b1", "0", false))
+		MustNewDummyBackend("b1", "0", false, false))
 
 	fset_closed_chan := make(chan error)
 
@@ -66,8 +66,8 @@ func TestFanoutJammingBackend(t *testing.T) {
 	sub := Subscribe(dummyCollectorFactory("c1"), nil)
 
 	fset := FanOut(sub,
-		MustNewDummyBackend("b1", "10s", true),
-		MustNewDummyBackend("b2", "0", false))
+		MustNewDummyBackend("b1", "10s", true, false),
+		MustNewDummyBackend("b2", "0", false, false))
 
 	fset_closed_chan := make(chan error)
 
@@ -124,8 +124,8 @@ func TestCloseFanoutRepeatly(t *testing.T) {
 
 		fset := FanOut(
 			Subscribe(dummyCollectorFactory("c1"), nil),
-			MustNewDummyBackend("b1", "0", false),
-			MustNewDummyBackend("b2", "0", false),
+			MustNewDummyBackend("b1", "0", false, false),
+			MustNewDummyBackend("b2", "0", false, false),
 		)
 
 		fset_closed_chan := make(chan error)

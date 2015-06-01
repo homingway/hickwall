@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/oliveagle/hickwall/config"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -94,5 +95,17 @@ main_loop:
 	}
 	if heartbeat_exists == false {
 		t.Error("heartbeat didn't show up")
+	}
+}
+
+// FIXME: how to ensure core_config is loaded correctly here?
+func Test_Start_From_File(t *testing.T) {
+	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
+	config.CONF_FILEPATH, _ = filepath.Abs("./test/config.yml")
+	err := Start()
+	if err != nil {
+		t.Error("failed to Start() from file")
+	} else {
+		Stop()
 	}
 }

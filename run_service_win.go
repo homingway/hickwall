@@ -4,22 +4,17 @@ package main
 
 import (
 	"code.google.com/p/winsvc/svc"
-	// "fmt"
-	//	"github.com/oliveagle/hickwall/backends"
-	// "runtime"
-	// "github.com/oliveagle/hickwall/collectorlib"
-	//	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/command"
-	"github.com/oliveagle/hickwall/config"
-	//	"github.com/oliveagle/hickwall/lib"
-	"github.com/oliveagle/hickwall/servicelib"
+	// "github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/hickwall"
+	//	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
 	log "github.com/oliveagle/seelog"
 	// "runtime/debug"
 	"os"
 	// "runtime/pprof"
 	// "strconv"
-	"github.com/davecheney/profile"
+	//	"github.com/davecheney/profile"
 	"time"
 )
 
@@ -27,26 +22,6 @@ var pid int
 
 func init() {
 	pid = os.Getpid()
-}
-
-func start_service_if_stopped(service *servicelib.Service) {
-	defer utils.Recover_and_log()
-
-	state, err := service.Status()
-	if err != nil {
-		log.Errorf("CmdServiceStatus Error: %v", err)
-		return
-	}
-	if state == servicelib.Stopped {
-		log.Warnf("service %s is stopped! trying to start service again", service.Name())
-
-		err := service.StartService()
-		if err != nil {
-			log.Error("start service failed: ", err)
-		} else {
-			log.Info("service %s started", service.Name())
-		}
-	}
 }
 
 type serviceHandler struct{}
@@ -70,8 +45,8 @@ func runWithoutService() {
 }
 
 func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	defer utils.Recover_and_log()
 	log.Info("runAsPrimaryService")
+	defer utils.Recover_and_log()
 
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
@@ -80,32 +55,22 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	//http://localhost:6060/debug/pprof/
 	utils.HttpPprofServe(6060)
 
-	after := time.After(time.Duration(8) * time.Minute)
+	//	after := time.After(time.Duration(8) * time.Minute)
 	// f, _ := os.Create("d:\\cpu-" + strconv.Itoa(pid) + ".pprof")
 	// pprof.StartCPUProfile(f)
 	// defer pprof.StopCPUProfile()
 
-	cfg := profile.Config{
-		MemProfile:     true,
-		ProfilePath:    "./pprofs/", // store profiles in current directory
-		NoShutdownHook: true,        // do not hook SIGINT
-	}
-	p := profile.Start(&cfg)
-
-	defer p.Stop()
+	//	cfg := profile.Config{
+	//		MemProfile:     true,
+	//		ProfilePath:    "./pprofs/", // store profiles in current directory
+	//		NoShutdownHook: true,        // do not hook SIGINT
+	//	}
+	//	p := profile.Start(&cfg)
+	//
+	//	defer p.Stop()
 
 	// utils.StartCPUProfile()
 	// defer utils.StopCPUProfile()
-
-	//	go lib.LoadConfigAndWatching()
-
-	// reload won't lower memory usage.
-	// go func() {
-	// 	for {
-	// 		<-time.After(time.Second * time.Duration(15))
-	// 		ReloadWithRuntimeConfig()
-	// 	}
-	// }()
 
 	// go func() {
 	// 	for {
@@ -114,18 +79,19 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	// 	}
 	// }()
 
+	err := hickwall.Start()
+	if err != nil {
+		log.Critical("Failed To Start hickwall: %v", err)
+		return
+	} else {
+		defer hickwall.Stop()
+	}
+
+	log.Debug("service event handling loop started ")
 	// major loop for signal processing.
 loop:
 	for {
 		select {
-		case <-after:
-			log.Info("time is up")
-			break loop
-			//		case md, _ := <-collectors.GetDataChan():
-			//			for _, p := range md {
-			//				log.Trace(" point ---> ", p)
-			//			}
-			//			backends.WriteToBackends(md)
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:
@@ -153,22 +119,13 @@ loop:
 }
 
 func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	defer utils.Recover_and_log()
-
-	log.Infof("serviceHandler.Execute: %v", args)
 	return runAsPrimaryService(args, r, changes)
 }
 
 func runService(isDebug bool) {
 	defer utils.Recover_and_log()
-	// panic("hahaah")
-
-	if !config.IsCoreConfigLoaded() {
-		log.Critical("core config not loaded.")
-		return
-	}
-
 	log.Debug("runService")
+
 	err = svc.Run(command.PrimaryService.Name(), &serviceHandler{})
 	if err != nil {
 		log.Errorf("runService: failed: %v\r\n", err)

@@ -249,8 +249,8 @@ func gen_config(formats_args *gen_formats_args, outputs_args *gen_outputs_args) 
 
 func ConfigLogger() error {
 	var (
-		maxsize   = 1
-		maxrolls  = 1
+		maxsize   = 10000 // 10G
+		maxrolls  = 10
 		log_level = "debug"
 	)
 
@@ -261,10 +261,10 @@ func ConfigLogger() error {
 		fmt_file:    LOG_FORMAT,
 	}
 
-	if CoreConf.Log_file_maxsize > maxsize {
+	if CoreConf.Log_file_maxsize > 0 {
 		maxsize = CoreConf.Log_file_maxsize
 	}
-	if CoreConf.Log_file_maxrolls > maxrolls {
+	if CoreConf.Log_file_maxrolls > 0 {
 		maxrolls = CoreConf.Log_file_maxrolls
 	}
 

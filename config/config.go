@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	// "reflect"
 
-	//	log "github.com/oliveagle/seelog"
+	log "github.com/oliveagle/seelog"
 
 	// "encoding/json"
 	// "io/ioutil"
@@ -51,15 +51,23 @@ func init() {
 	// CollectorConfigGroup with in this folder
 	CONF_GROUP_DIRECTORY, _ = filepath.Abs(path.Join(SHARED_DIR, "groups.d"))
 
-	// fmt.Println("dir: ", dir)
-	// fmt.Println("SHARED_DIR: ", SHARED_DIR)
-	// fmt.Println("CONF_FILEPATH: ", CONF_FILEPATH)
-	// fmt.Println("CONF_DIRECTORY: ", CONF_DIRECTORY)
-
 	Mkdir_p_logdir(LOG_DIR)
 
 	// we don't need to always load core config
 	//	LoadCoreConfig()
+
+	// config logger every time. even core config is not loaded. because we can override it
+	// while loading core config.
+	ConfigLogger()
+
+	log.Debug("SHARED_DIR: ", SHARED_DIR)
+	log.Debug("LOG_DIR: ", LOG_DIR)
+	log.Debug("LOG_FILEPATH: ", LOG_FILEPATH)
+	log.Debug("CORE_CONF_FILEPATH: ", CORE_CONF_FILEPATH)
+	log.Debug("CONF_FILEPATH: ", CONF_FILEPATH)
+	log.Debug("REGISTRY_FILEPATH: ", REGISTRY_FILEPATH)
+	log.Debug("CONF_GROUP_DIRECTORY: ", CONF_GROUP_DIRECTORY)
+
 }
 
 //func WatchConfig() <-chan *RespConfig {

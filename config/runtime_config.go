@@ -66,6 +66,7 @@ type Transport_dummy struct {
 	Name      string
 	Jamming   newcore.Interval
 	Printting bool
+	Detail    bool
 }
 
 type CollectorConfigGroup struct {

@@ -1,0 +1,8 @@
+log_level: "debug"
+log_file_maxsize: 100
+log_file_maxrolls: 5
+memory_limit_in_mb: 500
+etcd_enabled: false
+etcd_url: "http://192.168.59.103:4001"
+etcd_path: "/config/host/DST54869.yml"
+
