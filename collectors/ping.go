@@ -151,7 +151,6 @@ func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 		d.Update(rtt)
 	}
 
-	log.Println("ping c.tags: ", c.tags)
 	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
 	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
 	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
