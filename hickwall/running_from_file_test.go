@@ -29,5 +29,18 @@ func Test_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
 	if core != nil {
 		core.Close()
 	}
+}
 
+//TODO: how to assert ?
+func Test_LoadConfigFromFileAndRun_GroupDir_DupPrefix(t *testing.T) {
+	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
+	config.CONF_GROUP_DIRECTORY, _ = filepath.Abs("./test/groups_dup_prefix.d")
+	core, err := LoadConfigFromFileAndRun()
+	if err == nil {
+		t.Error("failed. duplicated group prefix should raise error")
+		return
+	}
+	if core != nil {
+		core.Close()
+	}
 }

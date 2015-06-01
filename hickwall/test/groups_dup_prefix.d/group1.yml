@@ -1,4 +1,4 @@
-prefix: "group1"
+prefix: "prefix"
 collector_ping:
     -
         # in seconds

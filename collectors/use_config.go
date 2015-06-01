@@ -20,7 +20,7 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 				continue
 			}
 
-			fmt.Printf("gid: %d, prefix: %s", gid, group.Prefix)
+			fmt.Printf("gid: %d, prefix: %s\n", gid, group.Prefix)
 			if len(group.Prefix) <= 0 {
 				return nil, fmt.Errorf("group (idx:%d) prefix is empty.", gid)
 			} else {
