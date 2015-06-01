@@ -44,7 +44,7 @@ func (b *dummyBackend) loop() {
 			if b.printting {
 				if b.detail == true {
 					for _, dp := range *md {
-						fmt.Printf("dummy(%s) --> %s \n", b.name, dp.Json())
+						fmt.Printf("dummy(%s) --> %+v \n", b.name, dp)
 					}
 				} else {
 					fmt.Printf("dummyBackend.loop name:%s, consuming md: 0x%X \n", b.name, &md)
