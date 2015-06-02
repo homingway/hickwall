@@ -35,12 +35,13 @@ func Subscribe(collector Collector, opt *SubOptions) Subscription {
 		delay = time.Duration(100) * time.Millisecond
 	}
 
-	s := &sub{
+	s := sub{
 		collector:      collector,
 		updates:        make(chan MultiDataPoint), // for Updates
 		closing:        make(chan chan error),     // for Close
 		maxPending:     opt.MaxPending,            //
 		delay_on_error: delay,                     // delay on collect error
+		name:           collector.Name(),
 	}
 	go s.loop()
 	return s
@@ -53,17 +54,20 @@ type sub struct {
 	closing        chan chan error     // for Close
 	maxPending     int
 	delay_on_error time.Duration
+
+	name string
 }
 
-func (s *sub) Updates() <-chan MultiDataPoint {
+func (s sub) Updates() <-chan MultiDataPoint {
 	return s.updates
 }
 
-func (s *sub) Name() string {
-	return s.collector.Name()
+func (s sub) Name() string {
+	return s.name[:]
+	// return s.collector.Name()[:]
 }
 
-func (s *sub) Close() error {
+func (s sub) Close() error {
 	errc := make(chan error)
 	s.closing <- errc
 	return <-errc
@@ -72,7 +76,7 @@ func (s *sub) Close() error {
 // loop periodically fecthes Items, sends them on s.updates, and exits
 // when Close is called.
 // CollectOnce asynchronously.
-func (s *sub) loop() {
+func (s sub) loop() {
 	var (
 		collectDone  chan CollectResult // if non-nil, CollectOnce is running
 		pending      []MultiDataPoint
@@ -109,6 +113,7 @@ func (s *sub) loop() {
 
 			// TODO: add unittest for this.
 			// collectOnce should be call async, otherwise, will block consuming result.
+			// TODO: leaking param c
 			go func() {
 				// defer func() {
 				// 	if r := recover(); r != nil {
@@ -117,8 +122,6 @@ func (s *sub) loop() {
 				// }()
 				collectDone <- s.collector.CollectOnce()
 			}()
-		// case collectDone <- s.collector.CollectOnce():
-		// 	break
 		case result := <-collectDone:
 			// log.Println("result := <- collectDone", result)
 			collectDone = nil
