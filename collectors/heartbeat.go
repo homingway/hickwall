@@ -44,8 +44,8 @@ func (c heartbeat) Interval() time.Duration {
 func (c heartbeat) CollectOnce() newcore.CollectResult {
 	var items newcore.MultiDataPoint
 
-	Add(&items, "hickwall.client", "alive", 1, nil, "", "", "")
-	// items = append(items, newcore.NewDP("hickwall.client", "alive", 1, nil, "", "", ""))
+	// Add(&items, "hickwall.client", "alive", 1, nil, "", "", "")
+	items = append(items, newcore.NewDP("hickwall.client", "alive", 1, nil, "", "", ""))
 
 	return newcore.CollectResult{
 		Collected: items,
