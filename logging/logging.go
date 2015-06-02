@@ -17,6 +17,7 @@ var (
 func init() {
 	_level = level.DEBUG
 	create_output()
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func create_output() {
