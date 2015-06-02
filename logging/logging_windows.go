@@ -1,5 +1,5 @@
 package logging
 
 var (
-	LOG_FILEPATH = "d:\\hickwall.log"
+	LOG_FILEPATH = "hickwall.log"
 )
