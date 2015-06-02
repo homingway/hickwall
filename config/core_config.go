@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	log "github.com/oliveagle/seelog"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/viper"
 	"strings"
 )
@@ -65,7 +65,7 @@ func IsCoreConfigLoaded() bool {
 
 func LoadCoreConfig() error {
 
-	defer log.Flush()
+	// defer logging.Flush()
 
 	core_viper.SetConfigName("core_config")
 	// core_viper.SetConfigFile(CORE_CONF_FILEPATH)
@@ -76,32 +76,32 @@ func LoadCoreConfig() error {
 
 	err := core_viper.ReadInConfig()
 	if err != nil {
-		log.Errorf("No configuration file loaded. core_config.yml :%v", err)
+		logging.Errorf("No configuration file loaded. core_config.yml :%v", err)
 		return fmt.Errorf("No configuration file loaded. core_config.yml :%v", err)
 	}
 
-	// log.Debug("core config file used: ", core_viper.ConfigFileUsed())
+	// logging.Debug("core config file used: ", core_viper.ConfigFileUsed())
 
 	err = core_viper.Marshal(&CoreConf)
 	if err != nil {
-		log.Errorf("Error: unable to parse Core Configuration: %v\n", err)
+		logging.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 		return fmt.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 	}
 
 	ConfigLogger()
 	if err != nil {
-		log.Errorf("LoadCoreConfFile failed: %v", err)
+		logging.Errorf("LoadCoreConfFile failed: %v", err)
 		return fmt.Errorf("LoadCoreConfFile failed: %v", err)
 
 	} else {
-		log.Debug("init config, core config loaded")
+		logging.Debug("init config, core config loaded")
 	}
 
-	log.Debug("core config file used: ", core_viper.ConfigFileUsed())
-	log.Debugf("CoreConfig:  %+v", CoreConf)
+	logging.Debug("core config file used: ", core_viper.ConfigFileUsed())
+	logging.Debugf("CoreConfig:  %+v", CoreConf)
 
 	core_conf_loaded = true
 
-	log.Debug("CoreConfig Loaded")
+	logging.Debug("CoreConfig Loaded")
 	return nil
 }

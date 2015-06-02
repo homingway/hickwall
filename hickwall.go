@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/command"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
-	log "github.com/oliveagle/seelog"
 	"os"
 )
 
@@ -14,7 +14,7 @@ var err error
 
 func main() {
 	defer utils.Recover_and_log()
-	log.Debug("hickwall main ---------------------------")
+	logging.Debug("hickwall main ---------------------------")
 
 	app := cli.NewApp()
 	app.Name = "hickwall"
@@ -106,19 +106,19 @@ func main() {
 	}
 
 	if len(os.Args) >= 2 {
-		log.Debug("len os.args >= 2")
+		logging.Debug("len os.args >= 2")
 		app.Run(os.Args)
 	} else {
-		log.Debug("len os.args < 2")
+		logging.Debug("len os.args < 2")
 
 		isIntSess, err := servicelib.IsAnInteractiveSession()
 		if err != nil {
-			log.Error("failed to determine if we are running in an interactive session or not: %v", err)
+			logging.Error("failed to determine if we are running in an interactive session or not: %v", err)
 			return
 		}
 
 		if !isIntSess {
-			log.Debug("running as service ... ")
+			logging.Debug("running as service ... ")
 			runService(false)
 			return
 		}

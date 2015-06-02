@@ -4,14 +4,12 @@ package main
 
 import (
 	// "fmt"
+	"github.com/oliveagle/go-metrics"
+	"github.com/oliveagle/hickwall/logging"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
-
-	log "github.com/oliveagle/seelog"
-
-	"github.com/oliveagle/go-metrics"
-	"net"
 	"time"
 )
 
@@ -35,7 +33,7 @@ func runService(idDebug bool) (string, error) {
 		select {
 		case now := <-tick:
 			c.Inc(47)
-			log.Trace("tick: %v", now)
+			logging.Trace("tick: %v", now)
 
 		case killSignal := <-interrupt:
 			if killSignal == os.Interrupt {

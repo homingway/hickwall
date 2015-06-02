@@ -2,7 +2,7 @@ package config
 
 import (
 	//	"fmt"
-	log "github.com/oliveagle/seelog"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/viper"
 	"time"
 )
@@ -19,7 +19,7 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 
 	err := runtime_viper.AddRemoteProvider("etcd", CoreConf.Etcd_url, CoreConf.Etcd_path)
 	if err != nil {
-		log.Criticalf("addRemoteProvider Error: %v", err)
+		logging.Criticalf("addRemoteProvider Error: %v", err)
 	}
 	runtime_viper.SetConfigType("YAML")
 
@@ -28,11 +28,11 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 		var tmp_conf RuntimeConfig
 		err = runtime_viper.ReadRemoteConfig()
 		if err != nil {
-			log.Errorf("runtime_viper.ReadRemoteConfig Error: %v", err)
+			logging.Errorf("runtime_viper.ReadRemoteConfig Error: %v", err)
 		} else {
 			err = runtime_viper.Marshal(&tmp_conf)
 			if err != nil {
-				log.Errorf("runtime_viper.Marshal Error: %v", err)
+				logging.Errorf("runtime_viper.Marshal Error: %v", err)
 			} else {
 				out <- &RespConfig{&tmp_conf, nil}
 			}
@@ -47,25 +47,25 @@ func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 
 			select {
 			case <-stop:
-				log.Debugf("stop watching etcd remote config.")
+				logging.Debugf("stop watching etcd remote config.")
 				break loop
 			default:
-				log.Debugf("watching etcd remote config: %s, %s", CoreConf.Etcd_url, CoreConf.Etcd_path)
+				logging.Debugf("watching etcd remote config: %s, %s", CoreConf.Etcd_url, CoreConf.Etcd_path)
 				err := runtime_viper.WatchRemoteConfig()
 				if err != nil {
-					log.Errorf("unable to read remote config: %v", err)
+					logging.Errorf("unable to read remote config: %v", err)
 					time.Sleep(time.Second * 5)
 					continue
 				}
 
 				err = runtime_viper.Marshal(&runtime_conf)
 				if err != nil {
-					log.Errorf("unable to marshal to config: %v", err)
+					logging.Errorf("unable to marshal to config: %v", err)
 					time.Sleep(time.Second * 5)
 					continue
 				}
 
-				log.Debugf("a new config is comming")
+				logging.Debugf("a new config is comming")
 				out <- &RespConfig{&runtime_conf, nil}
 
 				//TODO: make it configurable

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	// "reflect"
 
-	log "github.com/oliveagle/seelog"
+	"github.com/oliveagle/hickwall/logging"
 
 	// "encoding/json"
 	// "io/ioutil"
@@ -60,13 +60,13 @@ func init() {
 	// while loading core config.
 	ConfigLogger()
 
-	log.Debug("SHARED_DIR: ", SHARED_DIR)
-	log.Debug("LOG_DIR: ", LOG_DIR)
-	log.Debug("LOG_FILEPATH: ", LOG_FILEPATH)
-	log.Debug("CORE_CONF_FILEPATH: ", CORE_CONF_FILEPATH)
-	log.Debug("CONF_FILEPATH: ", CONF_FILEPATH)
-	log.Debug("REGISTRY_FILEPATH: ", REGISTRY_FILEPATH)
-	log.Debug("CONF_GROUP_DIRECTORY: ", CONF_GROUP_DIRECTORY)
+	logging.Debug("SHARED_DIR: ", SHARED_DIR)
+	logging.Debug("LOG_DIR: ", LOG_DIR)
+	logging.Debug("LOG_FILEPATH: ", LOG_FILEPATH)
+	logging.Debug("CORE_CONF_FILEPATH: ", CORE_CONF_FILEPATH)
+	logging.Debug("CONF_FILEPATH: ", CONF_FILEPATH)
+	logging.Debug("REGISTRY_FILEPATH: ", REGISTRY_FILEPATH)
+	logging.Debug("CONF_GROUP_DIRECTORY: ", CONF_GROUP_DIRECTORY)
 
 }
 

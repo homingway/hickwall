@@ -4,10 +4,7 @@ package servicelib
 
 import (
 	"fmt"
-	// "github.com/oliveagle/hickwall/config"
-	log "github.com/oliveagle/seelog"
-	// "github.com/op/go-logging"
-	// "github.com/VividCortex/robustly"
+	"github.com/oliveagle/hickwall/logging"
 )
 
 func printCmdRes(str string, err error) {
@@ -19,7 +16,7 @@ func IsAnInteractiveSession() (bool, error) {
 }
 
 func (this *Service) InstallService() error {
-	log.Debug("ServiceManager.InstallService")
+	logging.Debug("ServiceManager.InstallService")
 
 	str, err := this.Install()
 	printCmdRes(str, err)
@@ -27,7 +24,7 @@ func (this *Service) InstallService() error {
 }
 
 func (this *Service) RemoveService() error {
-	log.Debug("ServiceManager.RemoveService")
+	logging.Debug("ServiceManager.RemoveService")
 
 	str, err := this.Remove()
 	printCmdRes(str, err)
@@ -35,12 +32,12 @@ func (this *Service) RemoveService() error {
 }
 
 func (this *Service) Status() (State, error) {
-	log.Error("ServiceManagement.Status not supported")
+	logging.Error("ServiceManagement.Status not supported")
 	return Unknown, fmt.Errorf("ServerMangement.Status not supported")
 }
 
 func (this *Service) StartService() error {
-	log.Debug("ServiceManager.StartService")
+	logging.Debug("ServiceManager.StartService")
 
 	str, err := this.Start()
 	printCmdRes(str, err)
@@ -48,7 +45,7 @@ func (this *Service) StartService() error {
 }
 
 func (this *Service) StopService() error {
-	log.Debug("ServiceManager.StopService")
+	logging.Debug("ServiceManager.StopService")
 
 	str, err := this.Stop()
 	printCmdRes(str, err)
@@ -56,12 +53,12 @@ func (this *Service) StopService() error {
 }
 
 func (this *Service) PauseService() error {
-	log.Error("ServiceManager.PauseServicen not supported ")
+	logging.Error("ServiceManager.PauseServicen not supported ")
 
 	return nil
 }
 
 func (this *Service) ContinueService() error {
-	log.Error("ServiceManager.ContinueService not supported ")
+	logging.Error("ServiceManager.ContinueService not supported ")
 	return nil
 }
