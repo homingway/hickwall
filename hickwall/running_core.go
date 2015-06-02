@@ -46,7 +46,7 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 
 	if heartbeat_exists == false {
 		logging.Debugf("heartbeat_exists == false: len(subs): %d", len(subs))
-		clrs = append(clrs, collectors.NewHeartBeat(rconf.Client.HeartBeatInterval))
+		clrs = append(clrs, collectors.NewHeartBeat(rconf.Client.HeartBeat_Interval))
 	}
 
 	fmt.Println("collectors: ", clrs)

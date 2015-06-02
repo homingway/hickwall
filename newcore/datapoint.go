@@ -40,7 +40,8 @@ func NewDP(prefix, metric string, value interface{}, tags TagSet, datatype strin
 }
 
 //TODO: unittest NewDataPoint
-func NewDataPoint(metric string, value interface{}, ts time.Time, tags TagSet, datatype string, unit string, desc string) DataPoint {
+func NewDataPoint(metric string, value interface{}, ts time.Time, t TagSet, datatype string, unit string, desc string) DataPoint {
+	tags := AddTags.Copy().Merge(t)
 
 	if _, present := tags["host"]; !present {
 		tags["host"] = GetHostname()

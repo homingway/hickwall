@@ -73,7 +73,6 @@ func (s *sub) Close() error {
 // when Close is called.
 // CollectOnce asynchronously.
 func (s *sub) loop() {
-
 	var (
 		collectDone  chan CollectResult // if non-nil, CollectOnce is running
 		pending      []MultiDataPoint
@@ -111,6 +110,11 @@ func (s *sub) loop() {
 			// TODO: add unittest for this.
 			// collectOnce should be call async, otherwise, will block consuming result.
 			go func() {
+				// defer func() {
+				// 	if r := recover(); r != nil {
+				// 		log.Println("------------ Recovered in f ----------", r)
+				// 	}
+				// }()
 				collectDone <- s.collector.CollectOnce()
 			}()
 		// case collectDone <- s.collector.CollectOnce():

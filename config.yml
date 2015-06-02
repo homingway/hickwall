@@ -10,7 +10,7 @@ client:
     # hostname: "test_server1"
 
     # minimal interval is 1s
-    heartbeat_interval: 5s
+    heartbeat_interval: 10ms
 
     metric_enabled: true
     metric_interval: 2s

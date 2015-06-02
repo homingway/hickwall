@@ -50,9 +50,9 @@ type RuntimeConfig struct {
 }
 
 type ClientConfig struct {
-	HeartBeatInterval string
-	Tags              map[string]string
-	Hostname          string
+	HeartBeat_Interval string
+	Tags               map[string]string
+	Hostname           string
 
 	Transport_dummy *Transport_dummy // for testing purpose
 
