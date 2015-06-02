@@ -7,5 +7,6 @@
 #
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-cd "$SCRIPT_ROOT/.." && rm -f hickwall.exe  && go build -gcflags -m 2>&1 | tee gcflags_m.log | grep "to heap"
-
+cd "$SCRIPT_ROOT/.." && \
+  rm -f hickwall.exe  && go build -gcflags -m 2>&1 | tee gcflags_m.log | grep "to heap" && \
+  cat gcflags_m.log | grep "to heap" | wc -l

@@ -24,9 +24,6 @@ type ping_collector struct {
 	tags    newcore.TagSet
 }
 
-// func NewPingCollectorFactory(configs []*Config_ping) []newcore.Collector {
-// }
-
 func NewPingCollectors(name, prefix string, conf config.Config_Ping) []newcore.Collector {
 	var sconf config.Config_single_pinger
 	var pings []newcore.Collector
@@ -58,7 +55,7 @@ func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinge
 		conf.Packets = 1
 	}
 
-	c := &ping_collector{
+	c := ping_collector{
 		name:    name,
 		enabled: true,
 		config:  conf,
@@ -71,48 +68,28 @@ func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinge
 	return c
 }
 
-func (c *ping_collector) Name() string {
+func (c ping_collector) Name() string {
 	return c.name
 }
 
-func (c *ping_collector) Close() error {
+func (c ping_collector) Close() error {
 	return nil
 }
 
-func (c *ping_collector) ClassName() string {
+func (c ping_collector) ClassName() string {
 	return "ping_collector"
 }
 
-func (c *ping_collector) IsEnabled() bool {
+func (c ping_collector) IsEnabled() bool {
 	return c.enabled
 }
 
-func (c *ping_collector) Interval() time.Duration {
+func (c ping_collector) Interval() time.Duration {
 	log.Println("Interval: ", c.interval)
 	return c.interval
 }
 
-// func (c *ping_collector) CollectOnce_1() *newcore.CollectResult {
-// 	var items newcore.MultiDataPoint
-
-// 	for i := 0; i < 10; i++ {
-// 		items = append(items, &newcore.DataPoint{
-// 			Metric:    newcore.Metric(fmt.Sprintf("metric.%s", c.name)),
-// 			Timestamp: time.Now(),
-// 			Value:     1,
-// 			Tags:      nil,
-// 			Meta:      nil,
-// 		})
-// 	}
-
-// 	return &newcore.CollectResult{
-// 		Collected: &items,
-// 		Next:      time.Now().Add(c.interval),
-// 		Err:       nil,
-// 	}
-// }
-
-func (c *ping_collector) CollectOnce() newcore.CollectResult {
+func (c ping_collector) CollectOnce() newcore.CollectResult {
 	log.Println("ping_collector: CollectOnce Started")
 	var (
 		md       newcore.MultiDataPoint
@@ -151,30 +128,29 @@ func (c *ping_collector) CollectOnce() newcore.CollectResult {
 		d.Update(rtt)
 	}
 
-	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
-	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
-	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
+	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", ""))
+	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", ""))
+	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", ""))
+	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
+	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
+	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
 
 	std := d.SampleStandardDeviation()
 	if math.IsNaN(std) {
 		std = 0
 	}
-	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", "")
-	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", "")
+	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", ""))
+	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", ""))
+	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", "")
+	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", "")
 
 	lost_pct := float64((c.config.Packets-d.Count())/c.config.Packets) * 100
-	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
+	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", ""))
+	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
 
-	// log.Println("ping_collector: CollectOnce Finished")
 	return newcore.CollectResult{
 		Collected: md,
 		Next:      time.Now().Add(c.interval),
 		Err:       nil,
 	}
-
-	// return &newcore.CollectResult{
-	// 	Collected: nil,
-	// 	Next:      time.Now().Add(c.interval),
-	// 	Err:       fmt.Errorf("hahaha error"),
-	// }
 }

@@ -52,7 +52,7 @@ func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	//http://localhost:6060/debug/pprof/
-	utils.HttpPprofServe(6060)
+	// utils.HttpPprofServe(6060)
 
 	//	after := time.After(time.Duration(8) * time.Minute)
 	// f, _ := os.Create("d:\\cpu-" + strconv.Itoa(pid) + ".pprof")
