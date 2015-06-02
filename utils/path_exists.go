@@ -6,7 +6,7 @@ import (
 
 // exists returns whether the given file or directory exists or not
 func PathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
+	_, err := os.Stat(path[:])
 	if err == nil {
 		return true, nil
 	}
@@ -17,6 +17,6 @@ func PathExists(path string) (bool, error) {
 }
 
 func IsDirectory(path string) (bool, error) {
-	fileInfo, err := os.Stat(path)
+	fileInfo, err := os.Stat(path[:])
 	return fileInfo.IsDir(), err
 }

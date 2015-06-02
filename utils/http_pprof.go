@@ -8,7 +8,7 @@ import (
 )
 
 func HttpPprofServe(port int) {
-	go func() {
+	go func(port int) {
 		log.Println(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
-	}()
+	}(port)
 }

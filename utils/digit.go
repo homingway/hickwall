@@ -8,7 +8,7 @@ import (
 
 // IsDigit returns true if s consists of decimal digits.
 func IsDigit(s string) bool {
-	r := strings.NewReader(s)
+	r := strings.NewReader(s[:])
 	for {
 		ch, _, err := r.ReadRune()
 		if ch == 0 || err != nil {
@@ -24,7 +24,7 @@ func IsDigit(s string) bool {
 
 // IsAlNum returns true if s is alphanumeric.
 func IsAlNum(s string) bool {
-	r := strings.NewReader(s)
+	r := strings.NewReader(s[:])
 	for {
 		ch, _, err := r.ReadRune()
 		if ch == 0 || err != nil {

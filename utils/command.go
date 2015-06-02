@@ -22,17 +22,27 @@ var (
 // exit within timeout, it is sent SIGINT (if supported by Go). After
 // another timeout, it is killed.
 func Command(timeout time.Duration, name string, arg ...string) ([]byte, error) {
-	if _, err := exec.LookPath(name); err != nil {
+	// avoid leaking param
+	var command_name = name[:]
+	var args []string
+	for _, a := range arg {
+		args = append(args, a)
+	}
+
+	if _, err := exec.LookPath(command_name); err != nil {
 		return nil, ErrPath
 	}
-	log.Printf("executing command: %v %v\n", name, arg)
-	c := exec.Command(name, arg...)
+	log.Printf("executing command: %v %v\n", command_name, args)
+	c := exec.Command(command_name, args...)
 	var b bytes.Buffer
 	c.Stdout = &b
 	done := make(chan error, 1)
-	go func() {
-		done <- c.Run()
-	}()
+
+	// this cmd escapes to heap. but better than leaking.
+	go func(cmd exec.Cmd) {
+		done <- cmd.Run()
+	}(*c)
+
 	interrupt := time.After(timeout)
 	kill := time.After(timeout * 2)
 	for {
@@ -58,7 +68,7 @@ func ReadCommand(line func(string) error, name string, arg ...string) error {
 
 // ReadCommandTimeout is the same as ReadCommand with a specifiable timeout.
 func ReadCommandTimeout(timeout time.Duration, line func(string) error, name string, arg ...string) error {
-	b, err := Command(timeout, name, arg...)
+	b, err := Command(timeout, name[:], arg...)
 	if err != nil {
 		return err
 	}
@@ -69,7 +79,7 @@ func ReadCommandTimeout(timeout time.Duration, line func(string) error, name str
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		log.Printf("ERROR: %v: %v\n", name, err)
+		log.Printf("ERROR: %v: %v\n", name[:], err)
 	}
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func ReadLine(fname string, line func(string) error) error {
-	f, err := os.Open(fname)
+	f, err := os.Open(fname[:])
 	if err != nil {
 		return err
 	}

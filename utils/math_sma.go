@@ -12,6 +12,7 @@ type SMA struct {
 	N     int
 }
 
+//FIXME: .\math_sma.go:15: leaking param: m
 func (m *SMA) Calc(x float64) (float64, error) {
 	if m.N <= 0 {
 		return math.NaN(), fmt.Errorf("cannot calculate mean of zero")

@@ -2,34 +2,45 @@ package utils
 
 import (
 	// "fmt"
-	"regexp"
-	"text/template"
-
 	"bytes"
+	"regexp"
+	"sync"
+	"text/template"
 )
 
-var txt_tpl_pat_field, _ = regexp.Compile(`\{\{\.(\w+(([_|\.]?)+\w+)+)\}\}`)
+var (
+	txt_tpl_pat_field, _ = regexp.Compile(`\{\{\.(\w+(([_|\.]?)+\w+)+)\}\}`)
+)
 
+var tplBufPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
+}
+
+//FIXME: leaking param: data
 func ExecuteTemplate(tpl string, data interface{}, post_process func(string) string) (string, error) {
-	var buf bytes.Buffer
-	defer buf.Reset()
+	buffer := tplBufPool.Get().(*bytes.Buffer)
+	defer tplBufPool.Put(buffer)
+	defer buffer.Reset()
 
-	t, err := template.New("").Parse(tpl)
+	t, err := template.New("").Parse(tpl[:])
 	if err != nil {
 		return "", err
 	}
-	err = t.Execute(&buf, data)
+
+	err = t.Execute(buffer, data)
 	if err != nil {
 		return "", err
 	}
 	if post_process != nil {
-		return post_process(buf.String()), nil
+		return post_process(buffer.String()), nil
 	}
-	return buf.String(), nil
+	return buffer.String(), nil
 }
 
 func FindAllTemplateKeys(tpl string) (res []string) {
-	for _, k := range txt_tpl_pat_field.FindAllStringSubmatch(tpl, -1) {
+	for _, k := range txt_tpl_pat_field.FindAllStringSubmatch(tpl[:], -1) {
 		res = append(res, k[1])
 	}
 	return
