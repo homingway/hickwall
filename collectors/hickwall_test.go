@@ -25,7 +25,7 @@ main_loop:
 				if md == nil {
 					fmt.Println("md is nil")
 				} else {
-					for _, dp := range *md {
+					for _, dp := range md {
 						fmt.Println("dp: ---> ", dp)
 						if !strings.HasPrefix(dp.Metric.Clean(), "hickwall.client.") {
 							t.Error("metric wrong")

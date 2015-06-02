@@ -11,18 +11,18 @@ var (
 
 type dummyBackend struct {
 	name      string
-	closing   chan chan error      // for Close
-	updates   chan *MultiDataPoint // for receive updates
-	jamming   time.Duration        // jamming a little period of time while comsuming, 0 duration disable it
-	printting bool                 // print consuming md to stdout
-	detail    bool                 // if true print every datapoing
+	closing   chan chan error     // for Close
+	updates   chan MultiDataPoint // for receive updates
+	jamming   time.Duration       // jamming a little period of time while comsuming, 0 duration disable it
+	printting bool                // print consuming md to stdout
+	detail    bool                // if true print every datapoing
 }
 
 func MustNewDummyBackend(name string, jamming Interval, printting bool, detail bool) Publication {
 	s := &dummyBackend{
 		name:      name,
 		closing:   make(chan chan error),
-		updates:   make(chan *MultiDataPoint),
+		updates:   make(chan MultiDataPoint),
 		jamming:   jamming.MustDuration(time.Second),
 		printting: printting,
 		detail:    detail,
@@ -33,7 +33,7 @@ func MustNewDummyBackend(name string, jamming Interval, printting bool, detail b
 
 func (b *dummyBackend) loop() {
 	var (
-		startConsuming <-chan *MultiDataPoint
+		startConsuming <-chan MultiDataPoint
 	)
 
 	startConsuming = b.updates
@@ -43,7 +43,7 @@ func (b *dummyBackend) loop() {
 		case md := <-startConsuming:
 			if b.printting {
 				if b.detail == true {
-					for _, dp := range *md {
+					for _, dp := range md {
 						fmt.Printf("dummy(%s) --> %+v \n", b.name, dp)
 					}
 				} else {
@@ -65,7 +65,7 @@ func (b *dummyBackend) loop() {
 	}
 }
 
-func (b *dummyBackend) Updates() chan<- *MultiDataPoint {
+func (b *dummyBackend) Updates() chan<- MultiDataPoint {
 	return b.updates
 }
 

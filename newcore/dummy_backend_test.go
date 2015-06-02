@@ -47,7 +47,7 @@ main_loop:
 				fmt.Printf(".")
 				// fmt.Printf("TestFanout.sub.Updates() still openning: 0x%X\n", &md)
 			}
-			a += len(*md)
+			a += len(md)
 			// t.Log("md: ", md)
 		case <-tick:
 			a = 0

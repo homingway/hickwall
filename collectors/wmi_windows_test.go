@@ -44,7 +44,7 @@ main_loop:
 					fmt.Println("md is nil")
 				} else {
 					is_mount_c_exists := false
-					for _, dp := range *md {
+					for _, dp := range md {
 						fmt.Println("dp: ---> ", dp)
 						if _, ok := dp.Tags["host"]; ok == false {
 							t.Error("host is not in tags")
@@ -122,7 +122,7 @@ main_loop:
 				} else {
 					is_mount_c_exists := false
 
-					for _, dp := range *md {
+					for _, dp := range md {
 						fmt.Println("dp: ---> ", dp)
 						if _, ok := dp.Tags["host"]; ok == false {
 							t.Error("host is not in tags")

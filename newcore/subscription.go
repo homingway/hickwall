@@ -37,10 +37,10 @@ func Subscribe(collector Collector, opt *SubOptions) Subscription {
 
 	s := &sub{
 		collector:      collector,
-		updates:        make(chan *MultiDataPoint), // for Updates
-		closing:        make(chan chan error),      // for Close
-		maxPending:     opt.MaxPending,             //
-		delay_on_error: delay,                      // delay on collect error
+		updates:        make(chan MultiDataPoint), // for Updates
+		closing:        make(chan chan error),     // for Close
+		maxPending:     opt.MaxPending,            //
+		delay_on_error: delay,                     // delay on collect error
 	}
 	go s.loop()
 	return s
@@ -48,14 +48,14 @@ func Subscribe(collector Collector, opt *SubOptions) Subscription {
 
 // sub implements the Subscription interface.
 type sub struct {
-	collector      Collector            // collected items
-	updates        chan *MultiDataPoint // sends items to the user
-	closing        chan chan error      // for Close
+	collector      Collector           // collected items
+	updates        chan MultiDataPoint // sends items to the user
+	closing        chan chan error     // for Close
 	maxPending     int
 	delay_on_error time.Duration
 }
 
-func (s *sub) Updates() <-chan *MultiDataPoint {
+func (s *sub) Updates() <-chan MultiDataPoint {
 	return s.updates
 }
 
@@ -75,12 +75,12 @@ func (s *sub) Close() error {
 func (s *sub) loop() {
 
 	var (
-		collectDone  chan *CollectResult // if non-nil, CollectOnce is running
-		pending      []*MultiDataPoint
+		collectDone  chan CollectResult // if non-nil, CollectOnce is running
+		pending      []MultiDataPoint
 		next         time.Time
 		err          error
-		first        *MultiDataPoint
-		updates      chan *MultiDataPoint
+		first        MultiDataPoint
+		updates      chan MultiDataPoint
 		startCollect <-chan time.Time
 		collectDelay time.Duration
 		now          = time.Now()
@@ -106,7 +106,7 @@ func (s *sub) loop() {
 
 		select {
 		case <-startCollect:
-			collectDone = make(chan *CollectResult, 1) // enable CollectOnce
+			collectDone = make(chan CollectResult, 1) // enable CollectOnce
 
 			// TODO: add unittest for this.
 			// collectOnce should be call async, otherwise, will block consuming result.

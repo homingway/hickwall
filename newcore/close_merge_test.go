@@ -18,7 +18,7 @@ func TestCloseMerged(t *testing.T) {
 
 	timeout := time.After(time.Duration(2) * time.Second)
 
-	var md *MultiDataPoint
+	var md MultiDataPoint
 	var channel_closed bool
 
 	for {
@@ -56,7 +56,7 @@ outer_loop:
 
 		timeout := time.After(time.Duration(3) * time.Second)
 
-		var md *MultiDataPoint
+		var md MultiDataPoint
 		var channel_closed bool
 
 	inner_loop:

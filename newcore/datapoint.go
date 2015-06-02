@@ -27,7 +27,36 @@ type DataPoint struct {
 	Meta      map[string]string `json:"meta,omitempty"`
 }
 
-type MultiDataPoint []*DataPoint
+func NewDP(prefix, metric string, value interface{}, tags TagSet, datatype string, unit string, desc string) DataPoint {
+	return NewDataPoint(
+		fmt.Sprintf("%s.%s", prefix, metric),
+		value,
+		Now(),
+		tags,
+		datatype,
+		unit,
+		desc,
+	)
+}
+
+//TODO: unittest NewDataPoint
+func NewDataPoint(metric string, value interface{}, ts time.Time, tags TagSet, datatype string, unit string, desc string) DataPoint {
+
+	if _, present := tags["host"]; !present {
+		tags["host"] = GetHostname()
+	} else if tags["host"] == "" {
+		delete(tags, "host")
+	}
+
+	return DataPoint{
+		Metric:    Metric(metric),
+		Timestamp: ts,
+		Value:     value,
+		Tags:      tags,
+	}
+}
+
+type MultiDataPoint []DataPoint
 
 var ppFree = sync.Pool{
 	New: func() interface{} {

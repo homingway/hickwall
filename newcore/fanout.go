@@ -18,12 +18,12 @@ var (
 )
 
 type fanout struct {
-	bks          []Publication            // backends
-	sub          Subscription             // subscription
-	chan_pubs    []chan<- *MultiDataPoint // publication channels from backends
-	closing      chan chan error          // for closing
-	pending      [](chan *MultiDataPoint) // pending channels
-	closing_list [](chan chan error)      // closing channels for backends
+	bks          []Publication           // backends
+	sub          Subscription            // subscription
+	chan_pubs    []chan<- MultiDataPoint // publication channels from backends
+	closing      chan chan error         // for closing
+	pending      [](chan MultiDataPoint) // pending channels
+	closing_list [](chan chan error)     // closing channels for backends
 }
 
 func (f *fanout) Close() error {
@@ -36,9 +36,9 @@ func (f *fanout) Close() error {
 
 func (f *fanout) cosuming(idx int, closing chan chan error) {
 	var (
-		first   *MultiDataPoint
-		pub     chan<- *MultiDataPoint
-		pending <-chan *MultiDataPoint
+		first   MultiDataPoint
+		pub     chan<- MultiDataPoint
+		pending <-chan MultiDataPoint
 	)
 
 	first = nil
@@ -83,7 +83,7 @@ func (f *fanout) cosuming(idx int, closing chan chan error) {
 func (f *fanout) loop() {
 	log.Println("fanout.loop() started")
 	var (
-		startConsuming <-chan *MultiDataPoint
+		startConsuming <-chan MultiDataPoint
 	)
 
 	startConsuming = f.sub.Updates()
@@ -172,7 +172,7 @@ func FanOut(sub Subscription, bks ...Publication) PublicationSet {
 
 	for _, pub := range bks {
 		f.chan_pubs = append(f.chan_pubs, pub.Updates())
-		f.pending = append(f.pending, make(chan *MultiDataPoint, maxPending))
+		f.pending = append(f.pending, make(chan MultiDataPoint, maxPending))
 	}
 	go f.loop()
 	return f

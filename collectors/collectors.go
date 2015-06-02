@@ -43,7 +43,7 @@ func AddTS(md *newcore.MultiDataPoint, prefix, name string, ts time.Time, value 
 		}
 	}
 
-	*md = append(*md, &newcore.DataPoint{
+	*md = append(*md, newcore.DataPoint{
 		Metric:    *newcore.NewMetric(prefix + "." + name),
 		Timestamp: ts,
 		Value:     value,

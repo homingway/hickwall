@@ -29,7 +29,7 @@ main_loop:
 				if md == nil {
 					fmt.Println("md is nil")
 				} else {
-					for _, dp := range *md {
+					for _, dp := range md {
 						fmt.Println("dp: ---> ", dp)
 						if dp.Value != 1 || dp.Metric != "hickwall.client.alive" {
 							t.Error("heartbeat is broken")

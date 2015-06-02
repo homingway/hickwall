@@ -80,7 +80,7 @@ main_loop:
 				t.Log("HookBackend closed")
 				break main_loop
 			}
-			for _, dp := range *md {
+			for _, dp := range md {
 				fmt.Println("--> dp", string(dp.Json()))
 				if dp.Metric == "hickwall.client.alive" {
 					heartbeat_exists = true

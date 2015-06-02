@@ -51,11 +51,11 @@ func (c *dummy_collector) Interval() time.Duration {
 	return c.interval
 }
 
-func (c *dummy_collector) CollectOnce() *CollectResult {
+func (c *dummy_collector) CollectOnce() CollectResult {
 	var items MultiDataPoint
 
 	for i := 0; i < c.points; i++ {
-		items = append(items, &DataPoint{
+		items = append(items, DataPoint{
 			Metric:    Metric(fmt.Sprintf("metric.%s", c.name)),
 			Timestamp: time.Now(),
 			Value:     1,
@@ -64,8 +64,8 @@ func (c *dummy_collector) CollectOnce() *CollectResult {
 		})
 	}
 
-	return &CollectResult{
-		Collected: &items,
+	return CollectResult{
+		Collected: items,
 		Next:      time.Now().Add(c.interval),
 		Err:       nil,
 	}

@@ -39,7 +39,7 @@ main_loop:
 			} else {
 				fmt.Printf(".")
 			}
-			a += len(*md)
+			a += len(md)
 			//			t.Log("md: ", md)
 		case <-tick:
 			a = 0

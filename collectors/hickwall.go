@@ -47,7 +47,7 @@ func (c *hickwall_collector) Interval() time.Duration {
 	return c.interval
 }
 
-func (c *hickwall_collector) CollectOnce() *newcore.CollectResult {
+func (c *hickwall_collector) CollectOnce() newcore.CollectResult {
 	var md newcore.MultiDataPoint
 
 	runtime.ReadMemStats(&c.mem_stats)
@@ -66,8 +66,8 @@ func (c *hickwall_collector) CollectOnce() *newcore.CollectResult {
 	Add(&md, "hickwall.client", "mem.GC.NumGC", c.mem_stats.NumGC, nil, "", "", "")
 	Add(&md, "hickwall.client", "mem.GC.EnableGC", c.mem_stats.EnableGC, nil, "", "", "")
 
-	return &newcore.CollectResult{
-		Collected: &md,
+	return newcore.CollectResult{
+		Collected: md,
 		Next:      time.Now().Add(c.interval),
 		Err:       nil,
 	}

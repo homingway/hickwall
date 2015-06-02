@@ -5,8 +5,8 @@ import (
 )
 
 type CollectResult struct {
-	Collected *MultiDataPoint // slice of []*DataPoint
-	Next      time.Time       // when the next run will take place
+	Collected MultiDataPoint // slice of []*DataPoint
+	Next      time.Time      // when the next run will take place
 	Err       error
 }
 
@@ -16,7 +16,7 @@ type CollectResult struct {
 
 //TODO: Do we have to make Collector interface so complicated?
 type Collector interface {
-	CollectOnce() *CollectResult
+	CollectOnce() CollectResult
 	Interval() time.Duration
 	IsEnabled() bool
 	Name() string
@@ -28,13 +28,13 @@ type Collector interface {
 // subscription, closes the Updates channel, and returns the last collect error,
 // if any.
 type Subscription interface {
-	Updates() <-chan *MultiDataPoint
+	Updates() <-chan MultiDataPoint
 	Name() string
 	Close() error
 }
 
 type Publication interface {
-	Updates() chan<- *MultiDataPoint
+	Updates() chan<- MultiDataPoint
 	Name() string
 	Close() error
 }

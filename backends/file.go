@@ -21,8 +21,8 @@ var (
 
 type fileBackend struct {
 	name    string
-	closing chan chan error              // for Close
-	updates chan *newcore.MultiDataPoint // for receive updates
+	closing chan chan error             // for Close
+	updates chan newcore.MultiDataPoint // for receive updates
 
 	// file backend specific attributes
 	output *os.File
@@ -33,7 +33,7 @@ func NewFileBackend(name string, conf *config.Transport_file) (newcore.Publicati
 	s := &fileBackend{
 		name:    name,
 		closing: make(chan chan error),
-		updates: make(chan *newcore.MultiDataPoint),
+		updates: make(chan newcore.MultiDataPoint),
 		conf:    conf,
 	}
 	if conf.Path == "" {
@@ -46,7 +46,7 @@ func NewFileBackend(name string, conf *config.Transport_file) (newcore.Publicati
 
 func (b *fileBackend) loop() {
 	var (
-		startConsuming     <-chan *newcore.MultiDataPoint
+		startConsuming     <-chan newcore.MultiDataPoint
 		try_open_file_once chan bool
 		try_open_file_tick <-chan time.Time
 		buf                = bytes.NewBuffer(make([]byte, 0, 1024))
@@ -77,7 +77,7 @@ func (b *fileBackend) loop() {
 		select {
 		case md := <-startConsuming:
 			// fmt.Println("start consuming ")
-			for _, p := range *md {
+			for _, p := range md {
 				if b.output != nil {
 					// fmt.Printf("fileBackend.loop name:%s, consuming md: 0x%X \n", b.name, &md)
 					// fmt.Println(p.Metric)
@@ -121,7 +121,7 @@ func (b *fileBackend) loop() {
 	}
 }
 
-func (b *fileBackend) Updates() chan<- *newcore.MultiDataPoint {
+func (b *fileBackend) Updates() chan<- newcore.MultiDataPoint {
 	return b.updates
 }
 

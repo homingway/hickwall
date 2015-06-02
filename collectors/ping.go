@@ -112,7 +112,7 @@ func (c *ping_collector) Interval() time.Duration {
 // 	}
 // }
 
-func (c *ping_collector) CollectOnce() *newcore.CollectResult {
+func (c *ping_collector) CollectOnce() newcore.CollectResult {
 	log.Println("ping_collector: CollectOnce Started")
 	var (
 		md       newcore.MultiDataPoint
@@ -124,7 +124,7 @@ func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 	ip, err := net.ResolveIPAddr("ip4:icmp", c.config.Target)
 	if err != nil {
 		log.Printf("ERROR: collector_ping: DNS resolve error: %v", err)
-		return &newcore.CollectResult{
+		return newcore.CollectResult{
 			Collected: nil,
 			Next:      time.Now().Add(c.interval),
 			Err:       fmt.Errorf("collector_ping: DNS resolve error: %v", err),
@@ -166,8 +166,8 @@ func (c *ping_collector) CollectOnce() *newcore.CollectResult {
 	Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
 
 	// log.Println("ping_collector: CollectOnce Finished")
-	return &newcore.CollectResult{
-		Collected: &md,
+	return newcore.CollectResult{
+		Collected: md,
 		Next:      time.Now().Add(c.interval),
 		Err:       nil,
 	}

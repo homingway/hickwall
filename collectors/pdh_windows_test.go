@@ -38,7 +38,7 @@ main_loop:
 				if md == nil {
 					fmt.Println("md is nil")
 				} else {
-					for _, dp := range *md {
+					for _, dp := range md {
 						fmt.Println("dp: ---> ", dp)
 						if _, ok := dp.Tags["host"]; ok == false {
 							t.Error("host is not in tags")

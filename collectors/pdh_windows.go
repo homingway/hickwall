@@ -70,7 +70,7 @@ func (c *win_pdh_collector) Interval() time.Duration {
 	return c.interval
 }
 
-func (c *win_pdh_collector) CollectOnce() *newcore.CollectResult {
+func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
 	var items newcore.MultiDataPoint
 	// log.Println("win_pdh_collector_CollectOnce Started")
 
@@ -91,8 +91,8 @@ func (c *win_pdh_collector) CollectOnce() *newcore.CollectResult {
 	}
 
 	// log.Println("win_pdh_collector_CollectOnce Finished")
-	return &newcore.CollectResult{
-		Collected: &items,
+	return newcore.CollectResult{
+		Collected: items,
 		Next:      time.Now().Add(c.interval),
 		Err:       nil,
 	}

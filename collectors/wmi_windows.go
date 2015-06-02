@@ -5,9 +5,10 @@ import (
 	"github.com/mattn/go-ole"
 	"github.com/mattn/go-ole/oleutil"
 	"github.com/oliveagle/hickwall/collectors/config"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/hickwall/utils"
-	"log"
+	//	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -54,7 +55,7 @@ func NewWinWmiCollector(name, prefix string, opts config.Config_win_wmi) newcore
 
 	err := c.connect()
 	if err != nil {
-		log.Println("CRITICAL: win_wmi_collector cannot connect: ", err)
+		logging.Critical("CRITICAL: win_wmi_collector cannot connect: ", err)
 	}
 
 	return c
@@ -66,21 +67,21 @@ func (c *win_wmi_collector) connect() (err error) {
 
 	unknown, err := oleutil.CreateObject("WbemScripting.SWbemLocator")
 	if err != nil {
-		log.Println("oleutil.CreateObject Failed: ", err)
+		logging.Critical("oleutil.CreateObject Failed: ", err)
 		return err
 	}
 	defer unknown.Release()
 
 	wmi, err := unknown.QueryInterface(ole.IID_IDispatch)
 	if err != nil {
-		log.Println("QueryInterface Failed: ", err)
+		logging.Critical("QueryInterface Failed: ", err)
 		return err
 	}
 	defer wmi.Release()
 
 	serviceRaw, err := oleutil.CallMethod(wmi, "ConnectServer")
 	if err != nil {
-		log.Println("Connect to Server Failed", err)
+		logging.Critical("Connect to Server Failed", err)
 		return err
 	}
 
@@ -118,7 +119,7 @@ func (c *win_wmi_collector) query(query string, fields []string) ([]map[string]s
 	if c.service != nil {
 		resultRaw, err := oleutil.CallMethod(c.service, "ExecQuery", query)
 		if err != nil {
-			log.Println("ExecQuery Failed: ", err)
+			logging.Error("ExecQuery Failed: ", err)
 			return nil, fmt.Errorf("ExecQuery Failed: %v", err)
 		}
 		result := resultRaw.ToIDispatch()
@@ -126,7 +127,7 @@ func (c *win_wmi_collector) query(query string, fields []string) ([]map[string]s
 
 		countVar, err := oleutil.GetProperty(result, "Count")
 		if err != nil {
-			log.Println("Get result count Failed: ", err)
+			logging.Error("Get result count Failed: ", err)
 			return nil, fmt.Errorf("Get result count Failed: %v", err)
 		}
 		count := int(countVar.Val)
@@ -161,7 +162,7 @@ func (c *win_wmi_collector) query(query string, fields []string) ([]map[string]s
 
 		return resultMap, nil
 	} else {
-		log.Println("win_wmi_collector c.service is nil")
+		logging.Error("win_wmi_collector c.service is nil")
 		return nil, fmt.Errorf("win_wmi_collector c.service is nil")
 	}
 }
@@ -228,7 +229,7 @@ func (c *win_wmi_collector) get_fields_of_query(query config.Config_win_wmi_quer
 	return results
 }
 
-func (c *win_wmi_collector) CollectOnce() (res *newcore.CollectResult) {
+func (c *win_wmi_collector) CollectOnce() (res newcore.CollectResult) {
 	var items newcore.MultiDataPoint
 
 	for _, query := range c.config.Queries {
@@ -265,13 +266,11 @@ func (c *win_wmi_collector) CollectOnce() (res *newcore.CollectResult) {
 					tags = newcore.AddTags.Copy().Merge(query.Tags).Merge(tags)
 
 					if value, ok := record[item.Value_from]; ok == true {
-
-						Add(&items, c.prefix, metric, value, tags, "", "", "")
-
+						items = append(items, newcore.NewDP(c.prefix, metric, value, tags, "", "", ""))
+						// Add(&items, c.prefix, metric, value, tags, "", "", "")
 					} else if item.Default != "" {
-
-						Add(&items, c.prefix, metric, item.Default, tags, "", "", "")
-
+						items = append(items, newcore.NewDP(c.prefix, metric, item.Default, tags, "", "", ""))
+						// Add(&items, c.prefix, metric, item.Default, tags, "", "", "")
 					}
 				}
 			}
@@ -287,17 +286,17 @@ func (c *win_wmi_collector) CollectOnce() (res *newcore.CollectResult) {
 							continue
 						}
 					}
-
 					tags := newcore.AddTags.Copy().Merge(query.Tags).Merge(item.Tags)
-
-					Add(&items, c.prefix, item.Metric.Clean(), item.Default, tags, "", "", "")
+					items = append(items, newcore.NewDP(c.prefix, item.Metric.Clean(), item.Default, tags, "", "",
+						""))
+					// Add(&items, c.prefix, item.Metric.Clean(), item.Default, tags, "", "", "")
 				}
 			}
 		}
 	} // for queries
 
-	return &newcore.CollectResult{
-		Collected: &items,
+	return newcore.CollectResult{
+		Collected: items,
 		Next:      time.Now().Add(c.interval),
 		Err:       nil,
 	}

@@ -9,16 +9,16 @@ var (
 )
 
 type HookBackend struct {
-	closing chan chan error      // for Close
-	updates chan *MultiDataPoint // for receive updates
-	hook    chan *MultiDataPoint // for hook
+	closing chan chan error     // for Close
+	updates chan MultiDataPoint // for receive updates
+	hook    chan MultiDataPoint // for hook
 }
 
 func NewHookBackend() *HookBackend {
 	s := &HookBackend{
 		closing: make(chan chan error),
-		updates: make(chan *MultiDataPoint),
-		hook:    make(chan *MultiDataPoint),
+		updates: make(chan MultiDataPoint),
+		hook:    make(chan MultiDataPoint),
 	}
 	go s.loop()
 	return s
@@ -26,7 +26,7 @@ func NewHookBackend() *HookBackend {
 
 func (b *HookBackend) loop() {
 	var (
-		startConsuming <-chan *MultiDataPoint
+		startConsuming <-chan MultiDataPoint
 	)
 
 	startConsuming = b.updates
@@ -45,12 +45,12 @@ func (b *HookBackend) loop() {
 	}
 }
 
-func (b *HookBackend) Updates() chan<- *MultiDataPoint {
+func (b *HookBackend) Updates() chan<- MultiDataPoint {
 	return b.updates
 }
 
 // Should consume all data within Hook(), Don't block it.
-func (b *HookBackend) Hook() <-chan *MultiDataPoint {
+func (b *HookBackend) Hook() <-chan MultiDataPoint {
 	return b.hook
 }
 
