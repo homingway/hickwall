@@ -109,3 +109,30 @@ func Test_Start_From_File(t *testing.T) {
 		Stop()
 	}
 }
+
+func Test_MultipleCore(t *testing.T) {
+	rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(configs["file"]))
+	if err != nil {
+		t.Errorf("err %v", err)
+		return
+	}
+
+	core1, err := CreateRunningCore(rconf)
+	if err != nil {
+		t.Errorf("err %v", err)
+	}
+	if core1 == nil {
+		t.Errorf("err %v", err)
+	}
+
+	core2, err := CreateRunningCore(rconf)
+	if err != nil {
+		t.Errorf("err %v", err)
+	}
+	if core2 == nil {
+		t.Errorf("err %v", err)
+	}
+
+	t.Logf("%+v", core1)
+	t.Logf("%+v", core2)
+}

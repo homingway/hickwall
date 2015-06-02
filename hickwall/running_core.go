@@ -11,6 +11,7 @@ import (
 
 var (
 	the_core newcore.PublicationSet
+	done     = make(chan chan error)
 )
 
 func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newcore.PublicationSet, *newcore.HookBackend, error) {
@@ -44,7 +45,7 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 	}
 
 	if heartbeat_exists == false {
-		logging.Debugf("heartbeat_exists == false: len(subs): %d", len(subs))
+		logging.Debugf(" heartbeat_exists == false: len(subs): %d", len(subs))
 		clrs = append(clrs, collectors.NewHeartBeat(rconf.Client.HeartBeat_Interval))
 	}
 
@@ -77,7 +78,7 @@ func CreateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, err
 	return core, nil
 }
 
-func update_core(c newcore.PublicationSet) {
+func replace_core(c newcore.PublicationSet) {
 	if c != nil {
 		if the_core != nil {
 			close_core()
@@ -102,9 +103,10 @@ func Start() error {
 	if !config.IsCoreConfigLoaded() {
 		err := config.LoadCoreConfig()
 		if err != nil {
+			logging.Error("failed to load CoreConfig: ", err)
 			return fmt.Errorf("Faild to load CoreConfig: ", err)
 		}
-		fmt.Println("CoreConfig Loaded")
+		logging.Info(" CoreConfig Loaded")
 	}
 
 	if IsRunning() == true {
@@ -113,21 +115,36 @@ func Start() error {
 
 	switch config.CoreConf.Config_Strategy {
 	case config.ETCD:
-		fmt.Println("use etcd strategy")
+		logging.Info(" use etcd strategy")
+		go LoadConfigStrategyEtcd(done)
 	case config.REGISTRY:
-		fmt.Println("use registry strategy")
+		logging.Info(" use registry strategy")
 	default:
-		fmt.Println("[default] use file strategy")
-		core, err := LoadConfigFromFileAndRun()
+		logging.Info(" [default] use file strategy")
+		core, err := LoadConfigStrategyFile()
 		if err != nil {
-			return fmt.Errorf("failed to create core from file: %v", err)
+			logging.Error("faile to create running core from file: ", err)
+			return fmt.Errorf("failed to create running core from file: %v", err)
 		}
-		update_core(core)
+		replace_core(core)
 	}
 	return nil
 }
 
 func Stop() error {
-	close_core()
+	if IsRunning() {
+		switch config.CoreConf.Config_Strategy {
+		case config.ETCD:
+			logging.Info(" Stop etcd strategy")
+			errc := make(chan error)
+			done <- errc
+			<-errc
+		case config.REGISTRY:
+			logging.Info(" Stop registry strategy")
+		default:
+			logging.Info(" Stop default file strategy")
+			close_core()
+		}
+	}
 	return nil
 }

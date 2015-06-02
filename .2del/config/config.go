@@ -90,55 +90,55 @@ func LoadCoreConfig() error {
 }
 
 type RespConfig struct {
-	Config *RuntimeConfig
+	Config RuntimeConfig
 	Err    error
 }
 
-func loadRuntimeConfFromFile() <-chan *RespConfig {
-	log.Debug("loadRuntimeConfFromFile")
+// func loadRuntimeConfFromFile() <-chan *RespConfig {
+// 	log.Debug("loadRuntimeConfFromFile")
 
-	var (
-		out           = make(chan *RespConfig, 1)
-		runtime_viper = viper.New()
-	)
-	// runtime_viper.SetConfigFile(config_file)
-	runtime_viper.SetConfigName("config")
-	runtime_viper.SetConfigType("yaml")
-	runtime_viper.AddConfigPath(SHARED_DIR) // packaged distribution
-	runtime_viper.AddConfigPath("../..")    // for hickwall/misc/try_xxx
-	runtime_viper.AddConfigPath(".")        // for hickwall
-	runtime_viper.AddConfigPath("..")       // for hickwall/misc
+// 	var (
+// 		out           = make(chan *RespConfig, 1)
+// 		runtime_viper = viper.New()
+// 	)
+// 	// runtime_viper.SetConfigFile(config_file)
+// 	runtime_viper.SetConfigName("config")
+// 	runtime_viper.SetConfigType("yaml")
+// 	runtime_viper.AddConfigPath(SHARED_DIR) // packaged distribution
+// 	runtime_viper.AddConfigPath("../..")    // for hickwall/misc/try_xxx
+// 	runtime_viper.AddConfigPath(".")        // for hickwall
+// 	runtime_viper.AddConfigPath("..")       // for hickwall/misc
 
-	go func() {
-		var runtime_conf RuntimeConfig
+// 	go func() {
+// 		var runtime_conf RuntimeConfig
 
-		err := runtime_viper.ReadInConfig()
+// 		err := runtime_viper.ReadInConfig()
 
-		log.Debug("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
+// 		log.Debug("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
 
-		// fmt.Println("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
+// 		// fmt.Println("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
 
-		if err != nil {
-			log.Error("loadRuntimeConfFromFile error: ", err)
-			out <- &RespConfig{nil, fmt.Errorf("No configuration file loaded. config.yml: %v", err)}
-			return
-		}
+// 		if err != nil {
+// 			log.Error("loadRuntimeConfFromFile error: ", err)
+// 			out <- &RespConfig{nil, fmt.Errorf("No configuration file loaded. config.yml: %v", err)}
+// 			return
+// 		}
 
-		// Marshal values
-		err = runtime_viper.Marshal(&runtime_conf)
-		if err != nil {
-			log.Error("loadRuntimeConfFromFile error: ", err)
-			out <- &RespConfig{nil, fmt.Errorf("Error: unable to parse Configuration: %v\n", err)}
-			return
-		}
+// 		// Marshal values
+// 		err = runtime_viper.Marshal(&runtime_conf)
+// 		if err != nil {
+// 			log.Error("loadRuntimeConfFromFile error: ", err)
+// 			out <- &RespConfig{nil, fmt.Errorf("Error: unable to parse Configuration: %v\n", err)}
+// 			return
+// 		}
 
-		out <- &RespConfig{&runtime_conf, nil}
-		close(out)
-		return
-	}()
+// 		out <- &RespConfig{&runtime_conf, nil}
+// 		close(out)
+// 		return
+// 	}()
 
-	return out
-}
+// 	return out
+// }
 
 func WatchRuntimeConfFromEtcd(stop chan bool) <-chan *RespConfig {
 	var (

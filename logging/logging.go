@@ -5,6 +5,7 @@ import (
 	"github.com/oliveagle/hickwall/logging/level"
 	"log"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -17,7 +18,7 @@ var (
 func init() {
 	_level = level.DEBUG
 	create_output()
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Ltime)
 }
 
 func create_output() {
@@ -33,19 +34,21 @@ func create_output() {
 	log.SetOutput(output)
 }
 
-func SetLevel(lvl level.LEVEL) error {
-	switch lvl {
-	case level.TRACE:
+func SetLevel(lvl string) error {
+	switch strings.ToLower(lvl[:]) {
+	case "trace":
 		_level = level.TRACE
-	case level.DEBUG:
+		Debug("set logging level to TRACE")
+	case "debug":
 		_level = level.DEBUG
-	case level.INFO:
+		Debug("set logging level to DEBUG")
+	case "info":
 		_level = level.INFO
-	case level.WARNING:
+	case "warn":
 		_level = level.WARNING
-	case level.ERROR:
+	case "error":
 		_level = level.ERROR
-	case level.CRITICAL:
+	case "critical":
 		_level = level.CRITICAL
 	default:
 		return fmt.Errorf("invalid level: ", lvl)
@@ -54,71 +57,81 @@ func SetLevel(lvl level.LEVEL) error {
 }
 
 func Trace(v ...interface{}) {
-	if _level >= level.TRACE {
+	if _level <= level.TRACE {
 		log.SetPrefix("[TRACE] ")
 		log.Println(v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Tracef(format string, v ...interface{}) {
-	if _level >= level.TRACE {
+	if _level <= level.TRACE {
 		log.SetPrefix("[TRACE] ")
 		log.Printf(format, v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Debug(v ...interface{}) {
-	if _level >= level.DEBUG {
+	if _level <= level.DEBUG {
 		log.SetPrefix("[DEBUG] ")
 		log.Println(v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Debugf(format string, v ...interface{}) {
-	if _level >= level.DEBUG {
+	if _level <= level.DEBUG {
 		log.SetPrefix("[DEBUG] ")
 		log.Printf(format, v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Info(v ...interface{}) {
-	if _level >= level.INFO {
+	if _level <= level.INFO {
 		log.SetPrefix("[INFO] ")
 		log.Println(v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Infof(format string, v ...interface{}) {
-	if _level >= level.INFO {
+	if _level <= level.INFO {
 		log.SetPrefix("[INFO] ")
 		log.Printf(format, v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Error(v ...interface{}) {
-	if _level >= level.ERROR {
+	if _level <= level.ERROR {
 		log.SetPrefix("[ERROR] ")
 		log.Println(v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Errorf(format string, v ...interface{}) {
-	if _level >= level.ERROR {
+	if _level <= level.ERROR {
 		log.SetPrefix("[ERROR] ")
 		log.Printf(format, v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Critical(v ...interface{}) {
-	if _level >= level.CRITICAL {
+	if _level <= level.CRITICAL {
 		log.SetPrefix("[CRITICAL] ")
 		log.Println(v...)
+		log.SetPrefix("[-] ")
 	}
 }
 
 func Criticalf(format string, v ...interface{}) {
-	if _level >= level.CRITICAL {
+	if _level <= level.CRITICAL {
 		log.SetPrefix("[CRITICAL] ")
 		log.Printf(format, v...)
+		log.SetPrefix("[-] ")
 	}
 }

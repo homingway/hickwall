@@ -33,7 +33,7 @@ var (
 )
 
 type RespConfig struct {
-	Config *RuntimeConfig
+	Config RuntimeConfig
 	Err    error
 }
 

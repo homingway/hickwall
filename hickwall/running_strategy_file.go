@@ -7,7 +7,7 @@ import (
 	"github.com/oliveagle/hickwall/newcore"
 )
 
-func LoadConfigFromFileAndRun() (newcore.PublicationSet, error) {
+func LoadConfigStrategyFile() (newcore.PublicationSet, error) {
 	//	fmt.Println("hahah ---------------------- 1")
 	rconf, err := config.LoadRuntimeConfigFromFiles()
 	//	fmt.Println("hahah ---------------------- 2 ")

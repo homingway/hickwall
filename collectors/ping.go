@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/GaryBoone/GoStats/stats"
 	"github.com/oliveagle/hickwall/collectors/config"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/tatsushid/go-fastping"
-	"log"
 	"math"
 	"net"
 	"time"
@@ -45,7 +45,7 @@ func NewPingCollectors(name, prefix string, conf config.Config_Ping) []newcore.C
 func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinger) newcore.Collector {
 
 	if conf.Target == "" {
-		log.Println("CRITICAL: we cannot ping empty target.")
+		logging.Critical("CRITICAL: we cannot ping empty target.")
 	}
 
 	tags := conf.Tags.Copy()
@@ -85,12 +85,11 @@ func (c ping_collector) IsEnabled() bool {
 }
 
 func (c ping_collector) Interval() time.Duration {
-	log.Println("Interval: ", c.interval)
 	return c.interval
 }
 
 func (c ping_collector) CollectOnce() newcore.CollectResult {
-	log.Println("ping_collector: CollectOnce Started")
+	logging.Debug("ping_collector: CollectOnce Started")
 	var (
 		md       newcore.MultiDataPoint
 		d        stats.Stats
@@ -100,11 +99,11 @@ func (c ping_collector) CollectOnce() newcore.CollectResult {
 
 	ip, err := net.ResolveIPAddr("ip4:icmp", c.config.Target)
 	if err != nil {
-		log.Printf("ERROR: collector_ping: DNS resolve error: %v", err)
+		logging.Errorf("ping_collector: DNS resolve error: %v", err)
 		return newcore.CollectResult{
 			Collected: nil,
 			Next:      time.Now().Add(c.interval),
-			Err:       fmt.Errorf("collector_ping: DNS resolve error: %v", err),
+			Err:       fmt.Errorf("ping_collector: DNS resolve error: %v", err),
 		}
 	}
 
@@ -118,7 +117,7 @@ func (c ping_collector) CollectOnce() newcore.CollectResult {
 		for i := 0; i < c.config.Packets; i++ {
 			err = p.Run()
 			if err != nil {
-				fmt.Println("run err", err)
+				logging.Errorf("ping_collector run err: ", err)
 			}
 		}
 		close(rtt_chan)
@@ -148,6 +147,7 @@ func (c ping_collector) CollectOnce() newcore.CollectResult {
 	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", ""))
 	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
 
+	logging.Debug("ping_collector: CollectOnce Finished")
 	return newcore.CollectResult{
 		Collected: md,
 		Next:      time.Now().Add(c.interval),
