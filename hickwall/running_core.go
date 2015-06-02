@@ -5,12 +5,13 @@ import (
 	"github.com/oliveagle/hickwall/backends"
 	"github.com/oliveagle/hickwall/collectors"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
-	log "github.com/oliveagle/seelog"
+	//	log "github.com/oliveagle/seelog"
 )
 
 var (
-	core *newcore.PublicationSet
+	the_core newcore.PublicationSet
 )
 
 func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newcore.PublicationSet, *newcore.HookBackend, error) {
@@ -19,20 +20,20 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 	var heartbeat_exists bool
 
 	if rconf == nil {
-		log.Error("RuntimeConfig is nil")
+		logging.Error("RuntimeConfig is nil")
 		return nil, nil, fmt.Errorf("RuntimeConfig is nil")
 	}
 
 	bks, err := backends.UseConfigCreateBackends(rconf)
 	if err != nil {
-		log.Error("UseConfigCreateBackends failed: ", err)
+		logging.Error("UseConfigCreateBackends failed: ", err)
 		return nil, nil, err
 	}
 	fmt.Println("bks: ", bks)
 
 	clrs, err := collectors.UseConfigCreateCollectors(rconf)
 	if err != nil {
-		log.Error("UseConfigCreateCollectors failed: ", err)
+		logging.Error("UseConfigCreateCollectors failed: ", err)
 		return nil, nil, err
 	}
 
@@ -44,7 +45,7 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 	}
 
 	if heartbeat_exists == false {
-		log.Debugf("heartbeat_exists == false: len(subs): %d", len(subs))
+		logging.Debugf("heartbeat_exists == false: len(subs): %d", len(subs))
 		clrs = append(clrs, collectors.NewHeartBeat(rconf.Client.HeartBeatInterval))
 	}
 
@@ -68,31 +69,31 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 }
 
 func CreateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, error) {
-	log.Debug("running_core.CreateRunningCore")
+	logging.Debug("running_core.CreateRunningCore")
 	core, _, err := create_running_core_hooked(rconf, false)
 	if err != nil {
-		log.Error("running_core.CreateRunningCore: ", err)
+		logging.Error("running_core.CreateRunningCore: ", err)
 		return nil, err
 	}
 	return core, nil
 }
 
-func update_core(c *newcore.PublicationSet) {
+func update_core(c newcore.PublicationSet) {
 	if c != nil {
-		if core != nil {
+		if the_core != nil {
 			close_core()
 		}
 	}
-	core = c
+	the_core = c
 }
 
 func close_core() {
-	(*core).Close()
-	core = nil
+	the_core.Close()
+	the_core = nil
 }
 
 func IsRunning() bool {
-	if core != nil {
+	if the_core != nil {
 		return true
 	}
 	return false
@@ -122,7 +123,7 @@ func Start() error {
 		if err != nil {
 			return fmt.Errorf("failed to create core from file: %v", err)
 		}
-		update_core(&core)
+		update_core(core)
 	}
 	return nil
 }
