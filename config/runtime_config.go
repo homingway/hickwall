@@ -58,6 +58,7 @@ type ClientConfig struct {
 
 	//	Transport_influxdb []Transport_influxdb `json:"transport_influxdb"`
 	//	Transport_influxdb string
+	Transport_influxdb []*b_conf.Transport_influxdb
 }
 
 type Transport_dummy struct {

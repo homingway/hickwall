@@ -5,14 +5,17 @@ import (
 	client090 "github.com/influxdb/influxdb/client"
 	"github.com/influxdb/influxdb/influxql"
 	client088 "github.com/influxdb/influxdb_088/client"
-	"github.com/oliveagle/hickwall/collectorlib"
-	// "github.com/kr/pretty"
-	log "github.com/oliveagle/seelog"
-	// "log"
+	"github.com/oliveagle/hickwall/logging"
+	"github.com/oliveagle/hickwall/newcore"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
+)
+
+var (
+	pat_influxdb_version = regexp.MustCompile(`[v]?\d+\.\d+\.\d+[\S]*`)
 )
 
 type InfluxdbClient interface {
@@ -172,7 +175,7 @@ func (c *InfluxdbClient_v088) Ping() (time.Duration, string, error) {
 }
 
 func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Results, error) {
-	// log.Debug("InfluxdbClient_v088.Write")
+	// logging.Debug("InfluxdbClient_v088.Write")
 	// v0.9.0-rc7 [
 	//  {
 	//      Name: "a",
@@ -198,10 +201,9 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 	for _, p := range bp.Points {
 		s := client088.Series{}
 		// s.Name = p.Name
-		// TODO:  influxdb_client_wrapper.go:201  collectorlib.FlatMetricKeyAndTags 这里有溢出，注释掉就好了，但是功能上需要。
-		name, err := collectorlib.FlatMetricKeyAndTags(c.flat_tpl, p.Name, p.Tags)
+		name, err := newcore.FlatMetricKeyAndTags(c.flat_tpl, p.Name, p.Tags)
 		if err != nil {
-			log.Error("FlatMetricKeyAndTags Failed!", err)
+			logging.Error("FlatMetricKeyAndTags Failed!", err)
 			return nil, err
 		}
 		s.Name = name
@@ -220,7 +222,7 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 
 		s.Points = append(s.Points, point)
 
-		log.Tracef("write: %v", s)
+		logging.Tracef("influxdb --> %+v", s)
 
 		series = append(series, &s)
 	}
@@ -229,9 +231,9 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 
 	err := c.client.WriteSeriesWithTimePrecision(series, "ms")
 	if err != nil {
-		log.Errorf("InfluxdbClient_v088.Write.WriteSeriesWithTimePrecision Error: %v", err)
+		logging.Errorf("InfluxdbClient_v088.Write.WriteSeriesWithTimePrecision Error: %v", err)
 	} else {
-		log.Debug("InfluxdbClient_v088.Write Done No Error")
+		logging.Trace("InfluxdbClient_v088.Write Done No Error")
 	}
 
 	return nil, err

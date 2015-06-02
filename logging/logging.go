@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"github.com/oliveagle/hickwall/logging/level"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -31,7 +32,7 @@ func create_output() {
 		panic(err)
 	}
 
-	log.SetOutput(output)
+	log.SetOutput(io.MultiWriter(os.Stdout, output))
 }
 
 func SetLevel(lvl string) error {
