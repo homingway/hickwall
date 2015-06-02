@@ -88,7 +88,7 @@ func LoadCoreConfig() error {
 		return fmt.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 	}
 
-	ConfigLogger()
+	// ConfigLogger()
 	if err != nil {
 		logging.Errorf("LoadCoreConfFile failed: %v", err)
 		return fmt.Errorf("LoadCoreConfFile failed: %v", err)

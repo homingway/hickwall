@@ -7,7 +7,6 @@ package lib
 //	"github.com/oliveagle/hickwall/collectors"
 //	"github.com/oliveagle/hickwall/config"
 //	"github.com/oliveagle/hickwall/utils"
-//	log "github.com/oliveagle/seelog"
 //
 //	"sync"
 //	// "time"

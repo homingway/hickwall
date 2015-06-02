@@ -12,7 +12,7 @@ import (
 func TestWinPdhCollector(t *testing.T) {
 	opts := config.Config_win_pdh_collector{
 		Interval: "100ms",
-		Queries: []*config.Config_win_pdh_query{
+		Queries: []config.Config_win_pdh_query{
 			{
 				Query:  "\\System\\Processes",
 				Metric: "processes.1",

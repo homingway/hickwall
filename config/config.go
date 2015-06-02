@@ -51,14 +51,14 @@ func init() {
 	// CollectorConfigGroup with in this folder
 	CONF_GROUP_DIRECTORY, _ = filepath.Abs(path.Join(SHARED_DIR, "groups.d"))
 
-	Mkdir_p_logdir(LOG_DIR)
+	// Mkdir_p_logdir(LOG_DIR)
 
 	// we don't need to always load core config
 	//	LoadCoreConfig()
 
 	// config logger every time. even core config is not loaded. because we can override it
 	// while loading core config.
-	ConfigLogger()
+	// ConfigLogger()
 
 	logging.Debug("SHARED_DIR: ", SHARED_DIR)
 	logging.Debug("LOG_DIR: ", LOG_DIR)

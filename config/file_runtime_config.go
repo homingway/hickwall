@@ -5,7 +5,6 @@ import (
 	//	"fmt"
 	//	"github.com/oliveagle/hickwall/utils"
 	"fmt"
-	//	log "github.com/oliveagle/seelog"
 	"github.com/oliveagle/viper"
 	"io/ioutil"
 	"os"

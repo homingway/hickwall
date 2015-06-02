@@ -10,7 +10,6 @@ import (
 	"github.com/oliveagle/hickwall/logging"
 	//	"github.com/oliveagle/hickwall/servicelib"
 	"github.com/oliveagle/hickwall/utils"
-	//	log "github.com/oliveagle/seelog"
 	// "runtime/debug"
 	"os"
 	// "runtime/pprof"

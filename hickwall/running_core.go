@@ -7,7 +7,6 @@ import (
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
-	//	log "github.com/oliveagle/seelog"
 )
 
 var (

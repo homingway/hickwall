@@ -2,7 +2,6 @@ package config
 
 import (
 	//	"fmt"
-	//	log "github.com/oliveagle/seelog"
 	//	"github.com/oliveagle/viper"
 	//	"reflect"
 	//	"time"

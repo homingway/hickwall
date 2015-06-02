@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/oliveagle/hickwall/servicelib"
-	//	log "github.com/oliveagle/seelog"
 	"os"
 	// "sync"
 	"github.com/oliveagle/hickwall/logging"
