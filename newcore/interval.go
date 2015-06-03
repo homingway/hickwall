@@ -6,22 +6,22 @@ import (
 
 type Interval string
 
-func NewInterval(v string) *Interval {
+func NewInterval(v string) Interval {
 	intv := Interval(v)
-	return &intv
+	return intv
 }
 
-func (i *Interval) MustDuration(dft time.Duration) time.Duration {
+func (i Interval) MustDuration(dft time.Duration) time.Duration {
 	res := dft
 	if res < 0 {
 		res = time.Duration(0)
 	}
 
-	if *i == "" {
+	if i == "" {
 		return res
 	}
 
-	d, err := time.ParseDuration(string(*i))
+	d, err := time.ParseDuration(string(i))
 	// interval must be positive
 	if d < 0 || err != nil {
 		return res
@@ -29,6 +29,6 @@ func (i *Interval) MustDuration(dft time.Duration) time.Duration {
 	return d
 }
 
-func (i *Interval) Duration() (time.Duration, error) {
-	return time.ParseDuration(string(*i))
+func (i Interval) Duration() (time.Duration, error) {
+	return time.ParseDuration(string(i))
 }

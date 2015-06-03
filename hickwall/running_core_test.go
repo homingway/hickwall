@@ -35,13 +35,13 @@ func Test_CreateRunningCore(t *testing.T) {
 	}
 }
 
-func Test_CreateRunningCore_Nil(t *testing.T) {
-	core, err := CreateRunningCore(nil)
-	if err == nil || core != nil {
-		t.Errorf("%s should fail but not", err)
-	}
-	t.Logf("%+v", core)
-}
+// func Test_CreateRunningCore_Nil(t *testing.T) {
+// 	core, err := CreateRunningCore(nil)
+// 	if err == nil || core != nil {
+// 		t.Errorf("%s should fail but not", err)
+// 	}
+// 	t.Logf("%+v", core)
+// }
 
 // make sure heartbeat is always created
 func Test_CreateRunningCore_Alwasy_Heartbeat(t *testing.T) {

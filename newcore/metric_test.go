@@ -43,7 +43,7 @@ func TestMetricCleanWithTags(t *testing.T) {
 
 	exp := "hotel.hotel.host1.win.wmi.fs.d.cdfs.free_space.bytes.ax_ax001"
 
-	res, err := metric.CleanWithTags(tpl, &tags)
+	res, err := metric.CleanWithTags(tpl, tags)
 	t.Log(res, err)
 	if res != exp {
 		t.Error("--")

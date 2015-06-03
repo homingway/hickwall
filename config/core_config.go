@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/viper"
+	"os"
 )
 
 // public variables ---------------------------------------------------------------
@@ -38,7 +39,15 @@ func LoadCoreConfig() error {
 	// core_viper.AddConfigPath("..")          // for hickwall/misc
 	// core_viper.AddConfigPath("../..")       // for hickwall/misc/try_xxx
 
-	err := core_viper.ReadInConfig()
+	file, err := os.Open(CORE_CONF_FILEPATH)
+	if err != nil {
+		logging.Errorf("cannot open file file: %s - err: %v", CORE_CONF_FILEPATH, err)
+		return fmt.Errorf("cannot open file file: %s - err: %v", CORE_CONF_FILEPATH, err)
+	}
+	defer file.Close()
+
+	err = core_viper.ReadConfig(file)
+	// err := core_viper.ReadInConfig()
 	if err != nil {
 		logging.Errorf("No configuration file loaded. core_config.yml :%v", err)
 		return fmt.Errorf("No configuration file loaded. core_config.yml :%v", err)
