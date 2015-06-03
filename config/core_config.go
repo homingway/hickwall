@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/viper"
-	"strings"
 )
 
 // public variables ---------------------------------------------------------------
