@@ -22,27 +22,42 @@ type PdhCollector struct {
 	counters map[string]uintptr
 }
 
-func NewPdhCollector() *PdhCollector {
-	var handle uintptr
-	PdhOpenQuery(0, 0, &handle)
+func NewPdhCollector() PdhCollector {
+	// var handle uintptr
+	// PdhOpenQuery(0, 0, &handle)
+	_, handle := PdhOpenQuery_1(0, 0)
 
-	return &PdhCollector{
+	return PdhCollector{
 		handle:   handle,
 		counters: make(map[string]uintptr),
 	}
 }
 
-func (p *PdhCollector) GetHandle() uintptr {
+func (p PdhCollector) GetHandle() uintptr {
 	return p.handle
 }
 
-func (p *PdhCollector) Close() {
+func (p PdhCollector) Close() {
+
+	keys := make([]string, 0, len(p.counters))
+	for key, _ := range p.counters {
+		keys = append(keys, key)
+	}
+
+	for _, key := range keys {
+		// p.counters[key] = nil
+		delete(p.counters, key)
+	}
+
+	// p.handle = nil
+
 	PdhCloseQuery(p.handle)
 }
 
-func (p *PdhCollector) AddEnglishCounter(query string) {
-	var handle uintptr
-	PdhAddEnglishCounter(p.handle, query, 0, &handle)
+func (p PdhCollector) AddEnglishCounter(query string) {
+	// var handle uintptr
+	// PdhAddEnglishCounter(p.handle, query, 0, &handle)
+	_, handle := PdhAddEnglishCounter_1(p.handle, query, 0)
 	p.counters[query] = handle
 }
 
@@ -53,7 +68,7 @@ func valid_pdh_cstatus(cs uint32) bool {
 	return false
 }
 
-func (p *PdhCollector) CollectData() []*PdhCollectResult {
+func (p PdhCollector) CollectData() []*PdhCollectResult {
 	PdhCollectQueryData(p.handle)
 	data := []*PdhCollectResult{}
 

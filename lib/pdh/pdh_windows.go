@@ -182,20 +182,37 @@ func init() {
 
 // Adds the specified language-neutral counter to the query. See the PdhAddCounter function. This function only exists on
 // Windows versions higher than Vista.
-func PdhAddEnglishCounter(hQuery uintptr, szFullCounterPath string, dwUserData uintptr, phCounter *uintptr) uint32 {
+// func PdhAddEnglishCounter(hQuery uintptr, szFullCounterPath string, dwUserData uintptr, phCounter *uintptr) uint32 {
+// 	//TODO: ERROR_INVALID_FUNCTION
+// 	// if pdh_AddEnglishCounterW == nil {
+// 	//  return ERROR_INVALID_FUNCTION
+// 	// }
+
+// 	ptxt, _ := syscall.UTF16PtrFromString(szFullCounterPath)
+// 	ret, _, _ := pdh_AddEnglishCounterW.Call(
+// 		uintptr(hQuery),
+// 		uintptr(unsafe.Pointer(ptxt)),
+// 		dwUserData,
+// 		uintptr(unsafe.Pointer(phCounter)))
+
+// 	return uint32(ret)
+// }
+
+func PdhAddEnglishCounter_1(hQuery uintptr, szFullCounterPath string, dwUserData uintptr) (ret uint32, phCounter uintptr) {
 	//TODO: ERROR_INVALID_FUNCTION
 	// if pdh_AddEnglishCounterW == nil {
 	//  return ERROR_INVALID_FUNCTION
 	// }
+	// var phCounter uintptr
 
 	ptxt, _ := syscall.UTF16PtrFromString(szFullCounterPath)
-	ret, _, _ := pdh_AddEnglishCounterW.Call(
+	_ret, _, _ := pdh_AddEnglishCounterW.Call(
 		uintptr(hQuery),
 		uintptr(unsafe.Pointer(ptxt)),
 		dwUserData,
-		uintptr(unsafe.Pointer(phCounter)))
-
-	return uint32(ret)
+		uintptr(unsafe.Pointer(&phCounter)))
+	ret = uint32(_ret)
+	return ret, phCounter
 }
 
 // Closes all counters contained in the specified query, closes all handles related to the query,
@@ -240,12 +257,21 @@ func PdhGetFormattedCounterValueDouble(hCounter uintptr, lpdwType uint32, pValue
 // call PdhGetCounterInfo and access dwQueryUserData of the PDH_COUNTER_INFO structure. phQuery is
 // the handle to the query, and must be used in subsequent calls. This function returns a PDH_
 // constant error code, or ERROR_SUCCESS if the call succeeded.
-func PdhOpenQuery(szDataSource uintptr, dwUserData uintptr, phQuery *uintptr) uint32 {
+// func PdhOpenQuery(szDataSource uintptr, dwUserData uintptr, phQuery *uintptr) uint32 {
+// 	ret, _, _ := pdh_OpenQuery.Call(
+// 		szDataSource,
+// 		dwUserData,
+// 		uintptr(unsafe.Pointer(phQuery)))
+// 	return uint32(ret)
+// }
+
+func PdhOpenQuery_1(szDataSource uintptr, dwUserData uintptr) (uint32, uintptr) {
+	var phQuery uintptr
 	ret, _, _ := pdh_OpenQuery.Call(
 		szDataSource,
 		dwUserData,
-		uintptr(unsafe.Pointer(phQuery)))
-	return uint32(ret)
+		uintptr(unsafe.Pointer(&phQuery)))
+	return uint32(ret), phQuery
 }
 
 // Validates a path. Will return ERROR_SUCCESS when ok, or PDH_CSTATUS_BAD_COUNTERNAME when the path is
