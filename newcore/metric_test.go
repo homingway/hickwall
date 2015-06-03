@@ -65,7 +65,9 @@ func TestViperParseMetric(t *testing.T) {
 	vp.Marshal(&c)
 	res := c.Metric.Clean()
 	t.Log(res)
-	if res != "win.wmi.fs.d.cdfs.free_space.bytesahahah" {
+	// if res != "win.wmi.fs.d.cdfs.free_space.bytesahahah" { // ReplaceVersion
+	if res != "win.wmi.fs.d.cdfs.free_space.bytes_ahahah" { // Regex Version
+
 		t.Error("failed")
 	}
 }

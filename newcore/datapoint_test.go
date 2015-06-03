@@ -16,7 +16,8 @@ func Test_DataPoint_Clean(t *testing.T) {
 
 	d.Clean()
 	t.Log("d: ", d)
-	if d.Metric != "m12" {
+	// if d.Metric != "m12" { // ReplaceVersion
+	if d.Metric != "m1_2" { // Regex Version
 		t.Error("clean failed")
 	}
 

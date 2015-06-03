@@ -49,7 +49,7 @@ func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcor
 		clrs = append(clrs, collectors.NewHeartBeat(rconf.Client.HeartBeat_Interval))
 	}
 
-	fmt.Println("collectors: ", clrs)
+	fmt.Printf("collectors: %+v", clrs)
 
 	for _, c := range clrs {
 		subs = append(subs, newcore.Subscribe(c, nil))
