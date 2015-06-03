@@ -42,6 +42,9 @@ func UseConfigCreateCollectors(rconf config.RuntimeConfig) ([]newcore.Collector,
 			c := NewWinWmiCollector(gen_collector_name(gid, cid, "wmi"), group.Prefix, conf)
 			clrs = append(clrs, c)
 		}
+
+		// hook in hickwall client memory usage report
+		clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.HeartBeat_Interval, rconf.Client.Tags))
 	}
 
 	return clrs[:], nil

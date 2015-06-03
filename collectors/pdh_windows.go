@@ -42,7 +42,11 @@ func NewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_collecto
 		if q.Tags == nil {
 			q.Tags = newcore.AddTags.Copy()
 		}
-		q.Tags["query"] = q.Query
+
+		if !q.Ignore_query_tag {
+			q.Tags["query"] = q.Query
+		}
+
 		c.map_queries[q.Query] = q
 	}
 
