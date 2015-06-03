@@ -7,56 +7,25 @@ import (
 	"strings"
 )
 
-// DataType is the type of rate for a metric: gauge, counter, or rate.
-type Strategy string
-
-const (
-	FILE     Strategy = "file"
-	ETCD              = "etcd"
-	REGISTRY          = "registry"
-)
-
-func (s *Strategy) IsValid() bool {
-	k := strings.ToLower(string(*s))
-	switch k {
-	case "file", "etcd", "registry":
-		return true
-	default:
-		return false
-	}
-}
-
-func (s *Strategy) GetString() string {
-	return strings.ToLower(string(*s))
-}
-
-// public variables
+// public variables ---------------------------------------------------------------
 var (
 	CoreConf CoreConfig // only file
 )
 
-// private variables
+// private variables --------------------------------------------------------------
 var (
 	core_conf_loaded bool
 	core_viper       = viper.New()
 )
 
 type CoreConfig struct {
-	Log_level         string `json:"log_level"`
-	Log_file_maxsize  int    `json:"log_file_maxsize"`
-	Log_file_maxrolls int    `json:"log_file_maxrolls"`
-
-	Heart_beat_interval string `json:"heart_beat_interval"`
-
-	// possible values:  file, etcd, registry
-	Config_Strategy Strategy `json:"config_strategy"`
-
-	// etcd config
-	Etcd_url  string `json:"etcd_url"`
-	Etcd_path string `json:"etcd_path"`
-
-	// registry server config
-	Registry_Server string `json:"registry_server"`
+	Log_level         string   `json:"log_level"`         // possible values: trace, debug, info, warn, error, critical
+	Log_file_maxsize  int      `json:"log_file_maxsize"`  // TODO: log_file_maxsize
+	Log_file_maxrolls int      `json:"log_file_maxrolls"` // TODO: log_file_maxrolls
+	Config_Strategy   Strategy `json:"config_strategy"`   // possible values:  file, etcd, registry
+	Etcd_url          string   `json:"etcd_url"`          // etcd config
+	Etcd_path         string   `json:"etcd_path"`
+	Registry_Server   string   `json:"registry_server"` // registry server config
 }
 
 func IsCoreConfigLoaded() bool {
@@ -64,23 +33,17 @@ func IsCoreConfigLoaded() bool {
 }
 
 func LoadCoreConfig() error {
-
-	// defer logging.Flush()
-
-	core_viper.SetConfigName("core_config")
-	// core_viper.SetConfigFile(CORE_CONF_FILEPATH)
-	core_viper.AddConfigPath(SHARED_DIR) // packaged distribution
-	core_viper.AddConfigPath(".")        // for hickwall
-	core_viper.AddConfigPath("..")       // for hickwall/misc
-	core_viper.AddConfigPath("../..")    // for hickwall/misc/try_xxx
+	core_viper.SetConfigName("core_config") // core_config.yml
+	core_viper.AddConfigPath(SHARED_DIR)    // packaged distribution
+	// core_viper.AddConfigPath(".")           // for hickwall
+	// core_viper.AddConfigPath("..")          // for hickwall/misc
+	// core_viper.AddConfigPath("../..")       // for hickwall/misc/try_xxx
 
 	err := core_viper.ReadInConfig()
 	if err != nil {
 		logging.Errorf("No configuration file loaded. core_config.yml :%v", err)
 		return fmt.Errorf("No configuration file loaded. core_config.yml :%v", err)
 	}
-
-	// logging.Debug("core config file used: ", core_viper.ConfigFileUsed())
 
 	err = core_viper.Marshal(&CoreConf)
 	if err != nil {
@@ -89,11 +52,9 @@ func LoadCoreConfig() error {
 	}
 
 	logging.SetLevel(CoreConf.Log_level)
-	// ConfigLogger()
 	if err != nil {
 		logging.Errorf("LoadCoreConfFile failed: %v", err)
 		return fmt.Errorf("LoadCoreConfFile failed: %v", err)
-
 	} else {
 		logging.Debug("init config, core config loaded")
 	}

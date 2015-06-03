@@ -1,123 +1,59 @@
 package config
 
 import (
-	//	"bytes"
-	//	"fmt"
-	//	"github.com/oliveagle/hickwall/utils"
 	"fmt"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/viper"
 	"io/ioutil"
 	"os"
 	"path"
 )
 
-//func loadRuntimeConfFromFile() <-chan *RespConfig {
-//	log.Debug("loadRuntimeConfFromFile")
-//
-//	var (
-//		out           = make(chan *RespConfig, 1)
-//		runtime_viper = viper.New()
-//	)
-//	// runtime_viper.SetConfigFile(config_file)
-//	runtime_viper.SetConfigName("config")
-//	runtime_viper.SetConfigType("yaml")
-//	runtime_viper.AddConfigPath(SHARED_DIR) // packaged distribution
-//	runtime_viper.AddConfigPath("../..")    // for hickwall/misc/try_xxx
-//	runtime_viper.AddConfigPath(".")        // for hickwall
-//	runtime_viper.AddConfigPath("..")       // for hickwall/misc
-//
-//	go func() {
-//		var runtime_conf RuntimeConfig
-//
-//		err := runtime_viper.ReadInConfig()
-//
-//		log.Debug("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
-//
-//		// fmt.Println("RuntimeConfig File Used: ", runtime_viper.ConfigFileUsed())
-//
-//		if err != nil {
-//			log.Error("loadRuntimeConfFromFile error: ", err)
-//			out <- &RespConfig{nil, fmt.Errorf("No configuration file loaded. config.yml: %v", err)}
-//			return
-//		}
-//
-//		// Marshal values
-//		err = runtime_viper.Marshal(&runtime_conf)
-//		if err != nil {
-//			log.Error("loadRuntimeConfFromFile error: ", err)
-//			out <- &RespConfig{nil, fmt.Errorf("Error: unable to parse Configuration: %v\n", err)}
-//			return
-//		}
-//
-//		out <- &RespConfig{&runtime_conf, nil}
-//		close(out)
-//		return
-//	}()
-//
-//	return out
-//}
-//
-//func LoadRuntimeConfFromFileOnce() error {
-//	defer log.Flush()
-//
-//	for resp := range loadRuntimeConfFromFile() {
-//		if resp.Err != nil {
-//			log.Errorf("cannot load runtime config from file: %v", resp.Err)
-//			return fmt.Errorf("cannot load runtime config from file: %v", resp.Err)
-//		} else {
-//			UpdateRuntimeConf(resp.Config)
-//			log.Debug("updated runtime config")
-//		}
-//	}
-//	return nil
-//}
-
-func load_runtime_conf(filepath string) (rc RuntimeConfig, err error) {
+func load_runtime_conf_fomr_filepath(filepath string) (rc RuntimeConfig, err error) {
 	file, err := os.Open(filepath)
 	if err != nil {
+		logging.Critical("failed to load runtime config from file: ", err)
 		return
 	}
 	defer file.Close()
 	return ReadRuntimeConfig(file)
 }
 
-func load_group_conf(filepath string) (*CollectorConfigGroup, error) {
-	var (
-		ccg CollectorConfigGroup
-		err error
-	)
+func load_group_conf_from_filepath(filepath string) (ccg CollectorConfigGroup, err error) {
+	var file *os.File
 
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Recovered in f", r)
+			logging.Critical("recoverd in load_group_conf_from_filepath: ", r)
 			err = fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
 		}
 	}()
-	//	panic("hahah")
 
-	file, err := os.Open(filepath)
+	file, err = os.Open(filepath)
 	if err != nil {
-		return nil, err
+		logging.Errorf("failed to open file: %s, %v", filepath, err)
+		return
 	}
 	defer file.Close()
 
 	vp := viper.New()
 	vp.SetConfigType("yaml")
-	//	fmt.Println("---------- nothing wrong ----------")
 	err = vp.ReadConfig(file)
-	//	fmt.Println("---------- nothing wrong ----------")
 	if err != nil {
-		return nil, fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
+		logging.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
+		return ccg, fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
 	}
 
 	vp.Marshal(&ccg)
-	return &ccg, nil
+	logging.Infof("load_group_conf_from_filepath success: %s", filepath)
+	return ccg, nil
 }
 
 func LoadRuntimeConfigFromFiles() (rc RuntimeConfig, err error) {
 	if CONF_FILEPATH != "" {
-		rc, err = load_runtime_conf(CONF_FILEPATH)
+		rc, err = load_runtime_conf_fomr_filepath(CONF_FILEPATH)
 		if err != nil {
+			logging.Errorf("load runtime config from files failed: %v", err)
 			return rc, fmt.Errorf("cannot load runtime config: %v", err)
 		}
 	}
@@ -128,7 +64,7 @@ func LoadRuntimeConfigFromFiles() (rc RuntimeConfig, err error) {
 			for _, f := range files {
 				filepath := path.Join(CONF_GROUP_DIRECTORY, f.Name())
 				fmt.Println("filepath: ", filepath)
-				if ccg, err := load_group_conf(filepath); err == nil {
+				if ccg, err := load_group_conf_from_filepath(filepath); err == nil {
 					rc.Groups = append(rc.Groups, ccg)
 				} else {
 					fmt.Println("error: ", err)

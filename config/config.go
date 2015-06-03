@@ -1,20 +1,10 @@
 package config
 
 import (
-	//	"fmt"
-	// "github.com/spf13/viper"
-	//	"github.com/oliveagle/viper"
-	// "log"
+	"github.com/oliveagle/hickwall/logging"
 	"os"
 	"path"
 	"path/filepath"
-	// "reflect"
-
-	"github.com/oliveagle/hickwall/logging"
-
-	// "encoding/json"
-	// "io/ioutil"
-	//	"time"
 )
 
 const (
