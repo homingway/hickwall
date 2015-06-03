@@ -53,13 +53,7 @@ func init() {
 
 	// Mkdir_p_logdir(LOG_DIR)
 
-	// we don't need to always load core config
-	//	LoadCoreConfig()
-
-	// config logger every time. even core config is not loaded. because we can override it
-	// while loading core config.
-	// ConfigLogger()
-	logging.Init(LOG_FILEPATH[:])
+	logging.InitFileLogger(LOG_FILEPATH[:])
 
 	logging.Debug("SHARED_DIR: ", SHARED_DIR)
 	logging.Debug("LOG_DIR: ", LOG_DIR)
@@ -68,5 +62,4 @@ func init() {
 	logging.Debug("CONF_FILEPATH: ", CONF_FILEPATH)
 	logging.Debug("REGISTRY_FILEPATH: ", REGISTRY_FILEPATH)
 	logging.Debug("CONF_GROUP_DIRECTORY: ", CONF_GROUP_DIRECTORY)
-
 }
