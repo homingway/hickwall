@@ -11,6 +11,8 @@ import (
 )
 
 var err error
+var Build string
+var Version string
 
 func main() {
 	defer utils.Recover_and_log()
@@ -19,7 +21,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "hickwall"
 	app.Usage = "monitoring system"
-	app.Version = "v0.1.2"
+	app.Version = fmt.Sprintf("%s - %s", Version, Build)
 
 	app.Commands = []cli.Command{
 		//TODO: configuration test, reload

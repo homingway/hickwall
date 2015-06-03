@@ -42,7 +42,6 @@ func init() {
 	CONF_GROUP_DIRECTORY, _ = filepath.Abs(path.Join(SHARED_DIR, "groups.d"))
 
 	// Mkdir_p_logdir(LOG_DIR)
-
 	logging.InitFileLogger(LOG_FILEPATH[:])
 
 	logging.Debug("SHARED_DIR: ", SHARED_DIR)
@@ -53,3 +52,13 @@ func init() {
 	logging.Debug("REGISTRY_FILEPATH: ", REGISTRY_FILEPATH)
 	logging.Debug("CONF_GROUP_DIRECTORY: ", CONF_GROUP_DIRECTORY)
 }
+
+// func Mkdir_p_logdir(logfile string) {
+// 	dir, _ := filepath.Split(logfile)
+// 	if dir != "" {
+// 		err := os.MkdirAll(dir, 0755)
+// 		if err != nil {
+// 			logging.Errorf("Error: cannot create log dir: %s, err: %s", dir, err)
+// 		}
+// 	}
+// }

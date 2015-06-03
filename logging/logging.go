@@ -23,7 +23,7 @@ var (
 // }
 
 func InitFileLogger(log_filepath string) {
-	_level = level.DEBUG
+	_level = level.ERROR
 	writer, err := create_output(log_filepath[:])
 	if err != nil {
 		panic(err)
@@ -32,12 +32,12 @@ func InitFileLogger(log_filepath string) {
 }
 
 func InitStdoutLogger() {
-	_level = level.DEBUG
+	_level = level.ERROR
 	logger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func initNullLogger() {
-	_level = level.DEBUG
+	_level = level.ERROR
 	logger = log.New(ioutil.Discard, "", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
