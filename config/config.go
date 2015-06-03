@@ -59,6 +59,7 @@ func init() {
 	// config logger every time. even core config is not loaded. because we can override it
 	// while loading core config.
 	// ConfigLogger()
+	logging.Init(LOG_FILEPATH[:])
 
 	logging.Debug("SHARED_DIR: ", SHARED_DIR)
 	logging.Debug("LOG_DIR: ", LOG_DIR)
@@ -69,11 +70,3 @@ func init() {
 	logging.Debug("CONF_GROUP_DIRECTORY: ", CONF_GROUP_DIRECTORY)
 
 }
-
-//func WatchConfig() <-chan *RespConfig {
-//	if CoreConf.Etcd_enabled == true {
-//		return WatchRuntimeConfFromEtcd(nil)
-//	} else {
-//		return loadRuntimeConfFromFile()
-//	}
-//}

@@ -16,18 +16,19 @@ var (
 	_level level.LEVEL
 )
 
-func init() {
+func Init(log_filepath string) {
 	_level = level.DEBUG
-	create_output()
+	create_output(log_filepath[:])
+	// flag log.Lshortfile here doesn't get any useful info. coz it will report the line number of this file.
 	log.SetFlags(log.Ldate | log.Ltime)
 }
 
-func create_output() {
+func create_output(log_filepath string) {
 	mu.Lock()
 	defer mu.Unlock()
 	var err error
 
-	output, err = os.OpenFile(LOG_FILEPATH, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	output, err = os.OpenFile(log_filepath[:], os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		panic(err)
 	}

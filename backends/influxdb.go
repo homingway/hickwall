@@ -22,7 +22,7 @@ type influxdbBackend struct {
 	closing chan chan error             // for Close
 	updates chan newcore.MultiDataPoint // for receive updates
 
-	// file backend specific attributes
+	// influxdb backend specific attributes
 	conf    *config.Transport_influxdb
 	output  InfluxdbClient
 	version string
@@ -146,10 +146,8 @@ func (b *influxdbBackend) Updates() chan<- newcore.MultiDataPoint {
 }
 
 func (b *influxdbBackend) Close() error {
-	// fmt.Println("bk.Close() start")
 	errc := make(chan error)
 	b.closing <- errc
-	// fmt.Println("bk.Closed() finished")
 	return <-errc
 }
 

@@ -18,7 +18,7 @@ func LoadConfigStrategyEtcd(stop chan chan error) {
 				continue
 			} else {
 				close_core() //TODO: to prevent race condition. maybe we can safely remove this line.
-				core, err := CreateRunningCore(&resp.Config)
+				core, err := CreateRunningCore(resp.Config)
 				if err != nil {
 					logging.Error("failed to create running core from etcd: ", err)
 					continue

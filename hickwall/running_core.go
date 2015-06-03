@@ -14,15 +14,15 @@ var (
 	done     = make(chan chan error)
 )
 
-func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newcore.PublicationSet, *newcore.HookBackend, error) {
+func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcore.PublicationSet, *newcore.HookBackend, error) {
 	var hook *newcore.HookBackend
 	var subs []newcore.Subscription
 	var heartbeat_exists bool
 
-	if rconf == nil {
-		logging.Error("RuntimeConfig is nil")
-		return nil, nil, fmt.Errorf("RuntimeConfig is nil")
-	}
+	//	if rconf == nil {
+	//		logging.Error("RuntimeConfig is nil")
+	//		return nil, nil, fmt.Errorf("RuntimeConfig is nil")
+	//	}
 
 	bks, err := backends.UseConfigCreateBackends(rconf)
 	if err != nil {
@@ -68,7 +68,7 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 	}
 }
 
-func CreateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, error) {
+func CreateRunningCore(rconf config.RuntimeConfig) (newcore.PublicationSet, error) {
 	logging.Debug("running_core.CreateRunningCore")
 	core, _, err := create_running_core_hooked(rconf, false)
 	if err != nil {

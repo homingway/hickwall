@@ -8,9 +8,7 @@ import (
 )
 
 func LoadConfigStrategyFile() (newcore.PublicationSet, error) {
-	//	fmt.Println("hahah ---------------------- 1")
 	rconf, err := config.LoadRuntimeConfigFromFiles()
-	//	fmt.Println("hahah ---------------------- 2 ")
 	if err != nil {
 		fmt.Println("Failed to load RuntimeConfig from files: ", err)
 		return nil, err

@@ -72,10 +72,10 @@ import (
 //	return nil
 //}
 
-func load_runtime_conf(filepath string) (*RuntimeConfig, error) {
+func load_runtime_conf(filepath string) (rc RuntimeConfig, err error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer file.Close()
 	return ReadRuntimeConfig(file)
@@ -103,9 +103,9 @@ func load_group_conf(filepath string) (*CollectorConfigGroup, error) {
 
 	vp := viper.New()
 	vp.SetConfigType("yaml")
-	fmt.Println("---------- nothing wrong ----------")
+	//	fmt.Println("---------- nothing wrong ----------")
 	err = vp.ReadConfig(file)
-	fmt.Println("---------- nothing wrong ----------")
+	//	fmt.Println("---------- nothing wrong ----------")
 	if err != nil {
 		return nil, fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
 	}
@@ -114,15 +114,13 @@ func load_group_conf(filepath string) (*CollectorConfigGroup, error) {
 	return &ccg, nil
 }
 
-func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
+func LoadRuntimeConfigFromFiles() (rc RuntimeConfig, err error) {
 	if CONF_FILEPATH != "" {
 		rc, err = load_runtime_conf(CONF_FILEPATH)
 		if err != nil {
-			return nil, fmt.Errorf("cannot load runtime config: %v", err)
+			return rc, fmt.Errorf("cannot load runtime config: %v", err)
 		}
 	}
-
-	//	fmt.Println("hahah ---------------------- 1")
 
 	if CONF_GROUP_DIRECTORY != "" {
 		files, err := ioutil.ReadDir(CONF_GROUP_DIRECTORY)
@@ -138,6 +136,5 @@ func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
 			}
 		}
 	}
-	//	fmt.Println("hahah ---------------------- 2")
 	return
 }
