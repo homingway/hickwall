@@ -16,7 +16,7 @@ var Version string
 
 func main() {
 	defer utils.Recover_and_log()
-	logging.Debug("hickwall main ---------------------------")
+	logging.Debug("hickwall main ------- sub packages init process finished")
 
 	app := cli.NewApp()
 	app.Name = "hickwall"
@@ -46,45 +46,49 @@ func main() {
 		// },
 		{
 			Name:      "service",
-			ShortName: "",
+			ShortName: "s",
 			Usage:     "service",
 			Subcommands: []cli.Command{
 				{
 					Name:      "status",
-					ShortName: "",
+					ShortName: "s",
 					Usage:     "status",
 					Action:    command.CmdServiceStatus,
 				},
 				{
-					Name:      "statuscode",
-					ShortName: "",
-					Usage:     "statuscode",
-					Action:    command.CmdServiceStatusCode,
+					Name:   "statuscode",
+					Usage:  "statuscode(internal use only.)",
+					Action: command.CmdServiceStatusCode,
 				},
 				{
-					Name:   "install",
-					Usage:  "install service",
-					Action: command.CmdServiceInstall,
+					Name:      "install",
+					ShortName: "i",
+					Usage:     "install service",
+					Action:    command.CmdServiceInstall,
 				},
 				{
-					Name:   "remove",
-					Usage:  "remove service",
-					Action: command.CmdServiceRemove,
+					Name:      "remove",
+					ShortName: "d",
+					Usage:     "remove service",
+					Action:    command.CmdServiceRemove,
 				},
 				{
-					Name:   "start",
-					Usage:  "start service",
-					Action: command.CmdServiceStart,
+					Name:      "start",
+					ShortName: "g",
+					Usage:     "start service.",
+					Action:    command.CmdServiceStart,
 				},
 				{
-					Name:   "stop",
-					Usage:  "stop service",
-					Action: command.CmdServiceStop,
+					Name:      "stop",
+					ShortName: "x",
+					Usage:     "stop service.",
+					Action:    command.CmdServiceStop,
 				},
 				{
-					Name:   "restart",
-					Usage:  "restart service",
-					Action: command.CmdServiceRestart,
+					Name:      "restart",
+					ShortName: "n",
+					Usage:     "restart service",
+					Action:    command.CmdServiceRestart,
 				},
 			},
 		},
@@ -101,8 +105,7 @@ func main() {
 			ShortName: "d",
 			Usage:     "run as daemon",
 			Action: func(c *cli.Context) {
-				fmt.Println("Running as Daemon")
-				runWithoutService()
+				run(false, false)
 			},
 		},
 		{
@@ -113,22 +116,24 @@ func main() {
 	}
 
 	if len(os.Args) >= 2 {
-		logging.Debug("len os.args >= 2")
 		app.Run(os.Args)
 	} else {
 		logging.Debug("len os.args < 2")
 
 		isIntSess, err := servicelib.IsAnInteractiveSession()
 		if err != nil {
-			logging.Error("failed to determine if we are running in an interactive session or not: %v", err)
+			logging.Errorf("failed to determine if we are running in an interactive session or not: %v", err)
 			return
 		}
 
 		if !isIntSess {
 			logging.Debug("running as service ... ")
-			runService(false)
+			run(false, true)
 			return
 		}
+
+		//print help here.
+		app.Run(os.Args)
 	}
 	return
 }

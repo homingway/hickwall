@@ -1,7 +1,7 @@
 package config
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/oliveagle/hickwall/logging"
 	"os"
 	"path"
@@ -21,6 +21,7 @@ var (
 	CONF_FILEPATH        = ""
 	CONF_GROUP_DIRECTORY = ""
 	REGISTRY_FILEPATH    = ""
+	_                    = fmt.Sprintln("")
 )
 
 type RespConfig struct {
@@ -47,11 +48,6 @@ func init() {
 
 	logging.InitFileLogger(LOG_FILEPATH[:])
 
-	logging.Debug("SHARED_DIR: ", SHARED_DIR)
-	logging.Debug("LOG_DIR: ", LOG_DIR)
-	logging.Debug("LOG_FILEPATH: ", LOG_FILEPATH)
-	logging.Debug("CORE_CONF_FILEPATH: ", CORE_CONF_FILEPATH)
-	logging.Debug("CONF_FILEPATH: ", CONF_FILEPATH)
-	logging.Debug("REGISTRY_FILEPATH: ", REGISTRY_FILEPATH)
-	logging.Debug("CONF_GROUP_DIRECTORY: ", CONF_GROUP_DIRECTORY)
+	// try to load core config just ignore the error.
+	LoadCoreConfig()
 }

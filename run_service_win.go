@@ -5,7 +5,7 @@ package main
 import (
 	"code.google.com/p/winsvc/svc"
 	"github.com/oliveagle/hickwall/command"
-	// "github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/hickwall"
 	"github.com/oliveagle/hickwall/logging"
 	//	"github.com/oliveagle/hickwall/servicelib"
@@ -13,7 +13,6 @@ import (
 	// "runtime/debug"
 	"os"
 	// "runtime/pprof"
-	// "strconv"
 	//	"github.com/davecheney/profile"
 	"time"
 )
@@ -25,6 +24,22 @@ func init() {
 }
 
 type serviceHandler struct{}
+
+func run(isDebug bool, daemon bool) {
+	if !config.IsCoreConfigLoaded() {
+		err := config.LoadCoreConfig()
+		if err != nil {
+			logging.Critical("Failed to load core config: ", err)
+			return
+		}
+	}
+
+	if daemon {
+		runService(isDebug)
+	} else {
+		runWithoutService()
+	}
+}
 
 func runWithoutService() {
 	var args = []string{}
@@ -40,6 +55,16 @@ func runWithoutService() {
 	}()
 
 	runAsPrimaryService(args, r, changes)
+}
+
+func runService(isDebug bool) {
+	defer utils.Recover_and_log()
+	logging.Debug("runService")
+
+	err = svc.Run(command.PrimaryService.Name(), &serviceHandler{})
+	if err != nil {
+		logging.Errorf("runService: failed: %v\r\n", err)
+	}
 }
 
 func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
@@ -118,14 +143,4 @@ loop:
 
 func (this *serviceHandler) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	return runAsPrimaryService(args, r, changes)
-}
-
-func runService(isDebug bool) {
-	defer utils.Recover_and_log()
-	logging.Debug("runService")
-
-	err = svc.Run(command.PrimaryService.Name(), &serviceHandler{})
-	if err != nil {
-		logging.Errorf("runService: failed: %v\r\n", err)
-	}
 }

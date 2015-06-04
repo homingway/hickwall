@@ -10,6 +10,7 @@ import (
 // public variables ---------------------------------------------------------------
 var (
 	CoreConf CoreConfig // only file
+	_        = fmt.Sprintln("")
 )
 
 // private variables --------------------------------------------------------------
@@ -41,37 +42,36 @@ func LoadCoreConfig() error {
 
 	file, err := os.Open(CORE_CONF_FILEPATH)
 	if err != nil {
-		logging.Errorf("cannot open file file: %s - err: %v", CORE_CONF_FILEPATH, err)
 		return fmt.Errorf("cannot open file file: %s - err: %v", CORE_CONF_FILEPATH, err)
 	}
 	defer file.Close()
 
 	err = core_viper.ReadConfig(file)
-	// err := core_viper.ReadInConfig()
 	if err != nil {
-		logging.Errorf("No configuration file loaded. core_config.yml :%v", err)
 		return fmt.Errorf("No configuration file loaded. core_config.yml :%v", err)
 	}
 
 	err = core_viper.Marshal(&CoreConf)
 	if err != nil {
-		logging.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 		return fmt.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 	}
 
 	logging.SetLevel(CoreConf.Log_level)
 	if err != nil {
-		logging.Errorf("LoadCoreConfFile failed: %v", err)
 		return fmt.Errorf("LoadCoreConfFile failed: %v", err)
-	} else {
-		logging.Debug("init config, core config loaded")
 	}
 
-	logging.Debug("core config file used: ", core_viper.ConfigFileUsed())
-	logging.Debugf("CoreConfig:  %+v", CoreConf)
+	logging.Debugf("core config file used: %s\n", core_viper.ConfigFileUsed())
+	logging.Debugf("SHARED_DIR:            %s\n", SHARED_DIR)
+	logging.Debugf("LOG_DIR:               %s\n", LOG_DIR)
+	logging.Debugf("LOG_FILEPATH:          %s\n", LOG_FILEPATH)
+	logging.Debugf("CORE_CONF_FILEPATH:    %s\n", CORE_CONF_FILEPATH)
+	logging.Debugf("CONF_FILEPATH:         %s\n", CONF_FILEPATH)
+	logging.Debugf("REGISTRY_FILEPATH:     %s\n", REGISTRY_FILEPATH)
+	logging.Debugf("CONF_GROUP_DIRECTORY:  %s\n", CONF_GROUP_DIRECTORY)
+	logging.Debugf("CoreConfig:            %+v\n", CoreConf)
+	logging.Debug("CoreConfig Loaded ==============================================")
 
 	core_conf_loaded = true
-
-	logging.Debug("CoreConfig Loaded")
 	return nil
 }

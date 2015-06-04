@@ -13,8 +13,9 @@ import (
 var PrimaryService = servicelib.NewService("hickwall", "monitoring system")
 
 func CmdShowConfig(c *cli.Context) {
-	logging.Infof("CmdShowConfig")
-	fmt.Printf("CoreConfig: %+v", config.CoreConf)
+	logging.Debug("CmdShowConfig")
+
+	fmt.Printf("CoreConfig: %+v\n", config.CoreConf)
 
 	//TODO: get runtime config from running core.
 }

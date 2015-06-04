@@ -100,15 +100,6 @@ func IsRunning() bool {
 }
 
 func Start() error {
-	if !config.IsCoreConfigLoaded() {
-		err := config.LoadCoreConfig()
-		if err != nil {
-			logging.Error("failed to load CoreConfig: ", err)
-			return fmt.Errorf("Faild to load CoreConfig: ", err)
-		}
-		logging.Info(" CoreConfig Loaded")
-	}
-
 	if IsRunning() == true {
 		return fmt.Errorf("one core is already running. stop it first!")
 	}
