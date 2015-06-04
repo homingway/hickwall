@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+var (
+	_ = fmt.Sprintf("")
+	_ = time.Now()
+)
+
 // func Test_1(t *testing.T) {
 // 	getcpuload()
 // }
@@ -82,65 +87,9 @@ func Test_cgo_pdh_collect_invalid_counter(t *testing.T) {
 first: 5888, last: 5872, delta: -16
 first: 5888, last: 5872, delta: -16
 close and recreate pdh collector
-first: 5888, last: 5872, delta: -16
-first: 5888, last: 5872, delta: -16
-first: 5888, last: 5872, delta: -16
-close and recreate pdh collector
-first: 5888, last: 5872, delta: -16
-close and recreate pdh collector
-first: 5888, last: 5872, delta: -16
-first: 5888, last: 5872, delta: -16
-close and recreate pdh collector
-first: 5888, last: 5872, delta: -16
-first: 5888, last: 5872, delta: -16
-close and recreate pdh collector
-first: 5888, last: 5872, delta: -16
-first: 5888, last: 5872, delta: -16
-close and recreate pdh collector
-first: 5888, last: 5872, delta: -16
-first: 5888, last: 5872, delta: -16
+
+the following test replaced to .misc/lib_cgo_pdh_test to avoid jamming test_all.sh
 */
-func Test_cgo_pdh_mem_leak_multiple_instance(t *testing.T) {
-	pc := NewPdhCollector()
-	defer pc.Close()
-	pc.AddCounter("\\Process(cgo_pdh.test)\\Working Set - Private")
-	data, err := pc.CollectAllDouble()
-	if err != nil {
-		t.Error("error: ", err)
-		return
-	}
-
-	tick := time.Tick(time.Second)
-	tickClose := time.Tick(time.Second * 2)
-	done := time.After(time.Second * 100)
-
-	first_value := 0
-	last_value := 0
-	delta := 0
-
-	for {
-		select {
-		case <-tickClose:
-			fmt.Println("close and recreate pdh collector")
-			pc.Close()
-			pc = NewPdhCollector()
-			pc.AddCounter("\\Process(cgo_pdh.test)\\Working Set - Private")
-		case <-tick:
-			data, err = pc.CollectAllDouble()
-			for _, d := range data {
-				if first_value == 0 {
-					first_value = int(d) / 1024
-				}
-				last_value = int(d) / 1024
-				delta = last_value - first_value
-
-				fmt.Printf("first: %d, last: %d, delta: %d\n", first_value, last_value, delta)
-				if delta > 20 {
-					t.Error("delta above 20k happened")
-				}
-			}
-		case <-done:
-			return
-		}
-	}
-}
+// func Test_cgo_pdh_mem_leak_multiple_instance(t *testing.T) {
+// ...
+// }
