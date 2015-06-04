@@ -21,7 +21,7 @@ type win_pdh_collector struct {
 
 	// win_pdh_collector specific attributes
 	config      config.Config_win_pdh_collector
-	hPdh        *pdh.PdhCollector
+	hPdh        pdh.PdhCollector
 	map_queries map[string]config.Config_win_pdh_query
 }
 
@@ -78,23 +78,23 @@ func (c win_pdh_collector) CollectOnce() newcore.CollectResult {
 	var items newcore.MultiDataPoint
 	// log.Println("win_pdh_collector_CollectOnce Started")
 
-	if c.hPdh != nil {
-		for _, pd := range c.hPdh.CollectData() {
-			// log.Println("pd : ", pd)
-			if pd.Err == nil {
-				query, ok := c.map_queries[pd.Query]
-				// if ok == true && query != nil {
-				if ok == true {
-					items = append(items, newcore.NewDP(c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", ""))
-					// Add(&items, c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", "")
-				}
-			} else {
-				log.Println("win_pdh_collector ERROR: ", pd.Err)
+	// if c.hPdh != nil {
+	for _, pd := range c.hPdh.CollectData() {
+		// log.Println("pd : ", pd)
+		if pd.Err == nil {
+			query, ok := c.map_queries[pd.Query]
+			// if ok == true && query != nil {
+			if ok == true {
+				items = append(items, newcore.NewDP(c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", ""))
+				// Add(&items, c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", "")
 			}
+		} else {
+			log.Println("win_pdh_collector ERROR: ", pd.Err)
 		}
-	} else {
-		log.Println("win_pdh_collector ERROR: c.hPdh is nil")
 	}
+	// } else {
+	// 	log.Println("win_pdh_collector ERROR: c.hPdh is nil")
+	// }
 
 	// log.Println("win_pdh_collector_CollectOnce Finished")
 	return newcore.CollectResult{
