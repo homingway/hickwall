@@ -36,7 +36,28 @@ func Test_ValidateCStatus(t *testing.T) {
 	}
 }
 
-// no leaking !!!! great
+/* no leaking !!!! great
+first: 5888, last: 5872, delta: -16
+first: 5888, last: 5872, delta: -16
+close and recreate pdh collector
+first: 5888, last: 5872, delta: -16
+first: 5888, last: 5872, delta: -16
+first: 5888, last: 5872, delta: -16
+close and recreate pdh collector
+first: 5888, last: 5872, delta: -16
+close and recreate pdh collector
+first: 5888, last: 5872, delta: -16
+first: 5888, last: 5872, delta: -16
+close and recreate pdh collector
+first: 5888, last: 5872, delta: -16
+first: 5888, last: 5872, delta: -16
+close and recreate pdh collector
+first: 5888, last: 5872, delta: -16
+first: 5888, last: 5872, delta: -16
+close and recreate pdh collector
+first: 5888, last: 5872, delta: -16
+first: 5888, last: 5872, delta: -16
+*/
 func TestPdh_mem_leak_multiple_instance(t *testing.T) {
 	pc := NewPdhCollector()
 	defer pc.Close()
