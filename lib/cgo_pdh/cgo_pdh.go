@@ -10,6 +10,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"math"
 	"unsafe"
 )
 
@@ -82,9 +83,11 @@ func (p *pdhCollector) CollectAllDouble() (res []float64, err error) {
 		hStatus = C.GetDoubleCounterValue(h, &value)
 		err = ValidateCStatus(hStatus)
 		if err != nil {
-			return res, err
+			res = append(res, math.NaN())
+		} else {
+			res = append(res, (float64)(value))
 		}
-		res = append(res, (float64)(value))
+
 	}
 	return res, nil
 }
