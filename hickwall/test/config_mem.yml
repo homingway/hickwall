@@ -1,0 +1,30 @@
+client:
+    # hostname: "test_server1"
+    heartbeat_interval: 2s
+    metric_enabled: true
+    metric_interval: 1s
+
+    transport_dummy:
+        name: "dummy"
+        printting: true
+        jamming: 0
+        detail: true
+
+# groups:
+#     -
+#         prefix: "prefix"
+#         collector_win_pdh:
+#             -
+#                 interval: 2s
+#                 tags: {
+#                     "bu": "train"
+#                 }
+#                 queries:
+#                     -
+#                         query: "\\System\\Processes"
+#                         metric: "win.pdh.process_cnt"
+#                         # metric: "win.processes.count"     duplicated metric key: win.processes.count
+#                     -
+#                         query: "\\Memory\\Available Bytes"
+#                         metric: "win.pdh.memory.available_bytes"
+
