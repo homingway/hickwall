@@ -58,7 +58,7 @@ close and recreate pdh collector
 first: 5888, last: 5872, delta: -16
 first: 5888, last: 5872, delta: -16
 */
-func TestPdh_mem_leak_multiple_instance(t *testing.T) {
+func Test_cgo_pdh_mem_leak_multiple_instance(t *testing.T) {
 	pc := NewPdhCollector()
 	defer pc.Close()
 	pc.AddCounter("\\Process(cgo_pdh.test)\\Working Set - Private")
