@@ -5,12 +5,15 @@ SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJ_ROOT="$SCRIPT_ROOT/../.."
 ISCC=$HOME/bin/iscc
 VER=$(cat $PROJ_ROOT/release-version)
-DST="$PROJ_ROOT/bin/dist/hickwall-setup-$VER.exe"
 
 TMP_DIR=$(mktemp -d)
 echo "temp dir: " $TMP_DIR
 
 cd "$SCRIPT_ROOT"
+GIT_HASH=$(cat $SCRIPT_ROOT/../GIT_HASH)
+DST="$PROJ_ROOT/bin/dist/hickwall-setup-$VER-$GIT_HASH.exe"
+
+
 cp win.iss $TMP_DIR/
 cp start.bat $TMP_DIR/
 cp stop.bat $TMP_DIR/

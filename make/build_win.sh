@@ -22,8 +22,10 @@ $(bash make_win_helper.sh)
 
 cd $APP_ROOT
 
-BUILD_HASH=$(git rev-parse --short HEAD)
+GIT_HASH=$(git rev-parse --short HEAD)
+# save this hash for later packing
+echo "$GIT_HASH" > "$SCRIPT_ROOT/GIT_HASH"
 
-echo "Version: $VER, Build: $BUILD_HASH"
+echo "Version: $VER, Build: $GIT_HASH"
 
-go build -ldflags "-X main.Version $VER -X main.Build $BUILD_HASH" -v -o hickwall.exe && cp hickwall.exe bin/hickwall-windows-386.exe
+go build -ldflags "-X main.Version $VER -X main.Build $GIT_HASH" -v -o hickwall.exe && cp hickwall.exe bin/hickwall-windows-386.exe
