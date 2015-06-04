@@ -1,3 +1,4 @@
+// +build linux
 package collectors
 
 import (
@@ -44,6 +45,13 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 			//				clrs = append(clrs, c)
 			//			}
 
+		}
+
+		logging.Debugf("rconf.Client.Metric_Enabled: %v, rconf.Client.Metric_Interval: %v",
+			rconf.Client.Metric_Enabled, rconf.Client.Metric_Interval)
+		if rconf.Client.Metric_Enabled == true {
+			clrs = append(clrs, NewHickwallCollector(rconf.Client.Metric_Interval))
+			clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
 		}
 
 		return clrs[:], nil

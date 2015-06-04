@@ -1,8 +1,10 @@
+// +build windows
 package collectors
 
 import (
 	"fmt"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
 )
 
@@ -42,11 +44,14 @@ func UseConfigCreateCollectors(rconf config.RuntimeConfig) ([]newcore.Collector,
 			c := NewWinWmiCollector(gen_collector_name(gid, cid, "wmi"), group.Prefix, conf)
 			clrs = append(clrs, c)
 		}
-		if rconf.Client.Metric_Enabled == true {
-			clrs = append(clrs, NewHickwallCollector(rconf.Client.Metric_Interval))
-			clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
-		}
 
+	}
+
+	logging.Debugf("rconf.Client.Metric_Enabled: %v, rconf.Client.Metric_Interval: %v",
+		rconf.Client.Metric_Enabled, rconf.Client.Metric_Interval)
+	if rconf.Client.Metric_Enabled == true {
+		clrs = append(clrs, NewHickwallCollector(rconf.Client.Metric_Interval))
+		clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
 	}
 
 	return clrs[:], nil
