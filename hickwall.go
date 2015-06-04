@@ -105,6 +105,11 @@ func main() {
 				runWithoutService()
 			},
 		},
+		{
+			Name:   "config",
+			Usage:  "show config info",
+			Action: command.CmdShowConfig,
+		},
 	}
 
 	if len(os.Args) >= 2 {
