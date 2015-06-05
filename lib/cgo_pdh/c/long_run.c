@@ -113,3 +113,34 @@ int main()
     fclose(out);
     return 0;
 }
+
+
+
+
+
+/*
+2015:06:05 03:15:24 close and created pdh
+2015:06:05 03:15:24 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:25 close and created pdh
+2015:06:05 03:15:25 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:26 close and created pdh
+2015:06:05 03:15:26 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:27 close and created pdh
+2015:06:05 03:15:27 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:28 close and created pdh
+2015:06:05 03:15:28 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:29 close and created pdh
+2015:06:05 03:15:29 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:30 close and created pdh
+2015:06:05 03:15:30 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:31 close and created pdh
+2015:06:05 03:15:31 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:32 close and created pdh
+2015:06:05 03:15:32 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:33 close and created pdh
+2015:06:05 03:15:33 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:34 close and created pdh
+2015:06:05 03:15:34 first: 2904, last: 3076, delta 172
+2015:06:05 03:15:35 close and created pdh
+2015:06:05 03:15:35 first: 2904, last: 3076, delta 172
+*/
