@@ -9,6 +9,7 @@ import (
 	"github.com/oliveagle/hickwall/hickwall"
 	"github.com/oliveagle/hickwall/logging"
 	//	"github.com/oliveagle/hickwall/servicelib"
+	"github.com/oliveagle/get-rss"
 	"github.com/oliveagle/hickwall/utils"
 	// "runtime/debug"
 	"os"
@@ -18,6 +19,7 @@ import (
 )
 
 var pid int
+var rss_up_limit_mb = 20.0 // MB
 
 func init() {
 	pid = os.Getpid()
@@ -33,6 +35,19 @@ func run(isDebug bool, daemon bool) {
 			return
 		}
 	}
+
+	go func() {
+	loop:
+		rss_mb := float64(gs.GetCurrentRSS()) / 1024 / 1024 // Mb
+		logging.Tracef("current rss: %f", rss_mb)
+		if rss_mb > rss_up_limit_mb {
+			logging.Criticalf("Suicide. CurrentRSS above limit: %f >= %f Mb", rss_mb, rss_up_limit_mb)
+			os.Exit(1)
+		}
+		next := time.After(time.Second)
+		<-next
+		goto loop
+	}()
 
 	if daemon {
 		runService(isDebug)

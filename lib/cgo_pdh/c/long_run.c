@@ -23,6 +23,9 @@ int main()
     first_value = 0;
     last_value = 0;
     delta = 0;
+    clock_t t1, t2;
+    t1 = clock();
+
 
     time_t rawtime;
     struct tm * timeinfo;
@@ -33,7 +36,7 @@ int main()
     strftime(now, 26, "%Y:%m:%d %H:%M:%S", timeinfo);
 
     FILE *out;
-    out=fopen("c:\\myfile.txt", "a");
+    out=fopen("long_run_c.log", "a");
     if(out==NULL) {
         printf("Error opening file.\n");
     }
@@ -79,12 +82,23 @@ int main()
         delta = last_value - first_value;
 
 
-        printf("%s first: %d, last: %d, delta %d\n", now, first_value, last_value, delta);
-        fprintf(out, "%s first: %d, last: %d, delta %d\n", now, first_value, last_value, delta);
-        fflush(stdout);
-        fflush(out);
 
-        sleep(1);
+
+        t2 = clock();   
+        float diff = (((float)t2 - (float)t1) / 1000000.0F ) * 1000;   
+        if (diff >= 1.0) {
+            // printf("%f\n",diff);   
+            t1 = clock();
+
+            printf("%s first: %d, last: %d, delta %d\n", now, first_value, last_value, delta);
+            fprintf(out, "%s first: %d, last: %d, delta %d\n", now, first_value, last_value, delta);
+            fflush(stdout);
+            fflush(out);
+        }
+
+        // sleep(1); // sleep 1ms
+        // usleep(1000); // sleep 1ms
+
         time(&rawtime);
         timeinfo = localtime(&rawtime);
         strftime(now, 26, "%Y:%m:%d %H:%M:%S", timeinfo);
@@ -103,8 +117,10 @@ int main()
         PdhAddCounter(query, TEXT("\\Process(long_run_c)\\Working Set - Private"),0,&counter); // A total of ALL CPU's in the system
         PdhCollectQueryData(query); // No error checking here
 
-        printf("%s close and created pdh\n", now);
-        fprintf(out, "%s close and created pdh\n", now);       
+        // printf("%s close and created pdh\n", now);
+        // fprintf(out, "%s close and created pdh\n", now);
+
+
     }
 
     printf("%s %s\n", now, "finished");
