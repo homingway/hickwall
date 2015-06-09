@@ -42,6 +42,11 @@ func UseConfigCreateBackends(rconf config.RuntimeConfig) ([]newcore.Publication,
 		}
 	}
 
-	return pubs[:], nil
+	if rconf.Client.Transport_kafka != nil {
+		logging.Infof("rconf.Client.Transport_kafka: %+v", rconf.Client.Transport_kafka)
+		b := MustNewKafkaBackend("kafka", rconf.Client.Transport_kafka)
+		pubs = append(pubs, b)
+	}
 
+	return pubs[:], nil
 }

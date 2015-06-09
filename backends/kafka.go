@@ -26,17 +26,28 @@ type kafkaBackend struct {
 	producer sarama.AsyncProducer
 }
 
-func NewKafkaBackend(name string, bconf config.Transport_kafka) (newcore.Publication, error) {
+func MustNewKafkaBackend(name string, bconf *config.Transport_kafka) newcore.Publication {
+	logging.Info("MustNewKafkaBackend: %+v", bconf)
 	_kconf := sarama.NewConfig()
 
-	_kconf.Net.DialTimeout = newcore.Interval(bconf.DailTimeout).MustDuration(time.Second * 5)
-	_kconf.Net.WriteTimeout = newcore.Interval(bconf.WriteTimeout).MustDuration(time.Second * 1)
+	_kconf.Net.DialTimeout = newcore.Interval(bconf.Dail_timeout).MustDuration(time.Second * 5)
+	_kconf.Net.WriteTimeout = newcore.Interval(bconf.Write_timeout).MustDuration(time.Second * 1)
 	_kconf.Net.ReadTimeout = time.Second * 10
-	_kconf.Net.KeepAlive = newcore.Interval(bconf.KeepAlive).MustDuration(time.Second * 30)
-	_kconf.Producer.Timeout = time.Millisecond * time.Duration(bconf.AckTimeoutMS)
-	_kconf.Producer.Flush.Frequency = time.Millisecond * time.Duration(bconf.FlushFrequencyMS)
+	_kconf.Net.KeepAlive = newcore.Interval(bconf.Keepalive).MustDuration(time.Second * 30)
 
-	cc := strings.ToLower(bconf.CompressionCodec)
+	if bconf.Ack_timeout_ms <= 0 {
+		_kconf.Producer.Timeout = time.Millisecond * 100
+	} else {
+		_kconf.Producer.Timeout = time.Millisecond * time.Duration(bconf.Ack_timeout_ms)
+	}
+
+	if bconf.Flush_frequency_ms <= 0 {
+		_kconf.Producer.Flush.Frequency = time.Millisecond * 100
+	} else {
+		_kconf.Producer.Flush.Frequency = time.Millisecond * time.Duration(bconf.Flush_frequency_ms)
+	}
+
+	cc := strings.ToLower(bconf.Compression_codec)
 	switch {
 	case cc == "none":
 		_kconf.Producer.Compression = sarama.CompressionNone
@@ -48,7 +59,7 @@ func NewKafkaBackend(name string, bconf config.Transport_kafka) (newcore.Publica
 		_kconf.Producer.Compression = sarama.CompressionNone
 	}
 
-	ra := strings.ToLower(bconf.RequiredAcks)
+	ra := strings.ToLower(bconf.Required_acks)
 	switch {
 	case ra == "no_response":
 		_kconf.Producer.RequiredAcks = sarama.NoResponse
@@ -66,18 +77,18 @@ func NewKafkaBackend(name string, bconf config.Transport_kafka) (newcore.Publica
 		name:    name,
 		closing: make(chan chan error),
 		updates: make(chan newcore.MultiDataPoint),
-		conf:    &bconf, // backend config
+		conf:    bconf,  // backend config
 		kconf:   _kconf, // sarama config
 	}
 	go s.loop()
-	return s, nil
+	return s
 }
 
 func (b *kafkaBackend) connect() error {
-	producer, err := sarama.NewAsyncProducer(b.conf.BrokerList, b.kconf)
+	producer, err := sarama.NewAsyncProducer(b.conf.Broker_list, b.kconf)
 	if err != nil {
-		logging.Errorf("failed to start producer: %v, %v", err, b.conf.BrokerList)
-		return fmt.Errorf("failed to start producer: %v, %v", err, b.conf.BrokerList)
+		logging.Errorf("failed to start producer: %v, %v", err, b.conf.Broker_list)
+		return fmt.Errorf("failed to start producer: %v, %v", err, b.conf.Broker_list)
 	}
 
 	go func() {
@@ -88,7 +99,7 @@ func (b *kafkaBackend) connect() error {
 		logging.Debug("producer.Errors() closed")
 	}()
 
-	logging.Infof("created new producer: %v", b.conf.BrokerList)
+	logging.Infof("created new producer: %v", b.conf.Broker_list)
 
 	// save producer reference
 	b.producer = producer
@@ -128,7 +139,7 @@ func (b *kafkaBackend) loop() {
 		case md := <-startConsuming:
 			for _, p := range md {
 				b.producer.Input() <- &sarama.ProducerMessage{
-					Topic: b.conf.TopicID,
+					Topic: b.conf.Topic_id,
 					Key:   sarama.StringEncoder(p.Metric),
 					Value: &p,
 				}

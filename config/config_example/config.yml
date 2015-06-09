@@ -37,62 +37,74 @@ client:
     #     printting: true
     #     detail: true
 
-    transport_influxdb:
+    # transport_influxdb:
+    # # -
+    # #     version: "0.9.0-rc7"    
+    # #     max_batch_size: 200
+    # #     interval: 1s
+
+    # #     # try best to merge small group of points to no more thatn max_batch_size. this option is meant to
+    # #     # backfill data as quick as possible and at the same time don't add extra http request than usual.
+    # #     # If you have a large cluster. it's better turn this off. coz once queue is long and backend host is
+    # #     # backup online again. the network traffic will be a lot greater than normal in some cases. 
+    # #     merge_reqeusts: false
+
+    # #     # max cached reqeusts count
+    # #     max_queue_size: 100000
+
+    # #     url: "http://192.168.59.103:8086/write"
+    # #     username: "root"
+    # #     password: "root"
+    # #     database: "metrics"
+    # #     meta_database: "metrics_meta"
+
+    # #     retentionpolicy: "p1"
+
+    # #     backfill_enabled: true
+    # #     backfill_interval: 1s
+
+    # #     # Whether the client will try to cool down a little while if a response latency threshold reached when backfilling.
+    # #     backfill_handsoff: true
+    # #     backfill_latency_threshold_ms: 100
+    # #     backfill_cool_down: 5s      # cool down duration 
+
     # -
-    #     version: "0.9.0-rc7"    
+    #     # because v0.8.8 don't support tags, so all tags will be flatten with
+    #     # metric key following above `transport_flat_metric_key_format`
+    #     version: "v0.8.8"
     #     max_batch_size: 200
     #     interval: 1s
-
-    #     # try best to merge small group of points to no more thatn max_batch_size. this option is meant to
-    #     # backfill data as quick as possible and at the same time don't add extra http request than usual.
-    #     # If you have a large cluster. it's better turn this off. coz once queue is long and backend host is
-    #     # backup online again. the network traffic will be a lot greater than normal in some cases. 
     #     merge_reqeusts: false
 
     #     # max cached reqeusts count
     #     max_queue_size: 100000
 
-    #     url: "http://192.168.59.103:8086/write"
+    #     # host: "192.168.59.103:8086"    # v0.8.8 why to config db host
+    #     host: "10.3.6.207:8086"    # v0.8.8 why to config db host
     #     username: "root"
     #     password: "root"
     #     database: "metrics"
     #     meta_database: "metrics_meta"
 
-    #     retentionpolicy: "p1"
+    #     FlatTemplate: "{{.Key}}.{{.Tags}}"
 
     #     backfill_enabled: true
     #     backfill_interval: 1s
-
-    #     # Whether the client will try to cool down a little while if a response latency threshold reached when backfilling.
     #     backfill_handsoff: true
     #     backfill_latency_threshold_ms: 100
-    #     backfill_cool_down: 5s      # cool down duration 
+    #     backfill_cool_down: 5s
 
-    -
-        # because v0.8.8 don't support tags, so all tags will be flatten with
-        # metric key following above `transport_flat_metric_key_format`
-        version: "v0.8.8"
-        max_batch_size: 200
-        interval: 1s
-        merge_reqeusts: false
-
-        # max cached reqeusts count
-        max_queue_size: 100000
-
-        # host: "192.168.59.103:8086"    # v0.8.8 why to config db host
-        host: "10.3.6.207:8086"    # v0.8.8 why to config db host
-        username: "root"
-        password: "root"
-        database: "metrics"
-        meta_database: "metrics_meta"
-
-        FlatTemplate: "{{.Key}}.{{.Tags}}"
-
-        backfill_enabled: true
-        backfill_interval: 1s
-        backfill_handsoff: true
-        backfill_latency_threshold_ms: 100
-        backfill_cool_down: 5s
+    transport_kafka:
+        broker_list:
+            - "192.168.81.208:9092"
+        topic_id: "test"
+        compression_codec: "gzip"
+        ack_timeout_ms: 100
+        required_acks: false
+        flush_frequency_ms: 100
+        write_timeout: 100ms
+        dail_timeout: 1s
+        keepalive: 30m
 
 # ---------- transport configurations -------------------------------------------
 
@@ -130,10 +142,6 @@ transport_graphite:
 
         hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
         FlatTemplate: "{{.Key}}.{{.Tags}}"
-
-transport_kafka:
-    broker_list: "192.168.100.67:6667,192.168.100.67:6668,192.168.100.67:6669,192.168.100.67:6670,192.168.100.67:6671"
-    enabled: false
 
 # ---------- collector configurations -------------------------------------------
 

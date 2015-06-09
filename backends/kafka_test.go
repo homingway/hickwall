@@ -18,11 +18,11 @@ var (
 func TestKafkaBackend(t *testing.T) {
 	logging.SetLevel("debug")
 
-	conf := config.Transport_kafka{
-		BrokerList:       []string{"192.168.81.208:9092"},
-		TopicID:          "test",
-		AckTimeoutMS:     100,
-		FlushFrequencyMS: 100,
+	conf := &config.Transport_kafka{
+		Broker_list:        []string{"192.168.81.208:9092"},
+		Topic_id:           "test",
+		Ack_timeout_ms:     100,
+		Flush_frequency_ms: 100,
 	}
 
 	merge := newcore.Merge(
@@ -30,7 +30,7 @@ func TestKafkaBackend(t *testing.T) {
 		newcore.Subscribe(newcore.NewDummyCollector("c2", time.Millisecond*100, 1), nil),
 	)
 
-	b1, _ := NewKafkaBackend("b1", conf)
+	b1 := MustNewKafkaBackend("b1", conf)
 	fset := newcore.FanOut(merge, b1)
 
 	fset_closed_chan := make(chan error)

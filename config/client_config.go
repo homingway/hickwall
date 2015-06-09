@@ -15,6 +15,7 @@ type ClientConfig struct {
 	Transport_dummy    *Transport_dummy             `json:"transport_dummy"` // for testing purpose
 	Transport_file     *b_conf.Transport_file       `json:"transport_file"`
 	Transport_influxdb []*b_conf.Transport_influxdb `json:"transport_influxdb"`
+	Transport_kafka    *b_conf.Transport_kafka      `json:"transport_kafka"`
 }
 
 type Transport_dummy struct {

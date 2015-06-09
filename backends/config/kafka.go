@@ -1,15 +1,15 @@
 package config
 
 type Transport_kafka struct {
-	BrokerList       []string `json:"broker_list"`        // ["localhost:xxx", "remote:xxx"]
-	TopicID          string   `json:"topic_id"`           //
-	CompressionCodec string   `json:"compression_codec"`  // none, gzip or snappy
-	AckTimeoutMS     int      `json:"ack_timeout_ms"`     // milliseconds
-	RequiredAcks     string   `json:"required_acks"`      // no_response, wait_for_local, wait_for_all
-	FlushFrequencyMS int      `json:"flush_frequency_ms"` // milliseconds
-	WriteTimeout     string   `json:"write_timeout"`      // string, 100ms, 1s, default 1s
-	DailTimeout      string   `json:"dail_timeout"`       // string, 100ms, 1s, default 5s
-	KeepAlive        string   `json:"keepalive"`          // string, 100ms, 1s, 0 to disable it. default 30s
+	Broker_list        []string `json:"broker_list"`        // ["localhost:xxx", "remote:xxx"]
+	Topic_id           string   `json:"topic_id"`           //
+	Compression_codec  string   `json:"compression_codec"`  // none, gzip or snappy
+	Ack_timeout_ms     int      `json:"ack_timeout_ms"`     // milliseconds
+	Required_acks      string   `json:"required_acks"`      // no_response, wait_for_local, wait_for_all
+	Flush_frequency_ms int      `json:"flush_frequency_ms"` // milliseconds
+	Write_timeout      string   `json:"write_timeout"`      // string, 100ms, 1s, default 1s
+	Dail_timeout       string   `json:"dail_timeout"`       // string, 100ms, 1s, default 5s
+	Keepalive          string   `json:"keepalive"`          // string, 100ms, 1s, 0 to disable it. default 30s
 }
 
 // type kafka struct {
