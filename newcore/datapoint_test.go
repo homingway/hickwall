@@ -117,7 +117,20 @@ func Test_DataPoint_value2string(t *testing.T) {
 	assert_equal(d, `true`)
 	d.Value = false
 	assert_equal(d, `false`)
+}
 
+func Test_DataPoint_Length(t *testing.T) {
+	var d *DataPoint
+	d = &DataPoint{
+		Metric:    "hahaha",
+		Timestamp: time.Now(),
+		Value:     1.1,
+	}
+	length := d.Length()
+	t.Log(length)
+	if length <= 0 {
+		t.Error("d.Length should be alwasy accessible")
+	}
 }
 
 func Benchmark_DataPoint_fmt(b *testing.B) {

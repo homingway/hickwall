@@ -25,6 +25,8 @@ type DataPoint struct {
 	Value     interface{}       `json:"value"`
 	Tags      TagSet            `json:"tags"`
 	Meta      map[string]string `json:"meta,omitempty"`
+
+	length int
 }
 
 func NewDP(prefix, metric string, value interface{}, tags TagSet, datatype string, unit string, desc string) DataPoint {
@@ -86,6 +88,7 @@ func (d *DataPoint) Json() []byte {
 	s := buffer.Bytes()
 	buffer.Reset()
 	ppFree.Put(buffer)
+	d.length = len(s)
 	return s
 }
 
@@ -161,4 +164,16 @@ func (d *DataPoint) Clean() error {
 		}
 	}
 	return nil
+}
+
+// fulfill sarama kafka Encoder interface{}
+func (d *DataPoint) Encode() ([]byte, error) {
+	return d.Json(), nil
+}
+
+func (d *DataPoint) Length() int {
+	if d.length <= 0 {
+		d.Encode() // have to Encode.
+	}
+	return d.length
 }
