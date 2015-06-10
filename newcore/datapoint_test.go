@@ -133,6 +133,23 @@ func Test_DataPoint_Length(t *testing.T) {
 	}
 }
 
+func Test_NewDPFromJson(t *testing.T) {
+	content := []byte(`{"metric":"metric.c2","timestamp":"2015-06-09T18:44:49+08:00","value":1}`)
+	d, err := NewDPFromJson(content)
+	if err != nil {
+		t.Log("err: %v", err)
+		t.Error("should not raise error")
+	}
+	if d.Metric != "metric.c2" {
+		t.Logf("%+v", d)
+		t.Error("metric name is differnt.")
+	}
+	if d.Value.(float64) != 1.0 {
+		t.Logf("%+v, value: %v", d, d.Value)
+		t.Error("")
+	}
+}
+
 func Benchmark_DataPoint_fmt(b *testing.B) {
 	// run the Fib function b.N times
 	var (

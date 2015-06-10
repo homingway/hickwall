@@ -29,6 +29,11 @@ type DataPoint struct {
 	length int
 }
 
+func NewDPFromJson(content []byte) (dp DataPoint, err error) {
+	err = json.Unmarshal(content, &dp)
+	return
+}
+
 func NewDP(prefix, metric string, value interface{}, tags TagSet, datatype string, unit string, desc string) DataPoint {
 	return NewDataPoint(
 		fmt.Sprintf("%s.%s", prefix, metric),
