@@ -19,7 +19,10 @@ func TestKafkaBackend(t *testing.T) {
 	logging.SetLevel("debug")
 
 	conf := &config.Transport_kafka{
-		Broker_list:        []string{"192.168.81.208:9092"},
+		Broker_list: []string{
+			"oleubuntu:9092",
+		},
+
 		Topic_id:           "test",
 		Ack_timeout_ms:     100,
 		Flush_frequency_ms: 100,

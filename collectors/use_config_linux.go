@@ -4,6 +4,7 @@ package collectors
 import (
 	"fmt"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
 )
 
@@ -17,9 +18,6 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 
 	if rconf != nil {
 		for gid, group := range rconf.Groups {
-			if group == nil {
-				continue
-			}
 
 			fmt.Printf("gid: %d, prefix: %s\n", gid, group.Prefix)
 			if len(group.Prefix) <= 0 {
@@ -51,7 +49,6 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 			rconf.Client.Metric_Enabled, rconf.Client.Metric_Interval)
 		if rconf.Client.Metric_Enabled == true {
 			clrs = append(clrs, NewHickwallCollector(rconf.Client.Metric_Interval))
-			clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
 		}
 
 		return clrs[:], nil
