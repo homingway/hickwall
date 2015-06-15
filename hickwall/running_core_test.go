@@ -81,7 +81,8 @@ main_loop:
 				break main_loop
 			}
 			for _, dp := range md {
-				fmt.Println("--> dp", string(dp.Json()))
+				res, _ := dp.MarshalJSON()
+				fmt.Println("--> dp", string(res))
 				if dp.Metric == "hickwall.client.alive" {
 					heartbeat_exists = true
 					break main_loop
@@ -144,7 +145,7 @@ func Test_kafka_producer(t *testing.T) {
 	if err != nil {
 		t.Error("failed to Start() from file")
 	}
-	done := time.After(time.Second * 100)
+	done := time.After(time.Second * 10)
 
 	for {
 		select {

@@ -1,7 +1,7 @@
 package newcore
 
 import (
-	"bufio"
+	// "bufio"
 	"bytes"
 	"encoding/json"
 	// "errors"
@@ -72,74 +72,23 @@ var ppFree = sync.Pool{
 	},
 }
 
-//TODO: test to make sure buffer don't return heading zero bytes. e.g. [00 00 00 13 42]
-// json.Encoding will have too much overhead.
-func (d *DataPoint) Json() []byte {
-	d.Clean()
+func (d *DataPoint) MarshalJSON() ([]byte, error) {
 
-	buffer := ppFree.Get().(*bytes.Buffer)
-	buffer.WriteString(`{"metric":"`)
-	buffer.WriteString(string(d.Metric))
-	buffer.WriteString(`","timestamp":"`)
-	buffer.WriteString(d.Timestamp.Format(time.RFC3339))
-	buffer.WriteString(`","value":`)
-	buffer.WriteString(d.value2string())
-
-	//TODO: handle tags
-	//TODO: handle meta
-
-	buffer.WriteString(`}`)
-	// s := buffer.String()
-	s := buffer.Bytes()
-	buffer.Reset()
-	ppFree.Put(buffer)
-	d.length = len(s)
-	return s
-}
-
-func (d *DataPoint) value2string() string {
-	switch t := d.Value.(type) {
-	case bool, int, int8, int16, int32, int64, float32, float64:
-		return fmt.Sprintf("%v", d.Value)
-	default:
-		return fmt.Sprintf(`"%v"`, t)
-	}
-}
-
-func (d *DataPoint) MarshalJSON2String() (string, error) {
-	d.Clean()
-
-	// res, err := json.Marshal(struct {
-	//  Metric    string            `json:"metric"`
-	//  Timestamp time.Time         `json:"timestamp"`
-	//  Value     interface{}       `json:"value"`
-	//  Tags      TagSet            `json:"tags"`
-	//  Meta      map[string]string `json:"meta"`
-	// }{
-	//  d.Metric,
-	//  d.Timestamp,
-	//  d.Value,
-	//  d.Tags,
-	//  d.Meta,
-	// })
-
-	// res, err := json.Marshal(d)
-	// v := string(res)
-	// res = nil
-
-	var b bytes.Buffer
-	defer b.Reset()
-
-	writer := bufio.NewWriter(&b)
-
-	enc := json.NewEncoder(writer)
-
-	err := enc.Encode(d)
-	writer.Flush()
-
-	v := b.String()
-
-	return v, err
+	res, err := json.Marshal(struct {
+		Metric    Metric            `json:"metric"`
+		Timestamp time.Time         `json:"timestamp"`
+		Value     interface{}       `json:"value"`
+		Tags      TagSet            `json:"tags"`
+		Meta      map[string]string `json:"meta"`
+	}{
+		d.Metric,
+		d.Timestamp,
+		d.Value,
+		d.Tags,
+		d.Meta,
+	})
+	d.length = len(res)
+	return res, err
 }
 
 func (d *DataPoint) Clean() error {
@@ -173,9 +122,10 @@ func (d *DataPoint) Clean() error {
 
 // fulfill sarama kafka Encoder interface{}
 func (d *DataPoint) Encode() ([]byte, error) {
-	return d.Json(), nil
+	return d.MarshalJSON()
 }
 
+// fulfill sarama kafka Encoder interface{}
 func (d *DataPoint) Length() int {
 	if d.length <= 0 {
 		d.Encode() // have to Encode.

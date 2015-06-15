@@ -81,7 +81,8 @@ func (b *fileBackend) loop() {
 				if b.output != nil {
 					// fmt.Printf("fileBackend.loop name:%s, consuming md: 0x%X \n", b.name, &md)
 					// fmt.Println(p.Metric)
-					buf.Write(p.Json())
+					res, _ := p.MarshalJSON()
+					buf.Write(res)
 					buf.Write([]byte("\n"))
 					b.output.Write(buf.Bytes())
 					buf.Reset()

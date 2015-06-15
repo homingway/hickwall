@@ -31,7 +31,7 @@ func Test_DataPoint_MarshalJSON(t *testing.T) {
 		Value:     1,
 	}
 
-	v, err := d.MarshalJSON2String()
+	v, err := d.MarshalJSON()
 	t.Logf("%s, %v\n", v, err)
 	if err != nil {
 		t.Error("MarshalJSON failed")
@@ -39,7 +39,7 @@ func Test_DataPoint_MarshalJSON(t *testing.T) {
 	// t.Error("--")
 
 	var tmp_d DataPoint
-	json.Unmarshal([]byte(v), &tmp_d)
+	json.Unmarshal(v, &tmp_d)
 	t.Logf("%v", tmp_d)
 	t.Logf("%v", tmp_d.Timestamp.UnixNano())
 	// t.Error("--")
@@ -65,72 +65,6 @@ func Test_MultiDataPoint_MarshalJSON(t *testing.T) {
 	json.Unmarshal(v, &tmp_d)
 	t.Logf("%v", tmp_d)
 	// t.Error("--")
-}
-
-func Test_DataPoint_Json(t *testing.T) {
-	var d *DataPoint
-	d = &DataPoint{
-		Metric:    "hahaha",
-		Timestamp: time.Now(),
-		Value:     1.1,
-	}
-
-	t.Log(d.Json())
-
-	var d2 DataPoint
-	err := json.Unmarshal(d.Json(), &d2)
-	if err != nil {
-		t.Error("failed to unmarshal d.Json()")
-	}
-
-	t.Log(d2)
-
-	if d2.Value != d.Value {
-		t.Error("...")
-	}
-}
-
-func Test_DataPoint_value2string(t *testing.T) {
-	var d *DataPoint
-	d = &DataPoint{
-		Metric:    "hahaha",
-		Timestamp: time.Now(),
-		Value:     1.1,
-	}
-
-	t.Log(d.Json())
-
-	assert_equal := func(dp *DataPoint, eq string) {
-		s := dp.value2string()
-		t.Logf("assert_equal: expect: %s, res: %s, value: %v", eq, s, dp.Value)
-		if s != eq {
-			t.Error("...")
-		}
-	}
-
-	d.Value = 1.1
-	assert_equal(d, `1.1`)
-	d.Value = "1.1"
-	assert_equal(d, `"1.1"`)
-
-	d.Value = true
-	assert_equal(d, `true`)
-	d.Value = false
-	assert_equal(d, `false`)
-}
-
-func Test_DataPoint_Length(t *testing.T) {
-	var d *DataPoint
-	d = &DataPoint{
-		Metric:    "hahaha",
-		Timestamp: time.Now(),
-		Value:     1.1,
-	}
-	length := d.Length()
-	t.Log(length)
-	if length <= 0 {
-		t.Error("d.Length should be alwasy accessible")
-	}
 }
 
 func Test_NewDPFromJson(t *testing.T) {
@@ -173,7 +107,7 @@ func Benchmark_DataPoint_MarshalJSON(b *testing.B) {
 	// run the Fib function b.N times
 	var (
 		d     *DataPoint
-		value string
+		value []byte
 	)
 
 	d = &DataPoint{
@@ -183,31 +117,8 @@ func Benchmark_DataPoint_MarshalJSON(b *testing.B) {
 	}
 
 	for n := 0; n < b.N; n++ {
-		value, _ = d.MarshalJSON2String()
+		value, _ = d.MarshalJSON()
 	}
 	b.Log(value)
 
-}
-
-// Benchmark_DataPoint_fmt   300000              5172 ns/op
-// Benchmark_DataPoint_MarshalJSON   100000             12817 ns/op
-// Benchmark_DataPoint_Json          300000              4012 ns/op
-
-func Benchmark_DataPoint_Json(b *testing.B) {
-	// run the Fib function b.N times
-	var (
-		d     *DataPoint
-		value string
-	)
-
-	d = &DataPoint{
-		Metric:    "hahaha",
-		Timestamp: time.Now(),
-		Value:     1.1,
-	}
-
-	for n := 0; n < b.N; n++ {
-		value = string(d.Json())
-	}
-	b.Log(value)
 }
