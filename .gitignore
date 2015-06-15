@@ -47,3 +47,4 @@ config/test_registry_file
 misc/try_misc
 
 GIT_HASH
+*.state
