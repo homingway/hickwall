@@ -53,6 +53,5 @@ func UseConfigCreateCollectors(rconf config.RuntimeConfig) ([]newcore.Collector,
 		clrs = append(clrs, NewHickwallCollector(rconf.Client.Metric_Interval))
 		clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
 	}
-
 	return clrs[:], nil
 }

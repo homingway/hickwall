@@ -135,7 +135,7 @@ func TestKafkaSubscription(t *testing.T) {
 		Max_batch_size: 10,
 		Flush_interval: "100ms",
 	}
-	sub, err := newKafkaSubscription(opts)
+	sub, err := NewKafkaSubscription(opts)
 	if err != nil {
 		t.Errorf("failed to create kafka subscription: %v", err)
 		return

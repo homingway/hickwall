@@ -2,6 +2,7 @@ package config
 
 import (
 	b_conf "github.com/oliveagle/hickwall/backends/config"
+	c_conf "github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 )
 
@@ -12,10 +13,11 @@ type ClientConfig struct {
 	Metric_Enabled     bool              `json:"metric_enabled"`
 	Metric_Interval    string            `json:"metric_interval"`
 
-	Transport_dummy    *Transport_dummy             `json:"transport_dummy"` // for testing purpose
-	Transport_file     *b_conf.Transport_file       `json:"transport_file"`
-	Transport_influxdb []*b_conf.Transport_influxdb `json:"transport_influxdb"`
-	Transport_kafka    *b_conf.Transport_kafka      `json:"transport_kafka"`
+	Transport_dummy    *Transport_dummy                   `json:"transport_dummy"` // for testing purpose
+	Transport_file     *b_conf.Transport_file             `json:"transport_file"`
+	Transport_influxdb []*b_conf.Transport_influxdb       `json:"transport_influxdb"`
+	Transport_kafka    *b_conf.Transport_kafka            `json:"transport_kafka"`
+	Subscribe_kafka    []*c_conf.Config_KafkaSubscription `json:"subscribe_kafka"` // subscribe kafka
 }
 
 type Transport_dummy struct {

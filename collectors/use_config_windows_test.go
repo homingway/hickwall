@@ -192,3 +192,79 @@ func Test_UseConfigCreateCollectors_Fails(t *testing.T) {
 		t.Logf("%s - %v", key, clrs)
 	}
 }
+
+var sub_configs = map[string][]byte{
+	"1": []byte(`
+client:
+    subscribe_kafka:
+        - 
+            Name: "kafka1"
+            Topic: "test"
+            Broker_list:
+                - "10.1.1.1:9092"
+`),
+}
+
+func Test_UseConfigCreateSubscription(t *testing.T) {
+	for key, data := range sub_configs {
+		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
+		if err != nil {
+			t.Errorf("%s, err %v", key, err)
+			return
+		}
+
+		subs, err := UseConfigCreateSubscription(rconf)
+		if err != nil {
+			t.Errorf("%s should not fail: %v", key, err)
+		}
+		if len(subs) != 1 {
+			t.Errorf("%s should not fail", key)
+		}
+		t.Logf("%s - %v", key, subs)
+	}
+}
+
+var sub_fails_configs = map[string][]byte{
+	"empty_name": []byte(`
+client:
+    subscribe_kafka:
+        - 
+            Name: ""
+            Topic: "test"
+            Broker_list:
+                - "10.1.1.1:9092"
+`),
+	"duplicated_name": []byte(`
+client:
+    subscribe_kafka:
+        - 
+            Name: "A"
+            Topic: "test"
+            Broker_list:
+                - "10.1.1.1:9092"
+        - 
+            Name: "A"
+            Topic: "test1"
+            Broker_list:
+                - "10.1.1.1:9092"
+`),
+}
+
+func Test_UseConfigCreateSubscription_fails(t *testing.T) {
+	for key, data := range sub_fails_configs {
+		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
+		if err != nil {
+			t.Errorf("%s, err %v", key, err)
+			return
+		}
+
+		subs, err := UseConfigCreateSubscription(rconf)
+		if err == nil {
+			t.Errorf("%s should fail but not", key)
+		}
+		if len(subs) > 0 {
+			t.Errorf("%s should fail but not", key)
+		}
+		t.Logf("%s - %v", key, subs)
+	}
+}

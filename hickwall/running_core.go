@@ -55,6 +55,14 @@ func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcor
 		subs = append(subs, newcore.Subscribe(c, nil))
 	}
 
+	// create other subscriptions, such as kafka
+	_subs, err := collectors.UseConfigCreateSubscription(rconf)
+	if err != nil {
+		logging.Error("UseConfigCreateSubscription failed: ", err)
+		return nil, nil, err
+	}
+	subs = append(subs, _subs...)
+
 	merge := newcore.Merge(subs...)
 
 	if ishook == true {
