@@ -136,3 +136,21 @@ func Test_MultipleCore(t *testing.T) {
 	t.Logf("%+v", core1)
 	t.Logf("%+v", core2)
 }
+
+func Test_kafka_producer(t *testing.T) {
+	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
+	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_kafka_producer.yml")
+	err := Start()
+	if err != nil {
+		t.Error("failed to Start() from file")
+	}
+	done := time.After(time.Second * 100)
+
+	for {
+		select {
+		case <-done:
+			Stop()
+			return
+		}
+	}
+}

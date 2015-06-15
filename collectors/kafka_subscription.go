@@ -291,7 +291,7 @@ func (c *kafka_subscription) consume() (<-chan newcore.MultiDataPoint, error) {
 
 					// only 1 goroutine will save state to disk
 					if flush_offset == true && c.state.Changed() == true {
-						logging.Infof("flusing to disk: part: %d, offset: %d", part, offset)
+						logging.Tracef("flusing to disk: part: %d, offset: %d", part, offset)
 						c.state.Save()
 					}
 				case _out <- items:
