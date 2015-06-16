@@ -129,7 +129,8 @@ func TestKafkaSubscription(t *testing.T) {
 	opts := Config_KafkaSubscription{
 		Name: "kafka_sub",
 		Broker_list: []string{
-			"oleubuntu:9092",
+			"opsdevhdp02.qa.nt.ctripcorp.com:9092",
+			// "oleubuntu:9092",
 		},
 		Topic:          "test",
 		Max_batch_size: 10,

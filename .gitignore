@@ -48,3 +48,4 @@ misc/try_misc
 
 GIT_HASH
 *.state
+.misc/try_misc

@@ -20,7 +20,8 @@ func TestKafkaBackend(t *testing.T) {
 
 	conf := &config.Transport_kafka{
 		Broker_list: []string{
-			"oleubuntu:9092",
+			"opsdevhdp02.qa.nt.ctripcorp.com:9092",
+			// "oleubuntu:9092",
 		},
 
 		Topic_id:           "test",
