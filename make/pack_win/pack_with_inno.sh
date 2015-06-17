@@ -3,8 +3,11 @@
 # get current running script location
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJ_ROOT="$SCRIPT_ROOT/../.."
-ISCC=$HOME/bin/iscc
+#ISCC=$HOME/bin/iscc
+ISCC=/root/bin/iscc
 VER=$(cat $PROJ_ROOT/release-version)
+
+echo "$ISCC" 
 
 TMP_DIR=$(mktemp -d)
 echo "temp dir: " $TMP_DIR

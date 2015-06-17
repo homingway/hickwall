@@ -55,7 +55,6 @@ func (b *influxdbBackend) newInfluxdbClientFromConf() error {
 		logging.Error("failed to create influxdb client: ", err)
 		return fmt.Errorf("failed to create influxdb client: ", err)
 	}
-	logging.Info("influxdb client created")
 	b.output = iclient
 	return nil
 }
@@ -67,7 +66,7 @@ func (b *influxdbBackend) loop() {
 		try_create_client_tick <-chan time.Time
 	)
 	startConsuming = b.updates
-	logging.Info("influxdb backend loop started ")
+	logging.Debug("influxdb backend loop started ")
 
 	for {
 		if b.output == nil && try_create_client_once == nil && try_create_client_tick == nil {
@@ -87,8 +86,6 @@ func (b *influxdbBackend) loop() {
 		select {
 		case md := <-startConsuming:
 			if b.output != nil {
-				logging.Tracef("influxdb backend consuming: 0x%X", &md)
-
 				points := []client.Point{}
 				for _, p := range md {
 					points = append(points, client.Point{
@@ -105,10 +102,9 @@ func (b *influxdbBackend) loop() {
 					RetentionPolicy: b.conf.RetentionPolicy,
 					Points:          points,
 				}
-				// res, err := b.output.Write(write)
+				// logging.Debugf("write: count: %d", len(md))
 				b.output.Write(write)
 			}
-
 		case opened := <-try_create_client_once:
 			try_create_client_once = nil // disable this branch
 			if !opened {

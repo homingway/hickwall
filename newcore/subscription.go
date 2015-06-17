@@ -1,7 +1,7 @@
 package newcore
 
 import (
-	"log"
+	"github.com/oliveagle/hickwall/logging"
 	"time"
 )
 
@@ -20,18 +20,18 @@ func Subscribe(collector Collector, opt *SubOptions) Subscription {
 	var err error
 
 	if opt == nil {
-		// log.Println("Subscribe: opt is nil, use default. 1, 5s")
+		logging.Trace("Subscribe: opt is nil, use default. 1, 5s")
 		opt = &SubOptions{
 			MaxPending:   1,
 			DelayOnError: "5s",
 		}
 	} else if opt.MaxPending <= 0 {
-		log.Println("opt.MaxPending is below 0, use default 1 instead")
+		logging.Trace("opt.MaxPending is below 0, use default 1 instead")
 		opt.MaxPending = 1
 	}
 
 	if delay, err = time.ParseDuration(opt.DelayOnError); delay < time.Millisecond*time.Duration(100) || err != nil {
-		log.Println("opt.DelayOnError is too frequent, use default:  100ms ")
+		logging.Trace("opt.DelayOnError is too frequent, use default:  100ms ")
 		delay = time.Duration(100) * time.Millisecond
 	}
 
@@ -117,20 +117,23 @@ func (s sub) loop() {
 			go func() {
 				// defer func() {
 				// 	if r := recover(); r != nil {
-				// 		log.Println("------------ Recovered in f ----------", r)
+				//		logging.Criticalf("---------- Recovered -------%v", r)
 				// 	}
 				// }()
-				collectDone <- s.collector.CollectOnce()
+				logging.Tracef("running collector.CollectOnce: %s", s.collector.Name())
+				res := s.collector.CollectOnce()
+				collectDone <- res
+				logging.Debugf("finished collector.CollectOnce: %s, count: %d", s.collector.Name(), len(res.Collected))
 			}()
 		case result := <-collectDone:
-			// log.Println("result := <- collectDone", result)
+			//  logging.Info("result := <- collectDone", result)
 			collectDone = nil
 
 			next, err = result.Next, result.Err
 			if err != nil {
 				// sub default delay if error happens while collecting data
 				//TODO: add unittest for delay_on_error.
-				log.Printf("ERROR: collector(%s) error: %v", s.collector.Name(), err)
+				logging.Errorf("ERROR: collector(%s) error: %v", s.collector.Name(), err)
 				next = time.Now().Add(s.delay_on_error)
 				break
 			}

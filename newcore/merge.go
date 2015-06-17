@@ -1,5 +1,9 @@
 package newcore
 
+// import (
+// 	"github.com/oliveagle/hickwall/logging"
+// )
+
 type merge struct {
 	subs    []Subscription
 	updates chan MultiDataPoint
@@ -31,6 +35,9 @@ func Merge(subs ...Subscription) Subscription {
 				}
 				select {
 				case m.updates <- it:
+					// for _, dp := range it {
+					// 	logging.Tracef("merged datapoing: %+v", dp)
+					// }
 				case <-m.quit:
 					m.errs <- s.Close()
 					return

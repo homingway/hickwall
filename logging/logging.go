@@ -123,6 +123,18 @@ func Infof(format string, v ...interface{}) {
 	}
 }
 
+func Warn(v ...interface{}) {
+	if _level <= level.WARNING && logger != nil {
+		logger.Output(2, fmt.Sprintf("[WARN] %s", v...))
+	}
+}
+
+func Warnf(format string, v ...interface{}) {
+	if _level <= level.WARNING && logger != nil {
+		logger.Output(2, fmt.Sprintf("[WARN] %s", fmt.Sprintf(format, v...)))
+	}
+}
+
 func Error(v ...interface{}) {
 	if _level <= level.ERROR && logger != nil {
 		logger.Output(2, fmt.Sprintf("[ERROR] %s", v...))

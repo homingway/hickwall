@@ -75,6 +75,8 @@ func (c win_pdh_collector) Interval() time.Duration {
 }
 
 func (c win_pdh_collector) CollectOnce() newcore.CollectResult {
+	// logging.Debug("win_pdh_collector.CollectOnce Started")
+
 	var items newcore.MultiDataPoint
 	// log.Println("win_pdh_collector_CollectOnce Started")
 
@@ -96,7 +98,7 @@ func (c win_pdh_collector) CollectOnce() newcore.CollectResult {
 	// 	log.Println("win_pdh_collector ERROR: c.hPdh is nil")
 	// }
 
-	// log.Println("win_pdh_collector_CollectOnce Finished")
+	// logging.Debug("win_pdh_collector.CollectOnce Finished. count: %d", len(items))
 	return newcore.CollectResult{
 		Collected: items,
 		Next:      time.Now().Add(c.interval),

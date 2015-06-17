@@ -17,7 +17,7 @@ func UseConfigCreateCollectors(rconf config.RuntimeConfig) ([]newcore.Collector,
 	var prefixs = make(map[string]bool)
 
 	for gid, group := range rconf.Groups {
-		fmt.Printf("gid: %d, prefix: %s\n", gid, group.Prefix)
+		logging.Infof("gid: %d, prefix: %s\n", gid, group.Prefix)
 		if len(group.Prefix) <= 0 {
 			return nil, fmt.Errorf("group (idx:%d) prefix is empty.", gid)
 		} else {

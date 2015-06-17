@@ -29,7 +29,10 @@ func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcor
 		logging.Error("UseConfigCreateBackends failed: ", err)
 		return nil, nil, err
 	}
-	fmt.Println("bks: ", bks)
+	for _, bk := range bks {
+		logging.Debugf("backend: %s", bk.Name())
+		logging.Tracef("backend: %s -> %+v", bk.Name(), bk)
+	}
 
 	clrs, err := collectors.UseConfigCreateCollectors(rconf)
 	if err != nil {
@@ -49,9 +52,11 @@ func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcor
 		clrs = append(clrs, collectors.NewHeartBeat(rconf.Client.HeartBeat_Interval))
 	}
 
-	fmt.Printf("collectors: %+v", clrs)
+	// fmt.Printf("collectors: %+v", clrs)
 
 	for _, c := range clrs {
+		logging.Debugf("collector: %s", c.Name())
+		logging.Tracef("collector: %s -> %+v", c.Name(), c)
 		subs = append(subs, newcore.Subscribe(c, nil))
 	}
 

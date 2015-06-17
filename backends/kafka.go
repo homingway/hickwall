@@ -134,6 +134,9 @@ func (b *kafkaBackend) loop() {
 				}
 			}()
 		}
+		if startConsuming != nil {
+			logging.Trace("kafkaBackend consuming started")
+		}
 
 		select {
 		case md := <-startConsuming:
@@ -145,6 +148,7 @@ func (b *kafkaBackend) loop() {
 				}
 				logging.Tracef(" -> point: %+v", p)
 			}
+			logging.Debugf("kafkaBackend consuming finished: count: %d", len(md))
 		case connected := <-try_connect_first:
 			try_connect_first = nil // disable this branch
 			if !connected {

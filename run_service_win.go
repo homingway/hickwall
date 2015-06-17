@@ -19,7 +19,7 @@ import (
 )
 
 var pid int
-var rss_up_limit_mb = 20.0 // MB
+var rss_up_limit_mb = 50.0 // MB
 
 func init() {
 	pid = os.Getpid()

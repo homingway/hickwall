@@ -8,7 +8,6 @@ import (
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/hickwall/utils"
-	//	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -24,10 +23,6 @@ var (
 	win_wmi_pat_field, _  = regexp.Compile(`\{\{\.\w+((_?)+\w+)+\}\}`)
 )
 
-func oleCoUninitialize() {
-
-}
-
 type win_wmi_collector struct {
 	name     string // collector name
 	interval time.Duration
@@ -40,10 +35,6 @@ type win_wmi_collector struct {
 }
 
 func NewWinWmiCollector(name, prefix string, opts config.Config_win_wmi) newcore.Collector {
-
-	// // use COINIT_MULTITHREADED model
-	// ole.CoInitializeEx(0, ole.COINIT_MULTITHREADED)
-
 	c := &win_wmi_collector{
 		name:     name,
 		enabled:  true,
@@ -224,8 +215,6 @@ func (c *win_wmi_collector) get_fields_of_query(query config.Config_win_wmi_quer
 		results = append(results, key)
 	}
 
-	// fmt.Println("results: ", results)
-
 	return results
 }
 
@@ -237,11 +226,6 @@ func (c *win_wmi_collector) CollectOnce() (res newcore.CollectResult) {
 		fields := c.get_fields_of_query(query)
 
 		results, err := c.query(query.Query, fields)
-
-		// results, err := c.query(
-		// 	"select Name, FileSystem, FreeSpace, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12",
-		// 	[]string{"Name", "FileSystem", "FreeSpace", "Size"},
-		// )
 
 		if err != nil {
 			continue
@@ -267,10 +251,8 @@ func (c *win_wmi_collector) CollectOnce() (res newcore.CollectResult) {
 
 					if value, ok := record[item.Value_from]; ok == true {
 						items = append(items, newcore.NewDP(c.prefix, metric, value, tags, "", "", ""))
-						// Add(&items, c.prefix, metric, value, tags, "", "", "")
 					} else if item.Default != "" {
 						items = append(items, newcore.NewDP(c.prefix, metric, item.Default, tags, "", "", ""))
-						// Add(&items, c.prefix, metric, item.Default, tags, "", "", "")
 					}
 				}
 			}
@@ -289,12 +271,10 @@ func (c *win_wmi_collector) CollectOnce() (res newcore.CollectResult) {
 					tags := newcore.AddTags.Copy().Merge(query.Tags).Merge(item.Tags)
 					items = append(items, newcore.NewDP(c.prefix, item.Metric.Clean(), item.Default, tags, "", "",
 						""))
-					// Add(&items, c.prefix, item.Metric.Clean(), item.Default, tags, "", "", "")
 				}
 			}
 		}
 	} // for queries
-
 	return newcore.CollectResult{
 		Collected: items,
 		Next:      time.Now().Add(c.interval),

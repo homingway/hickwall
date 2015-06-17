@@ -89,7 +89,6 @@ func (c ping_collector) Interval() time.Duration {
 }
 
 func (c ping_collector) CollectOnce() newcore.CollectResult {
-	logging.Debug("ping_collector: CollectOnce Started")
 	var (
 		md       newcore.MultiDataPoint
 		d        stats.Stats
@@ -130,9 +129,6 @@ func (c ping_collector) CollectOnce() newcore.CollectResult {
 	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", ""))
 	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", ""))
 	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", ""))
-	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_min"), d.Min(), c.tags, "", "", "")
-	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_max"), d.Max(), c.tags, "", "", "")
-	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_avg"), d.Mean(), c.tags, "", "", "")
 
 	std := d.SampleStandardDeviation()
 	if math.IsNaN(std) {
@@ -140,14 +136,10 @@ func (c ping_collector) CollectOnce() newcore.CollectResult {
 	}
 	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", ""))
 	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", ""))
-	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "time_mdev"), std, c.tags, "", "", "")
-	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "ip"), ip.IP.String(), c.tags, "", "", "")
 
 	lost_pct := float64((c.config.Packets-d.Count())/c.config.Packets) * 100
 	md = append(md, newcore.NewDP(c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", ""))
-	// Add(&md, c.prefix, fmt.Sprintf("%s.%s", c.config.Metric, "lost_pct"), lost_pct, c.tags, "", "", "")
 
-	logging.Debug("ping_collector: CollectOnce Finished")
 	return newcore.CollectResult{
 		Collected: md,
 		Next:      time.Now().Add(c.interval),

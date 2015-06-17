@@ -1,7 +1,7 @@
 package newcore
 
 import (
-	"log"
+	"github.com/oliveagle/hickwall/logging"
 	"time"
 )
 
@@ -27,10 +27,8 @@ type fanout struct {
 }
 
 func (f *fanout) Close() error {
-	// log.Println("fanout Close");
 	errc := make(chan error)
 	f.closing <- errc
-	// log.Println("fanout.Close() finished, wait to return")
 	return <-errc
 }
 
@@ -45,25 +43,25 @@ func (f *fanout) cosuming(idx int, closing chan chan error) {
 	pending = nil
 	pub = nil
 
-	log.Printf("fanout.consuming: -started- idx: %d, closing: 0x%X\n", idx, closing)
+	logging.Tracef("fanout.consuming: -started- idx: %d, closing: 0x%X\n", idx, closing)
 
 	for {
 		if pending == nil && pub == nil {
 			pending = f.pending[idx] // enable read from pending chan
 		}
-		// log.Printf("fanout.consuming -1- idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
+		logging.Tracef("fanout.consuming -1- idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
 
 		select {
 		case first = <-pending:
-			// log.Printf("fanout.consuming -2- idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
+			logging.Tracef("fanout.consuming -2- idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
 			pending = nil          // disable read from pending chan
 			pub = f.chan_pubs[idx] // enable send to pub chan
 		case pub <- first:
-			// log.Printf("fanout.consuming -3- idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
+			logging.Debugf("fanout.consuming -3- send data Finished: %s idx: %d, sent cnt: %d, pub: %x\n", f.bks[idx].Name(), idx, len(first), pub)
 			pub = nil   // disable send to pub chan
 			first = nil // clear first
 		case errc := <-closing:
-			// log.Printf("fanout.consuming -4.Start- closing idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
+			logging.Tracef("fanout.consuming -4.Start- closing idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
 
 			pending = nil // nil startSend channel
 			pub = nil
@@ -74,14 +72,14 @@ func (f *fanout) cosuming(idx int, closing chan chan error) {
 
 			errc <- nil // response to closing channel
 
-			log.Printf("fanout.consuming -4.End- closing idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
+			logging.Tracef("fanout.consuming -4.End- closing idx: %d, first: %x, pending: %x, pub: %x\n", idx, &first, pending, pub)
 			return
 		}
 	}
 }
 
 func (f *fanout) loop() {
-	log.Println("fanout.loop() started")
+	logging.Debug("fanout.loop() started")
 	var (
 		startConsuming <-chan MultiDataPoint
 	)
@@ -106,9 +104,8 @@ main_loop:
 				_ = idx
 				if len(p) < maxPending {
 					p <- md
-
-					// } else {
-					// log.Printf("CRITICAL: fanout.loop.main_loop: pending channel is jamming: bkname: %s\n", f.bks[idx].Name())
+				} else {
+					logging.Warnf("fanout.loop.main_loop: pending channel is jamming: bkname: %s\n", f.bks[idx].Name())
 				}
 			}
 		case errc := <-f.closing:
@@ -131,19 +128,19 @@ main_loop:
 					case <-consuming_errc:
 						break wait_bk_close
 					case <-timeout:
-						log.Printf("CRITICAL: backend(%s) is blocking the fanout closing process!\n", bk.Name())
+						logging.Errorf("backend(%s) is blocking the fanout closing process!\n", bk.Name())
 						break wait_bk_close
 					}
 				}
 
 			}
-			log.Println("fanout.loop() closed all consuming backends")
+			logging.Debug("fanout.loop() closed all consuming backends")
 			errc <- nil
 			break main_loop
 		}
 	}
 
-	log.Println("fanout.loop() exit main_loop")
+	logging.Debug("fanout.loop() exit main_loop")
 
 	timeout := time.After(time.Duration(1) * time.Second)
 	closing_sub := make(chan error)
@@ -153,10 +150,10 @@ main_loop:
 	for {
 		select {
 		case <-closing_sub:
-			log.Println("fanout.loop() returned")
+			logging.Debug("fanout.loop() returned")
 			return
 		case <-timeout:
-			log.Printf("CRITICAL: Subscription(%s) is blocking the fanout closing process! forced return with timeout\n", f.sub.Name())
+			logging.Errorf("Subscription(%s) is blocking the fanout closing process! forced return with timeout\n", f.sub.Name())
 			return
 		}
 	}
