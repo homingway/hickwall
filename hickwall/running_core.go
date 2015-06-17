@@ -92,11 +92,16 @@ func CreateRunningCore(rconf config.RuntimeConfig) (newcore.PublicationSet, erro
 }
 
 func replace_core(c newcore.PublicationSet) {
-	if c != nil {
-		if the_core != nil {
-			close_core()
-		}
+	// do nothing if nil interface
+	if c == nil {
+		return
 	}
+
+	// close first
+	if the_core != nil {
+		close_core()
+	}
+
 	the_core = c
 }
 
@@ -114,21 +119,23 @@ func IsRunning() bool {
 
 func Start() error {
 	if IsRunning() == true {
-		return fmt.Errorf("one core is already running. stop it first!")
+		err := fmt.Errorf("one core is already running. stop it first!")
+		logging.Errorf("failed to start hickwall core: %v", err)
+		return err
 	}
 
 	switch config.CoreConf.Config_Strategy {
 	case config.ETCD:
-		logging.Info(" use etcd strategy")
+		logging.Info("use etcd config strategy")
 		go LoadConfigStrategyEtcd(done)
 	case config.REGISTRY:
-		logging.Info(" use registry strategy")
+		logging.Info("use registry config strategy")
 	default:
-		logging.Info(" [default] use file strategy")
+		logging.Info("[default] use file config strategy")
 		core, err := LoadConfigStrategyFile()
 		if err != nil {
-			logging.Error("faile to create running core from file: ", err)
-			return fmt.Errorf("failed to create running core from file: %v", err)
+			logging.Errorf("faile to create running core from file: %v", err)
+			return err
 		}
 		replace_core(core)
 	}
@@ -139,16 +146,17 @@ func Stop() error {
 	if IsRunning() {
 		switch config.CoreConf.Config_Strategy {
 		case config.ETCD:
-			logging.Info(" Stop etcd strategy")
+			logging.Trace("Stopping etcd strategy")
 			errc := make(chan error)
 			done <- errc
 			<-errc
 		case config.REGISTRY:
-			logging.Info(" Stop registry strategy")
+			logging.Trace("Stopping registry strategy")
 		default:
-			logging.Info(" Stop default file strategy")
+			logging.Trace("Stopping default file strategy")
 			close_core()
 		}
 	}
+	logging.Info("core stopped")
 	return nil
 }

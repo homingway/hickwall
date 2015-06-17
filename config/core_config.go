@@ -20,6 +20,7 @@ var (
 )
 
 type CoreConfig struct {
+	Rss_limit_mb      int      `json:"rss_limit_mb"`      // rss_limit_mb to kill client, default is 50Mb
 	Log_level         string   `json:"log_level"`         // possible values: trace, debug, info, warn, error, critical
 	Log_file_maxsize  int      `json:"log_file_maxsize"`  // TODO: log_file_maxsize
 	Log_file_maxrolls int      `json:"log_file_maxrolls"` // TODO: log_file_maxrolls
@@ -54,6 +55,10 @@ func LoadCoreConfig() error {
 	err = core_viper.Marshal(&CoreConf)
 	if err != nil {
 		return fmt.Errorf("Error: unable to parse Core Configuration: %v\n", err)
+	}
+
+	if CoreConf.Rss_limit_mb <= 0 {
+		CoreConf.Rss_limit_mb = 50 //deffault rss limit
 	}
 
 	logging.SetLevel(CoreConf.Log_level)

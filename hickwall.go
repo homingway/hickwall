@@ -20,7 +20,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "hickwall"
-	app.Usage = "monitoring system"
+	app.Usage = "collect metrics effortlessly."
 	app.Version = fmt.Sprintf("%s - %s", Version, Build)
 
 	app.Commands = []cli.Command{
@@ -116,9 +116,11 @@ func main() {
 	}
 
 	if len(os.Args) >= 2 {
+
+		logging.Debug("executing commands")
 		app.Run(os.Args)
+
 	} else {
-		logging.Debug("len os.args < 2")
 
 		isIntSess, err := servicelib.IsAnInteractiveSession()
 		if err != nil {
@@ -127,7 +129,7 @@ func main() {
 		}
 
 		if !isIntSess {
-			logging.Debug("running as service ... ")
+			logging.Debug("running as service")
 			run(false, true)
 			return
 		}

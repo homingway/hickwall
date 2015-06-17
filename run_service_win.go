@@ -19,7 +19,6 @@ import (
 )
 
 var pid int
-var rss_up_limit_mb = 50.0 // MB
 
 func init() {
 	pid = os.Getpid()
@@ -27,6 +26,7 @@ func init() {
 
 type serviceHandler struct{}
 
+// this is the entry point of long running daemon
 func run(isDebug bool, daemon bool) {
 	if !config.IsCoreConfigLoaded() {
 		err := config.LoadCoreConfig()
@@ -40,8 +40,8 @@ func run(isDebug bool, daemon bool) {
 	loop:
 		rss_mb := float64(gs.GetCurrentRSS()) / 1024 / 1024 // Mb
 		logging.Tracef("current rss: %f", rss_mb)
-		if rss_mb > rss_up_limit_mb {
-			logging.Criticalf("Suicide. CurrentRSS above limit: %f >= %f Mb", rss_mb, rss_up_limit_mb)
+		if rss_mb > float64(config.CoreConf.Rss_limit_mb) {
+			logging.Criticalf("Suicide. CurrentRSS above limit: %f >= %d Mb", rss_mb, config.CoreConf.Rss_limit_mb)
 			os.Exit(1)
 		}
 		next := time.After(time.Second)
@@ -83,10 +83,11 @@ func runService(isDebug bool) {
 }
 
 func runAsPrimaryService(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
-	logging.Info("runAsPrimaryService")
+	logging.Debug("runAsPrimaryService started")
+
 	defer utils.Recover_and_log()
 
-	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
+	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 	changes <- svc.Status{State: svc.StartPending}
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
@@ -138,21 +139,14 @@ loop:
 				time.Sleep(100 * time.Millisecond)
 				changes <- c.CurrentStatus
 			case svc.Stop, svc.Shutdown:
-				logging.Info("svc.Stop or svc.Shutdown is triggered")
 				break loop
-			case svc.Pause:
-				changes <- svc.Status{State: svc.Paused, Accepts: cmdsAccepted}
-				logging.Info("svc.Pause not implemented yet")
-			case svc.Continue:
-				changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
-				logging.Info("svc.Continue not implemented yet")
 			default:
 				logging.Errorf("unexpected control request #%d", c)
 			}
 		}
 	}
 	changes <- svc.Status{State: svc.StopPending}
-	logging.Info("serviceHandler stopped")
+	logging.Debug("runAsPrimaryService stopped")
 	return
 }
 
