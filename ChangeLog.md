@@ -21,3 +21,15 @@
 * fixed several bugs
 * added heartbeat metrics
 * removed hickwallhelper service on windows.
+
+### Version 0.2.1
+* collector_cmd removed for risk consideration
+* use c implemented hickwallhelper service on windows.
+* implemented a newcore. 
+* dummy backend
+* file backend
+* kafka backend
+* kafka subscriber. (e.g. 1(or few) kafka subscriber, N kafka producer. )
+* remove 3rd-party logging module. replaced with a customized wrapper of builtin log
+* add RSS limit of the hickwall process.
+* unittest covered most packages.

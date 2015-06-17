@@ -147,10 +147,9 @@ func (c *win_wmi_collector) query(query string, fields []string) ([]map[string]s
 			}
 
 			resultMap = append(resultMap, itemMap)
+			logging.Tracef("wmi query result: %+v", itemMap)
 		}
-
-		// log.Println("resultMap: ", resultMap)
-
+		logging.Tracef("wmi query result count: %d", len(resultMap))
 		return resultMap, nil
 	} else {
 		logging.Error("win_wmi_collector c.service is nil")
@@ -275,6 +274,10 @@ func (c *win_wmi_collector) CollectOnce() (res newcore.CollectResult) {
 			}
 		}
 	} // for queries
+
+	for _, dp := range items {
+		logging.Tracef("wmi DataPoint -> %+v", dp)
+	}
 	return newcore.CollectResult{
 		Collected: items,
 		Next:      time.Now().Add(c.interval),

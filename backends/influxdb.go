@@ -103,6 +103,8 @@ func (b *influxdbBackend) loop() {
 					Points:          points,
 				}
 				// logging.Debugf("write: count: %d", len(md))
+
+				//FIXME: connection timeout?
 				b.output.Write(write)
 			}
 		case opened := <-try_create_client_once:
