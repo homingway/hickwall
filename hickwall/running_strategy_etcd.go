@@ -25,14 +25,16 @@ func LoadConfigStrategyEtcd(stop chan error) {
 			// fmt.Println(" ------------ got resp --------------------")
 			pretty.Println(resp)
 			if resp.Err != nil {
-				logging.Error("failed to get RuntimeConf from etcd: ", resp.Err)
+				logging.Error(resp.Err)
+				// logging.Errorf("failed to get RuntimeConf from etcd: %v", resp.Err)
 				continue
 			} else {
 				close_core() //TODO: to prevent race condition. maybe we can safely remove this line.
 				core, err := CreateRunningCore(resp.Config)
 				// fmt.Println(" -------------- CreateRunningCore finished ------------------------------")
 				if err != nil {
-					logging.Errorf("failed to create running core from etcd: %s", err)
+					// logging.Errorf("failed to create running core from etcd: %s", err)
+					logging.Error(err)
 					continue
 				} else {
 					rconf := resp.Config

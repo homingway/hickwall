@@ -34,67 +34,60 @@ func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
 
 	//TODO: should limit retry cnt
 	go func() {
-		retry_cnt := 0
+		var err error
+		var retry_cnt = 0
+		var startWatch <-chan time.Time
+
 	label_get_first:
 		//need to get config at least once
 		var tmp_conf RuntimeConfig
-		err = runtime_viper.ReadRemoteConfig()
-		if err != nil {
-			// panic("ahah")
-			logging.Errorf("runtime_viper.ReadRemoteConfig Error: %v", err)
-			out <- RespConfig{nil, err}
 
-			time.Sleep(sleep_duration)
+		err = runtime_viper.ReadRemoteConfig()
+		if err == nil {
+			err = runtime_viper.Marshal(&tmp_conf)
+		}
+
+		if err != nil {
+			out <- RespConfig{nil, err}
 			retry_cnt += 1
 			if retry_cnt > 5 {
-				logging.Criticalf("cannot get inital config from remote. after 5 attempts")
+				out <- RespConfig{nil, fmt.Errorf("cannot get inital config from remote. after 5 attempts")}
 				return
 			}
-			goto label_get_first
-		} else {
-			err = runtime_viper.Marshal(&tmp_conf)
-			if err != nil {
-				logging.Errorf("runtime_viper.Marshal Error: %v", err)
 
-				time.Sleep(sleep_duration)
-				goto label_get_first
-			} else {
-				out <- RespConfig{&tmp_conf, nil}
-			}
+			// delay
+			time.Sleep(sleep_duration)
+			goto label_get_first
 		}
+
+		out <- RespConfig{&tmp_conf, nil}
+
+		startWatch = time.Tick(sleep_duration)
 
 	loop:
 		// watch changes
 		for {
-			var (
-				runtime_conf RuntimeConfig
-			)
+			var runtime_conf RuntimeConfig
 
 			select {
 			case <-stop:
 				logging.Debugf("stop watching etcd remote config.")
 				break loop
-			default:
+			case <-startWatch:
 				logging.Debugf("watching etcd remote config: %s, %s", CoreConf.Etcd_url, CoreConf.Etcd_path)
 				err := runtime_viper.WatchRemoteConfig()
 				if err != nil {
 					logging.Errorf("unable to read remote config: %v", err)
-					time.Sleep(sleep_duration)
-					continue
+					break
 				}
 
 				err = runtime_viper.Marshal(&runtime_conf)
 				if err != nil {
 					logging.Errorf("unable to marshal to config: %v", err)
-					time.Sleep(sleep_duration)
-					continue
+					break
 				}
-
 				logging.Debugf("a new config is comming")
 				out <- RespConfig{&runtime_conf, nil}
-
-				//TODO: make it configurable
-				time.Sleep(sleep_duration)
 			}
 		}
 	}()

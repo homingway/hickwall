@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/logging"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -39,49 +40,38 @@ func _fack_etcd_respose(idx int, value string) (string, error) {
 
 // config content, expecting?, error message?
 
-var nil_core_tests = [][]string{
-	{
-		"",
-		"no message",
-	},
+var nil_core_tests = []string{
+	// empty config
+	"",
 
-	{
-		"}", // cannot parse this yaml content. will panic. we should handle it.
-		"no message",
-	},
-	{
-		`
-# ---------- client configurations -------------------------------------------
-client:
-    # customize hostname, if omit this option, the client will use $(hostname) automatically
-    # hostname: "test_server1"
+	// cannot parse this yaml content. will panic. we should handle it.
+	"}",
 
-    # minimal interval is 1s
-    heartbeat_interval: 1s
-
-    metric_enabled: true
-    metric_interval: 2s
-`,
-		"no message",
-	},
+	// no backend config
+	"\nclient:\n    heartbeat_interval: 1s",
 }
 
-func Test_LoadConfigStrategyEtcd(t *testing.T) {
+func Test_LoadConfigStrategyEtcd_Nil(t *testing.T) {
+	logging.SetLevel("debug")
+
 	stopCh := make(chan error)
 
 	for idx, tcase := range nil_core_tests {
 		request_cnt := 0
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			request_cnt += 1
-			fmt.Printf(" case: %d, -- we got request: cnt:%d ------------\n", idx, request_cnt)
+			logging.Infof("case: %d, -- we got request: cnt:%d ------------\n", idx, request_cnt)
 			// pretty.Println(r)
 			iswait := r.URL.Query().Get("wait")
 			if strings.ToLower(iswait) == "true" {
+				logging.Info("watching")
 				// watch, long polling
-				time.Sleep(time.Second * 5)
+				// time.Sleep(time.Second * 1)
+			} else {
+				logging.Info("getting")
 			}
 
-			v, _ := _fack_etcd_respose(1, tcase[0])
+			v, _ := _fack_etcd_respose(1, tcase)
 			fmt.Printf("case: %d, content: %s\n", idx, v)
 
 			fmt.Fprintln(w, v)
