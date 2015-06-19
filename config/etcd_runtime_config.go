@@ -1,17 +1,25 @@
+//NOTE:  github.com/oliveagle/viper use `hickwall_inuse` branch
+
 package config
 
 import (
-	//	"fmt"
+	"fmt"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/viper"
+	_ "github.com/oliveagle/viper/remote"
 	"time"
+)
+
+var (
+	_ = fmt.Sprint("")
 )
 
 func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
 	var (
-		runtime_viper  = viper.New()
-		out            = make(chan RespConfig, 1)
-		sleep_duration = time.Second * 5
+		runtime_viper = viper.New()
+		out           = make(chan RespConfig, 1)
+		// sleep_duration = time.Second * 5
+		sleep_duration = time.Second
 	)
 
 	if stop == nil {
@@ -24,15 +32,24 @@ func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
 	}
 	runtime_viper.SetConfigType("YAML")
 
+	//TODO: should limit retry cnt
 	go func() {
+		retry_cnt := 0
 	label_get_first:
 		//need to get config at least once
 		var tmp_conf RuntimeConfig
 		err = runtime_viper.ReadRemoteConfig()
 		if err != nil {
+			// panic("ahah")
 			logging.Errorf("runtime_viper.ReadRemoteConfig Error: %v", err)
+			out <- RespConfig{nil, err}
 
 			time.Sleep(sleep_duration)
+			retry_cnt += 1
+			if retry_cnt > 5 {
+				logging.Criticalf("cannot get inital config from remote. after 5 attempts")
+				return
+			}
 			goto label_get_first
 		} else {
 			err = runtime_viper.Marshal(&tmp_conf)
@@ -42,7 +59,7 @@ func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
 				time.Sleep(sleep_duration)
 				goto label_get_first
 			} else {
-				out <- RespConfig{tmp_conf, nil}
+				out <- RespConfig{&tmp_conf, nil}
 			}
 		}
 
@@ -74,7 +91,7 @@ func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
 				}
 
 				logging.Debugf("a new config is comming")
-				out <- RespConfig{runtime_conf, nil}
+				out <- RespConfig{&runtime_conf, nil}
 
 				//TODO: make it configurable
 				time.Sleep(sleep_duration)

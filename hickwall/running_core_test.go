@@ -45,7 +45,11 @@ func Test_CreateRunningCore(t *testing.T) {
 
 // make sure heartbeat is always created
 func Test_CreateRunningCore_Alwasy_Heartbeat(t *testing.T) {
-	data := []byte(``)
+	data := []byte(`
+client:
+    transport_dummy:
+        name: "dummy"
+`)
 
 	rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 	if err != nil {
@@ -56,6 +60,7 @@ func Test_CreateRunningCore_Alwasy_Heartbeat(t *testing.T) {
 	core, hook, err := create_running_core_hooked(rconf, true)
 	if err != nil {
 		t.Errorf("err %v", err)
+		return
 	}
 	if core == nil {
 		t.Errorf("err %v", err)

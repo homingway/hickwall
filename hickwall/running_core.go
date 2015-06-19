@@ -10,25 +10,33 @@ import (
 )
 
 var (
-	the_core newcore.PublicationSet
-	done     = make(chan chan error)
+	the_core  newcore.PublicationSet
+	the_rconf *config.RuntimeConfig
+	done      = make(chan error)
 )
 
-func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcore.PublicationSet, *newcore.HookBackend, error) {
+func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newcore.PublicationSet, *newcore.HookBackend, error) {
 	var hook *newcore.HookBackend
 	var subs []newcore.Subscription
 	var heartbeat_exists bool
 
-	//	if rconf == nil {
-	//		logging.Error("RuntimeConfig is nil")
-	//		return nil, nil, fmt.Errorf("RuntimeConfig is nil")
-	//	}
+	// if rconf == nil {
+	// 	logging.Error("RuntimeConfig is nil")
+	// 	return nil, nil, fmt.Errorf("RuntimeConfig is nil")
+	// }
 
 	bks, err := backends.UseConfigCreateBackends(rconf)
 	if err != nil {
-		logging.Error("UseConfigCreateBackends failed: ", err)
+		logging.Errorf("UseConfigCreateBackends failed: %v", err)
 		return nil, nil, err
 	}
+
+	if len(bks) <= 0 {
+		err := fmt.Errorf("no backends configured. program will do nothing.")
+		logging.Error(err)
+		return nil, nil, err
+	}
+
 	for _, bk := range bks {
 		logging.Debugf("backend: %s", bk.Name())
 		logging.Tracef("backend: %s -> %+v", bk.Name(), bk)
@@ -36,7 +44,7 @@ func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcor
 
 	clrs, err := collectors.UseConfigCreateCollectors(rconf)
 	if err != nil {
-		logging.Error("UseConfigCreateCollectors failed: ", err)
+		logging.Errorf("UseConfigCreateCollectors failed: %v", err)
 		return nil, nil, err
 	}
 
@@ -81,17 +89,17 @@ func create_running_core_hooked(rconf config.RuntimeConfig, ishook bool) (newcor
 	}
 }
 
-func CreateRunningCore(rconf config.RuntimeConfig) (newcore.PublicationSet, error) {
+func CreateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, error) {
 	logging.Debug("running_core.CreateRunningCore")
 	core, _, err := create_running_core_hooked(rconf, false)
 	if err != nil {
-		logging.Error("running_core.CreateRunningCore: ", err)
+		logging.Errorf("running_core.CreateRunningCore: %v", err)
 		return nil, err
 	}
 	return core, nil
 }
 
-func replace_core(c newcore.PublicationSet) {
+func replace_core(c newcore.PublicationSet, rconf *config.RuntimeConfig) {
 	// do nothing if nil interface
 	if c == nil {
 		return
@@ -103,11 +111,15 @@ func replace_core(c newcore.PublicationSet) {
 	}
 
 	the_core = c
+	the_rconf = rconf
 }
 
 func close_core() {
-	the_core.Close()
+	if the_core != nil {
+		the_core.Close()
+	}
 	the_core = nil
+	the_rconf = nil
 }
 
 func IsRunning() bool {
@@ -132,12 +144,12 @@ func Start() error {
 		logging.Info("use registry config strategy")
 	default:
 		logging.Info("[default] use file config strategy")
-		core, err := LoadConfigStrategyFile()
+		core, p_rconf, err := LoadConfigStrategyFile()
 		if err != nil {
 			logging.Errorf("faile to create running core from file: %v", err)
 			return err
 		}
-		replace_core(core)
+		replace_core(core, p_rconf)
 	}
 	return nil
 }
@@ -147,9 +159,7 @@ func Stop() error {
 		switch config.CoreConf.Config_Strategy {
 		case config.ETCD:
 			logging.Trace("Stopping etcd strategy")
-			errc := make(chan error)
-			done <- errc
-			<-errc
+			done <- nil
 		case config.REGISTRY:
 			logging.Trace("Stopping registry strategy")
 		default:

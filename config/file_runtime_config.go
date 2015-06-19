@@ -9,11 +9,11 @@ import (
 	"path"
 )
 
-func load_runtime_conf_fomr_filepath(filepath string) (rc RuntimeConfig, err error) {
+func load_runtime_conf_fomr_filepath(filepath string) (*RuntimeConfig, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		logging.Critical("failed to load runtime config from file: ", err)
-		return
+		return nil, err
 	}
 	defer file.Close()
 	return ReadRuntimeConfig(file)
@@ -49,7 +49,7 @@ func load_group_conf_from_filepath(filepath string) (ccg CollectorConfigGroup, e
 	return ccg, nil
 }
 
-func LoadRuntimeConfigFromFiles() (rc RuntimeConfig, err error) {
+func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
 	if CONF_FILEPATH != "" {
 		rc, err = load_runtime_conf_fomr_filepath(CONF_FILEPATH)
 		if err != nil {

@@ -12,7 +12,7 @@ import (
 func Test_Mem(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("../../hickwall/test/config_mem.yml")
 	t.Log(config.CONF_FILEPATH)
-	core, err := hickwall.LoadConfigStrategyFile()
+	core, _, err := hickwall.LoadConfigStrategyFile()
 	if err != nil {
 		t.Error("failed")
 		return

@@ -5,19 +5,22 @@ import (
 	"io"
 )
 
-func ReadRuntimeConfig(r io.Reader) (rc RuntimeConfig, err error) {
+func ReadRuntimeConfig(r io.Reader) (*RuntimeConfig, error) {
+	var rconf RuntimeConfig
+	var err error
+
 	vp := viper.New()
 	vp.SetConfigType("yaml")
 	err = vp.ReadConfig(r)
 	if err != nil {
-		return rc, err
+		return nil, err
 	}
-	err = vp.Marshal(&rc)
+	err = vp.Marshal(&rconf)
 	if err != nil {
-		return rc, err
+		return nil, err
 	}
 
-	return rc, nil
+	return &rconf, nil
 }
 
 type RuntimeConfig struct {
