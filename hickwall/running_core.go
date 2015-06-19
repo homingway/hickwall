@@ -20,10 +20,10 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 	var subs []newcore.Subscription
 	var heartbeat_exists bool
 
-	// if rconf == nil {
-	// 	logging.Error("RuntimeConfig is nil")
-	// 	return nil, nil, fmt.Errorf("RuntimeConfig is nil")
-	// }
+	if rconf == nil {
+		logging.Error("RuntimeConfig is nil")
+		return nil, nil, fmt.Errorf("RuntimeConfig is nil")
+	}
 
 	bks, err := backends.UseConfigCreateBackends(rconf)
 	if err != nil {
