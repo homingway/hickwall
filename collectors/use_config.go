@@ -7,7 +7,7 @@ import (
 	"github.com/oliveagle/hickwall/newcore"
 )
 
-func UseConfigCreateSubscription(rconf config.RuntimeConfig) ([]newcore.Subscription, error) {
+func UseConfigCreateSubscription(rconf *config.RuntimeConfig) ([]newcore.Subscription, error) {
 	var subs []newcore.Subscription
 
 	kafka_sub_names := make(map[string]bool)

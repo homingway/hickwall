@@ -32,6 +32,10 @@ func (f *fanout) Close() error {
 	return <-errc
 }
 
+func (f *fanout) Count() int {
+	return len(f.bks)
+}
+
 func (f *fanout) cosuming(idx int, closing chan chan error) {
 	var (
 		first   MultiDataPoint

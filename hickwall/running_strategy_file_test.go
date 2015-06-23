@@ -9,7 +9,7 @@ import (
 //TODO: how to assert ?
 func Test_LoadConfigFromFileAndRun_Single(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config.yml")
-	core, err := LoadConfigStrategyFile()
+	core, _, err := LoadConfigStrategyFile()
 	if err != nil {
 		t.Error("failed")
 		return
@@ -21,7 +21,7 @@ func Test_LoadConfigFromFileAndRun_Single(t *testing.T) {
 func Test_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 	config.CONF_GROUP_DIRECTORY, _ = filepath.Abs("./test/groups.d")
-	core, err := LoadConfigStrategyFile()
+	core, _, err := LoadConfigStrategyFile()
 	if err != nil {
 		t.Error("failed")
 		return
@@ -35,7 +35,7 @@ func Test_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
 func Test_LoadConfigFromFileAndRun_GroupDir_DupPrefix(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 	config.CONF_GROUP_DIRECTORY, _ = filepath.Abs("./test/groups_dup_prefix.d")
-	core, err := LoadConfigStrategyFile()
+	core, _, err := LoadConfigStrategyFile()
 	if err == nil {
 		t.Error("failed. duplicated group prefix should raise error")
 		return

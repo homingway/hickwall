@@ -40,5 +40,6 @@ type Publication interface {
 }
 
 type PublicationSet interface {
+	Count() int   // return publications count
 	Close() error // close subscription, backends, and fanout
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/oliveagle/hickwall/newcore"
 )
 
-func UseConfigCreateBackends(rconf config.RuntimeConfig) ([]newcore.Publication, error) {
+func UseConfigCreateBackends(rconf *config.RuntimeConfig) ([]newcore.Publication, error) {
 	var pubs []newcore.Publication
 
 	//	if rconf == nil {

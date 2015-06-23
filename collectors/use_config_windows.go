@@ -12,7 +12,7 @@ func gen_collector_name(gid, cid int, cname string) string {
 	return fmt.Sprintf("g_%d_%s_c_%d", gid, cname, cid)
 }
 
-func UseConfigCreateCollectors(rconf config.RuntimeConfig) ([]newcore.Collector, error) {
+func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector, error) {
 	var clrs []newcore.Collector
 	var prefixs = make(map[string]bool)
 

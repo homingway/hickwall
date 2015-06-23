@@ -2,14 +2,14 @@ package newcore
 
 import (
 	// "bufio"
-	"bytes"
+	// "bytes"
 	"encoding/json"
 	// "errors"
 	"fmt"
 	"math"
 	"math/big"
 	"strconv"
-	"sync"
+	// "sync"
 	"time"
 )
 
@@ -66,11 +66,11 @@ func NewDataPoint(metric string, value interface{}, ts time.Time, t TagSet, data
 
 type MultiDataPoint []DataPoint
 
-var ppFree = sync.Pool{
-	New: func() interface{} {
-		return new(bytes.Buffer)
-	},
-}
+// var ppFree = sync.Pool{
+// 	New: func() interface{} {
+// 		return new(bytes.Buffer)
+// 	},
+// }
 
 func (d *DataPoint) MarshalJSON() ([]byte, error) {
 

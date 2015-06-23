@@ -132,7 +132,7 @@ func (s sub) loop() {
 			next, err = result.Next, result.Err
 			if err != nil {
 				// sub default delay if error happens while collecting data
-				//TODO: add unittest for delay_on_error.
+				//TODO: add unittest for delay_on_error. delay_on_error vs collector.interval ???
 				logging.Errorf("ERROR: collector(%s) error: %v", s.collector.Name(), err)
 				next = time.Now().Add(s.delay_on_error)
 				break
