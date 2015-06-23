@@ -83,7 +83,8 @@ func (b *elasticsearchBackend) loop() {
 						"value":      p.Value,
 						"tags":       p.Tags,
 					}
-					_, err := b.output.Post(url)
+					resp, err := b.output.Post(url)
+					resp.Body.Close() // Don't forget close the response body
 					if err != nil {
 						logging.Critical("post data to elasticsearch fail: %s", err)
 					}

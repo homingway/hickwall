@@ -48,5 +48,11 @@ func UseConfigCreateBackends(rconf config.RuntimeConfig) ([]newcore.Publication,
 		pubs = append(pubs, b)
 	}
 
+	if rconf.Client.Transport_elasticsearch != nil {
+		logging.Infof("rconf.Client.Transport_elasticsearch: %+v", rconf.Client.Transport_elasticsearch)
+		b, _ := NewElasticsearchBackend("es", rconf.Client.Transport_elasticsearch)
+		pubs = append(pubs, b)
+	}
+
 	return pubs[:], nil
 }

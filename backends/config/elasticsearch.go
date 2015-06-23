@@ -3,7 +3,7 @@ package config
 type Transport_elasticsearch struct {
 
 	// Client Config
-	URL   string
-	Index string
-	Type  string
+	URL   string `json:"url"`
+	Index string `json:"index"`
+	Type  string `json:"type"`
 }
