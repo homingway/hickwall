@@ -109,9 +109,10 @@ main_loop:
 func Test_Start_From_File(t *testing.T) {
 	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config.yml")
+	Stop() // stop if already exists while test all cases
 	err := Start()
 	if err != nil {
-		t.Error("failed to Start() from file")
+		t.Errorf("failed to Start() from file: %v", err)
 	} else {
 		Stop()
 	}
@@ -147,9 +148,10 @@ func Test_MultipleCore(t *testing.T) {
 func Test_kafka_producer(t *testing.T) {
 	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_kafka_producer.yml")
+	Stop() // stop if already exists while test all cases
 	err := Start()
 	if err != nil {
-		t.Error("failed to Start() from file")
+		t.Errorf("failed to Start() from file: %s", err)
 	}
 	done := time.After(time.Second * 10)
 
