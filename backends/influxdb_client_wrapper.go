@@ -21,8 +21,8 @@ var (
 type InfluxdbClient interface {
 	Version() string
 	Ping() (time.Duration, string, error)
-	Write(client090.BatchPoints) (*client090.Results, error)
-	Query(client090.Query) (*client090.Results, error)
+	Write(client090.BatchPoints) (*client090.Response, error)
+	Query(client090.Query) (*client090.Response, error)
 	IsCompatibleVersion(v string) bool
 }
 
@@ -40,70 +40,70 @@ func influxdbParseVersionFromString(v string) (version string) {
 
 func NewInfluxdbClient(conf map[string]interface{}, version string) (InfluxdbClient, error) {
 	v := influxdbParseVersionFromString(version)
-	if v == "0.9.0-rc7" {
-		return NewInfluxdbClient_v090_rc7(conf)
+	if v == "0.9.0" {
+		return NewInfluxdbClient_v090(conf)
 	} else if v == "0.8.8" {
 		return NewInfluxdbClient_v088(conf)
 	}
 	return nil, fmt.Errorf("incompatible version of influxdb: %s", v)
 }
 
-// --------------------------------  version: v0.9.0-rc7 --------------------------------------------
+// --------------------------------  version: v0.9.0 --------------------------------------------
 
-type InfluxdbClient_v090_rc7 struct {
+type InfluxdbClient_v090 struct {
 	client *client090.Client
 }
 
-func (c *InfluxdbClient_v090_rc7) Version() string {
-	return "0.9.0-rc7"
+func (c *InfluxdbClient_v090) Version() string {
+	return "0.9.0"
 }
 
-func (c *InfluxdbClient_v090_rc7) Ping() (time.Duration, string, error) {
+func (c *InfluxdbClient_v090) Ping() (time.Duration, string, error) {
 	return c.client.Ping()
 }
 
-func (c *InfluxdbClient_v090_rc7) Write(bp client090.BatchPoints) (*client090.Results, error) {
+func (c *InfluxdbClient_v090) Write(bp client090.BatchPoints) (*client090.Response, error) {
 	return c.client.Write(bp)
 }
 
-func (c *InfluxdbClient_v090_rc7) Query(q client090.Query) (*client090.Results, error) {
+func (c *InfluxdbClient_v090) Query(q client090.Query) (*client090.Response, error) {
 	return c.client.Query(q)
 }
 
-func (c *InfluxdbClient_v090_rc7) IsCompatibleVersion(v string) bool {
+func (c *InfluxdbClient_v090) IsCompatibleVersion(v string) bool {
 	if influxdbParseVersionFromString(v) == c.Version() {
 		return true
 	}
 	return false
 }
 
-func NewInfluxdbClient_v090_rc7(conf map[string]interface{}) (*InfluxdbClient_v090_rc7, error) {
+func NewInfluxdbClient_v090(conf map[string]interface{}) (*InfluxdbClient_v090, error) {
 	tmp_conf := map[string]interface{}{}
 	for key, value := range conf {
 		tmp_conf[strings.ToLower(key)] = value
 	}
 	url_str, ok := tmp_conf["url"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: URL")
+		return nil, fmt.Errorf("version 0.9.0, config missing: URL")
 	}
 	host_url, err := url.Parse(url_str.(string))
 	if err != nil {
-		return nil, fmt.Errorf("version 0.9.0-rc cannot parse url: %s, err: %v", url_str, err)
+		return nil, fmt.Errorf("version 0.9.0 cannot parse url: %s, err: %v", url_str, err)
 	}
 
 	username, ok := tmp_conf["username"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: Username")
+		return nil, fmt.Errorf("version 0.9.0, config missing: Username")
 	}
 
 	password, ok := tmp_conf["password"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: Password")
+		return nil, fmt.Errorf("version 0.9.0, config missing: Password")
 	}
 
 	useragent, ok := tmp_conf["useragent"]
 	if ok != true {
-		return nil, fmt.Errorf("version 0.9.0-rc, config missing: UserAgent")
+		return nil, fmt.Errorf("version 0.9.0, config missing: UserAgent")
 	}
 
 	c := client090.Config{
@@ -115,9 +115,9 @@ func NewInfluxdbClient_v090_rc7(conf map[string]interface{}) (*InfluxdbClient_v0
 
 	cli, err := client090.NewClient(c)
 	if err != nil {
-		return &InfluxdbClient_v090_rc7{}, fmt.Errorf("version 0.9.0-rc, cannot create client: %v", err)
+		return &InfluxdbClient_v090{}, fmt.Errorf("version 0.9.0, cannot create client: %v", err)
 	}
-	return &InfluxdbClient_v090_rc7{
+	return &InfluxdbClient_v090{
 		client: cli,
 	}, nil
 }
@@ -174,7 +174,7 @@ func (c *InfluxdbClient_v088) Ping() (time.Duration, string, error) {
 	return time.Since(now), version, nil
 }
 
-func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Results, error) {
+func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Response, error) {
 	// logging.Debug("InfluxdbClient_v088.Write")
 	// v0.9.0-rc7 [
 	//  {
@@ -201,7 +201,7 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 	for _, p := range bp.Points {
 		s := client088.Series{}
 		// s.Name = p.Name
-		name, err := newcore.FlatMetricKeyAndTags(c.flat_tpl, p.Name, p.Tags)
+		name, err := newcore.FlatMetricKeyAndTags(c.flat_tpl, p.Measurement, p.Tags)
 		if err != nil {
 			logging.Error("FlatMetricKeyAndTags Failed!", err)
 			return nil, err
@@ -212,7 +212,7 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 
 		// time, first
 		s.Columns = append(s.Columns, "time")
-		point = append(point, p.Timestamp.UnixNano()/1000000)
+		point = append(point, p.Time.UnixNano()/1000000)
 
 		// then others
 		for key, value := range p.Fields {
@@ -239,7 +239,7 @@ func (c *InfluxdbClient_v088) Write(bp client090.BatchPoints) (*client090.Result
 	return nil, err
 }
 
-func (c *InfluxdbClient_v088) Query(q client090.Query) (*client090.Results, error) {
+func (c *InfluxdbClient_v088) Query(q client090.Query) (*client090.Response, error) {
 	series, err := c.client.Query(q.Command, "ms")
 	// fmt.Println(series, err)
 
@@ -303,7 +303,7 @@ outer:
 		}
 		res.Series = append(res.Series, row)
 	}
-	results := client090.Results{
+	results := client090.Response{
 		Results: []client090.Result{res},
 		Err:     err,
 	}

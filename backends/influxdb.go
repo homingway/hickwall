@@ -9,6 +9,7 @@ import (
 	"github.com/oliveagle/hickwall/backends/config"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
+	"github.com/oliveagle/hickwall/utils"
 	"time"
 )
 
@@ -83,16 +84,19 @@ func (b *influxdbBackend) loop() {
 			}()
 		}
 
+		//TODO: Flush_interval and Max_batch_size
 		select {
 		case md := <-startConsuming:
 			if b.output != nil {
 				points := []client.Point{}
 				for _, p := range md {
+					// logging.Debug(p.Metric.Clean())
+					// logging.Debug(utils.Convert(p.Value))
 					points = append(points, client.Point{
-						Name:      p.Metric.Clean(),
-						Timestamp: p.Timestamp,
+						Measurement: p.Metric.Clean(),
+						Time:        p.Timestamp,
 						Fields: map[string]interface{}{
-							"value": p.Value,
+							"value": utils.Convert(p.Value),
 						},
 						Tags: p.Tags, //TODO: Tags
 					})
@@ -105,7 +109,10 @@ func (b *influxdbBackend) loop() {
 				// logging.Debugf("write: count: %d", len(md))
 
 				//FIXME: connection timeout?
-				b.output.Write(write)
+				resp, err := b.output.Write(write)
+				if err != nil {
+					logging.Errorf("failed to write into influxdb: %v, %+v", err, resp)
+				}
 			}
 		case opened := <-try_create_client_once:
 			try_create_client_once = nil // disable this branch
