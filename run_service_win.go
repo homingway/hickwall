@@ -40,8 +40,8 @@ func run(isDebug bool, daemon bool) {
 	loop:
 		rss_mb := float64(gs.GetCurrentRSS()) / 1024 / 1024 // Mb
 		logging.Tracef("current rss: %f", rss_mb)
-		if rss_mb > float64(config.CoreConf.Rss_limit_mb) {
-			logging.Criticalf("Suicide. CurrentRSS above limit: %f >= %d Mb", rss_mb, config.CoreConf.Rss_limit_mb)
+		if rss_mb > float64(config.CoreConf.RssLimitMb) {
+			logging.Criticalf("Suicide. CurrentRSS above limit: %f >= %d Mb", rss_mb, config.CoreConf.RssLimitMb)
 			os.Exit(1)
 		}
 		next := time.After(time.Second)

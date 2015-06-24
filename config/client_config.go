@@ -9,7 +9,6 @@ import (
 type ClientConfig struct {
 	HeartBeat_Interval string            `json:"heartbeat_interval"`
 	Tags               map[string]string `json:"tags"`
-	Hostname           string            `json:"hostname"`
 	Metric_Enabled     bool              `json:"metric_enabled"`
 	Metric_Interval    string            `json:"metric_interval"`
 

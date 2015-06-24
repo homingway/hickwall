@@ -30,7 +30,12 @@ func Now() time.Time {
 }
 
 func GetHostname() string {
-	return hostname
+	return strings.ToLower(hostname)
+}
+
+// this can override hostname with provided string.
+func SetHostname(host string) {
+	hostname = strings.ToLower(host)
 }
 
 // Clean cleans a hostname based on the current FullHostname setting.

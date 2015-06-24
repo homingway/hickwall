@@ -17,11 +17,11 @@ config_strategy: "file"
 	var cc CoreConfig
 	v.Marshal(&cc)
 	t.Log(cc)
-	if cc.Config_Strategy.GetString() != "file" {
+	if cc.ConfigStrategy.GetString() != "file" {
 		t.Error("")
 	}
 
-	if cc.Config_Strategy.IsValid() != true {
+	if cc.ConfigStrategy.IsValid() != true {
 		t.Error("")
 	}
 }
@@ -37,8 +37,8 @@ config_strategy: "xxxx"
 	var cc CoreConfig
 	v.Marshal(&cc)
 	t.Log(cc)
-	t.Log(cc.Config_Strategy)
-	if cc.Config_Strategy.IsValid() != false {
+	t.Log(cc.ConfigStrategy)
+	if cc.ConfigStrategy.IsValid() != false {
 		t.Error("")
 	}
 }

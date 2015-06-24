@@ -123,13 +123,15 @@ func Start() error {
 	if IsRunning() == true {
 		return fmt.Errorf("one core is already running. stop it first!")
 	}
+	logging.Info("Starting the core.")
 
-	switch config.CoreConf.Config_Strategy {
+	switch config.CoreConf.ConfigStrategy {
 	case config.ETCD:
 		logging.Info("use etcd config strategy")
-		go LoadConfigStrategyEtcd(done)
+		go LoadConfigStrategyEtcd(config.CoreConf.EtcdURL, config.CoreConf.EtcdPath, done)
 	case config.REGISTRY:
 		logging.Info("use registry config strategy")
+		go RegistryAndRun(done)
 	default:
 		logging.Info("[default] use file config strategy")
 		core, p_rconf, err := LoadConfigStrategyFile()
@@ -145,7 +147,7 @@ func Start() error {
 
 func Stop() error {
 	if IsRunning() {
-		switch config.CoreConf.Config_Strategy {
+		switch config.CoreConf.ConfigStrategy {
 		case config.ETCD:
 			logging.Trace("Stopping etcd strategy")
 			done <- nil

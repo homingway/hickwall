@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"github.com/oliveagle/hickwall/logging"
+	"github.com/oliveagle/hickwall/newcore"
+	"github.com/oliveagle/hickwall/utils"
 	"github.com/oliveagle/viper"
 	"os"
 )
@@ -20,14 +22,19 @@ var (
 )
 
 type CoreConfig struct {
-	Rss_limit_mb      int      `json:"rss_limit_mb"`      // rss_limit_mb to kill client, default is 50Mb
-	Log_level         string   `json:"log_level"`         // possible values: trace, debug, info, warn, error, critical
-	Log_file_maxsize  int      `json:"log_file_maxsize"`  // TODO: log_file_maxsize
-	Log_file_maxrolls int      `json:"log_file_maxrolls"` // TODO: log_file_maxrolls
-	Config_Strategy   Strategy `json:"config_strategy"`   // possible values:  file, etcd, registry
-	Etcd_url          string   `json:"etcd_url"`          // etcd config
-	Etcd_path         string   `json:"etcd_path"`
-	Registry_Server   string   `json:"registry_server"` // registry server config
+	Hostname        string   `json:"hostname"`          // hostname, which will override auto collected hostname
+	RssLimitMb      int      `json:"rss_limit_mb"`      // rss_limit_mb to kill client, default is 50Mb
+	LogLevel        string   `json:"log_level"`         // possible values: trace, debug, info, warn, error, critical
+	LogFileMaxSize  int      `json:"log_file_maxsize"`  // TODO: log_file_maxsize
+	LogFileMaxRolls int      `json:"log_file_maxrolls"` // TODO: log_file_maxrolls
+	ConfigStrategy  Strategy `json:"config_strategy"`   // possible values:  file, etcd, registry
+	EtcdURL         string   `json:"etcd_url"`          // etcd url
+	EtcdPath        string   `json:"etcd_path"`         // etcd config path
+	RegistryURL     string   `json:"registry_url"`      // registry server config
+	ListenPort      int      `json:"listen_port"`       // api listen port, default 3031
+	SecureAPIWrite  bool     `json:"secure_api_write"`  // default false, use admin server public key to protect write apis.
+	SecureAPIRead   bool     `json:"secure_api_read"`   // default false, use admin server public key to protect read apis.
+	ServerPubKey    string   `json:"server_pub_key"`    // use this public key to verify server api call
 }
 
 func IsCoreConfigLoaded() bool {
@@ -43,27 +50,44 @@ func LoadCoreConfig() error {
 
 	file, err := os.Open(CORE_CONF_FILEPATH)
 	if err != nil {
+		// fmt.Printf("cannot open file file: %s - err: %v\n", CORE_CONF_FILEPATH, err)
 		return fmt.Errorf("cannot open file file: %s - err: %v", CORE_CONF_FILEPATH, err)
 	}
 	defer file.Close()
 
 	err = core_viper.ReadConfig(file)
 	if err != nil {
+		// fmt.Printf("No configuration file loaded. core_config.yml :%v\n", err)
 		return fmt.Errorf("No configuration file loaded. core_config.yml :%v", err)
 	}
 
 	err = core_viper.Marshal(&CoreConf)
 	if err != nil {
+		// fmt.Printf("Error: unable to parse Core Configuration: %v\n", err)
 		return fmt.Errorf("Error: unable to parse Core Configuration: %v\n", err)
 	}
 
-	if CoreConf.Rss_limit_mb <= 0 {
-		CoreConf.Rss_limit_mb = 50 //deffault rss limit
+	if CoreConf.RssLimitMb <= 0 {
+		CoreConf.RssLimitMb = 50 //deffault rss limit
+	}
+	if CoreConf.ListenPort <= 0 {
+		CoreConf.ListenPort = 3031
+	}
+	if CoreConf.Hostname != "" {
+		newcore.SetHostname(CoreConf.Hostname)
 	}
 
-	logging.SetLevel(CoreConf.Log_level)
+	logging.SetLevel(CoreConf.LogLevel)
 	if err != nil {
 		return fmt.Errorf("LoadCoreConfFile failed: %v", err)
+	}
+
+	if CoreConf.SecureAPIRead || CoreConf.SecureAPIWrite {
+		// we should check public key config.
+		_, err := utils.LoadPublicKeyFromPath(CoreConf.ServerPubKey)
+		if err != nil {
+			logging.Criticalf("unable to load server public key while SecureAPIx is set to be true: %s", err)
+		}
 	}
 
 	logging.Debugf("core config file used: %s\n", core_viper.ConfigFileUsed())

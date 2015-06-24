@@ -14,7 +14,7 @@ var (
 	_ = fmt.Sprint("")
 )
 
-func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
+func WatchRuntimeConfFromEtcd(etcd_url, etcd_path string, stop chan error) <-chan RespConfig {
 	var (
 		runtime_viper = viper.New()
 		out           = make(chan RespConfig, 1)
@@ -26,7 +26,7 @@ func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
 		stop = make(chan error)
 	}
 
-	err := runtime_viper.AddRemoteProvider("etcd", CoreConf.Etcd_url, CoreConf.Etcd_path)
+	err := runtime_viper.AddRemoteProvider("etcd", etcd_url, etcd_path)
 	if err != nil {
 		logging.Criticalf("addRemoteProvider Error: %v", err)
 	}
@@ -74,7 +74,7 @@ func WatchRuntimeConfFromEtcd(stop chan error) <-chan RespConfig {
 				logging.Debugf("stop watching etcd remote config.")
 				break loop
 			case <-startWatch:
-				logging.Debugf("watching etcd remote config: %s, %s", CoreConf.Etcd_url, CoreConf.Etcd_path)
+				logging.Debugf("watching etcd remote config: %s, %s", CoreConf.EtcdURL, CoreConf.EtcdPath)
 				err := runtime_viper.WatchRemoteConfig()
 				if err != nil {
 					logging.Errorf("unable to read remote config: %v", err)

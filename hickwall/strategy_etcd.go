@@ -11,12 +11,13 @@ var (
 	_ = fmt.Sprint("")
 )
 
-func LoadConfigStrategyEtcd(stop chan error) {
+func LoadConfigStrategyEtcd(etcd_url, etcd_path string, stop chan error) {
+	//FIXME: what if etcd_url and etcd_path are not configured?
 	if stop == nil {
 		panic("stop chan is nil")
 	}
 
-	respCh := config.WatchRuntimeConfFromEtcd(stop)
+	respCh := config.WatchRuntimeConfFromEtcd(etcd_url, etcd_path, stop)
 
 	// loop:
 	for {

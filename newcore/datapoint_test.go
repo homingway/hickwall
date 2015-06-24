@@ -67,6 +67,15 @@ func Test_MultiDataPoint_MarshalJSON(t *testing.T) {
 	// t.Error("--")
 }
 
+func Test_NewDP_set_hostname(t *testing.T) {
+	SetHostname("test")
+	d := NewDP("prefix", "metric", 1, nil, "", "", "")
+	if d.Tags["host"] != "test" {
+		t.Log(d.Tags)
+		t.Error("SetHostname Doesn't work!")
+	}
+}
+
 func Test_NewDPFromJson(t *testing.T) {
 	content := []byte(`{"metric":"metric.c2","timestamp":"2015-06-09T18:44:49+08:00","value":1}`)
 	d, err := NewDPFromJson(content)

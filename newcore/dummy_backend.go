@@ -49,8 +49,8 @@ func (b *dummyBackend) loop() {
 						logging.Tracef("dummy(%s) --> %+v \n", b.name, dp)
 					}
 				} else {
-					fmt.Printf("dummy(%s), consuming md: 0x%X \n", b.name, &md)
-					logging.Tracef("dummy(%s), consuming md: 0x%X \n", b.name, &md)
+					fmt.Printf("dummy(%s), consuming md length %d  \n", b.name, len(md))
+					logging.Tracef("dummy(%s), consuming md length %d \n", b.name, len(md))
 				}
 
 			}
