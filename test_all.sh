@@ -7,5 +7,5 @@
 #
 
 
-go test ./...
-
+#go test ./...
+go test ./... -v | grep -E "(--- FAIL)|(^FAIL\s+)|(^ok\s+)"
