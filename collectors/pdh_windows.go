@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/lib/pdh"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
-	"log"
+	"strings"
 	"time"
 )
 
@@ -75,30 +76,24 @@ func (c win_pdh_collector) Interval() time.Duration {
 }
 
 func (c win_pdh_collector) CollectOnce() newcore.CollectResult {
-	// logging.Debug("win_pdh_collector.CollectOnce Started")
+	logging.Debug("win_pdh_collector.CollectOnce Started")
 
 	var items newcore.MultiDataPoint
-	// log.Println("win_pdh_collector_CollectOnce Started")
 
-	// if c.hPdh != nil {
 	for _, pd := range c.hPdh.CollectData() {
-		// log.Println("pd : ", pd)
 		if pd.Err == nil {
 			query, ok := c.map_queries[pd.Query]
-			// if ok == true && query != nil {
 			if ok == true {
 				items = append(items, newcore.NewDP(c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", ""))
-				// Add(&items, c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", "")
 			}
 		} else {
-			log.Println("win_pdh_collector ERROR: ", pd.Err)
+			if strings.Index(pd.Err.Error(), `\Process(hickwall)\Working Set - Private`) < 0 {
+				logging.Errorf("win_pdh_collector ERROR: ", pd.Err)
+			}
 		}
 	}
-	// } else {
-	// 	log.Println("win_pdh_collector ERROR: c.hPdh is nil")
-	// }
 
-	// logging.Debug("win_pdh_collector.CollectOnce Finished. count: %d", len(items))
+	logging.Debugf("win_pdh_collector.CollectOnce Finished. count: %d", len(items))
 	return newcore.CollectResult{
 		Collected: items,
 		Next:      time.Now().Add(c.interval),

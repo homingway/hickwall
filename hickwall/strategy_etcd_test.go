@@ -51,6 +51,7 @@ var nil_core_tests = []string{
 
 func Test_LoadConfigStrategyEtcd_Nil(t *testing.T) {
 	logging.SetLevel("debug")
+	defer close_core()
 
 	stopCh := make(chan error)
 
@@ -76,7 +77,7 @@ func Test_LoadConfigStrategyEtcd_Nil(t *testing.T) {
 
 		}))
 
-		go LoadConfigStrategyEtcd([]string{ts.URL}, "/config/host/DST54869.yml", stopCh)
+		go NewCoreFromEtcd([]string{ts.URL}, "/config/host/DST54869.yml", stopCh)
 		tick := time.After(time.Second * 1)
 		timeout := time.After(time.Second * 2)
 
@@ -118,7 +119,7 @@ client:
 
 func Test_LoadConfigStrategyEtcd(t *testing.T) {
 	logging.SetLevel("debug")
-
+	defer close_core()
 	stopCh := make(chan error)
 
 	for idx, tcase := range core_tests {
@@ -143,7 +144,7 @@ func Test_LoadConfigStrategyEtcd(t *testing.T) {
 
 		}))
 
-		go LoadConfigStrategyEtcd([]string{ts.URL}, "/config/host/DST54869.yml", stopCh)
+		go NewCoreFromEtcd([]string{ts.URL}, "/config/host/DST54869.yml", stopCh)
 		tick := time.After(time.Second * 1)
 		timeout := time.After(time.Second * 2)
 

@@ -2,7 +2,6 @@ package pdh
 
 import (
 	"fmt"
-	// "log"
 	"time"
 )
 
@@ -93,7 +92,6 @@ func (p PdhCollector) CollectData() []*PdhCollectResult {
 					Err:       fmt.Errorf("invalid data: CSTATUS: 0x%X\n", perf.CStatus),
 				}
 				data = append(data, &pd)
-				// log.Printf("invalid data: CSTATUS: 0x%X\n", perf.CStatus)
 			}
 		} else {
 			pd := PdhCollectResult{
@@ -103,7 +101,6 @@ func (p PdhCollector) CollectData() []*PdhCollectResult {
 				Err:       fmt.Errorf("invalid path: CSTATUS: 0x%X Path: %s\n", cstatus, key),
 			}
 			data = append(data, &pd)
-			// log.Printf("invalid path: CSTATUS: 0x%X Path: %s\n", cstatus, key)
 		}
 	}
 	return data

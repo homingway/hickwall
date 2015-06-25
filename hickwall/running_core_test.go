@@ -16,36 +16,35 @@ client:
         path: "/var/lib/hickwall/fileoutput.txt"`),
 }
 
-func Test_CreateRunningCore(t *testing.T) {
+func Test_running_core_CreateRunningCore(t *testing.T) {
 	for key, data := range configs {
 		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 		if err != nil {
-			t.Errorf("%s, err %v", key, err)
+			t.Errorf("failed read runtimeconfig: %s, err %v", key, err)
 			return
 		}
 
-		core, err := CreateRunningCore(rconf)
+		core, err := UpdateRunningCore(rconf)
 		if err != nil {
-			t.Errorf("%s, err %v", key, err)
+			t.Errorf("failed create running core: %s, err %v", key, err)
 		}
 		if core == nil {
-			t.Errorf("%s, err %v", key, err)
+			t.Errorf("core is nil: %s, err %v", key, err)
 		}
-		t.Logf("%s - %+v", key, core)
+		//		t.Logf("%s - %+v", key, core)
 	}
 }
 
-func Test_CreateRunningCore_Nil(t *testing.T) {
-	core, err := CreateRunningCore(nil)
+func Test_running_core_CreateRunningCore_Nil(t *testing.T) {
+	core, err := UpdateRunningCore(nil)
 	if err == nil || core != nil {
-		t.Errorf("%s should fail but not", err)
+		t.Errorf("should fail but not. core: %+v", core)
 		return
 	}
-	t.Logf("%+v", core)
 }
 
 // make sure heartbeat is always created
-func Test_CreateRunningCore_Alwasy_Heartbeat(t *testing.T) {
+func Test_running_core_CreateRunningCore_Alwasy_Heartbeat(t *testing.T) {
 	data := []byte(`
 client:
     transport_dummy:
@@ -54,7 +53,7 @@ client:
 
 	rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 	if err != nil {
-		t.Errorf("err %v", err)
+		t.Errorf("failed to read runtime config. err %v", err)
 		return
 	}
 
@@ -105,8 +104,7 @@ main_loop:
 	}
 }
 
-// FIXME: how to ensure core_config is loaded correctly here?
-func Test_Start_From_File(t *testing.T) {
+func Test_running_core_Start_From_File(t *testing.T) {
 	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config.yml")
 	Stop() // stop if already exists while test all cases
@@ -118,14 +116,21 @@ func Test_Start_From_File(t *testing.T) {
 	}
 }
 
-func Test_MultipleCore(t *testing.T) {
+// multiple core can run side by side.
+// TODO: possible data lose while replace 2 cores if we support counters.
+// counters is something works like this way:
+//  c.Add(1)  c.Decr(1)
+// if 2 cores are running. these counters will have different value.
+// who to preserve those counters ??? or we just don't support counters
+// internally.
+func Test_running_core_MultipleCore(t *testing.T) {
 	rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(configs["file"]))
 	if err != nil {
 		t.Errorf("err %v", err)
 		return
 	}
 
-	core1, err := CreateRunningCore(rconf)
+	core1, err := UpdateRunningCore(rconf)
 	if err != nil {
 		t.Errorf("err %v", err)
 	}
@@ -133,7 +138,7 @@ func Test_MultipleCore(t *testing.T) {
 		t.Errorf("err %v", err)
 	}
 
-	core2, err := CreateRunningCore(rconf)
+	core2, err := UpdateRunningCore(rconf)
 	if err != nil {
 		t.Errorf("err %v", err)
 	}
@@ -145,7 +150,7 @@ func Test_MultipleCore(t *testing.T) {
 	t.Logf("%+v", core2)
 }
 
-func Test_kafka_producer(t *testing.T) {
+func Test_running_core_kafka_producer(t *testing.T) {
 	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_kafka_producer.yml")
 	Stop() // stop if already exists while test all cases
@@ -153,7 +158,7 @@ func Test_kafka_producer(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to Start() from file: %s", err)
 	}
-	done := time.After(time.Second * 10)
+	done := time.After(time.Second * 1)
 
 	for {
 		select {

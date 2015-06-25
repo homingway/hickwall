@@ -7,8 +7,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/oliveagle/hickwall/backends/config"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -52,7 +52,7 @@ func (b *fileBackend) loop() {
 		buf                = bytes.NewBuffer(make([]byte, 0, 1024))
 	)
 	startConsuming = b.updates
-	log.Println("filebackend.loop started")
+	logging.Debugf("filebackend.loop started")
 
 	for {
 		if b.output == nil && try_open_file_once == nil && try_open_file_tick == nil {
@@ -68,7 +68,7 @@ func (b *fileBackend) loop() {
 					// log.Println("openFile first time OK", b.output)
 					try_open_file_once <- true
 				} else {
-					log.Printf("CRITICAL: filebackend trying to open file but failed: %s", err)
+					logging.Errorf("filebackend trying to open file but failed: %s", err)
 					try_open_file_once <- false
 				}
 			}()
@@ -76,11 +76,8 @@ func (b *fileBackend) loop() {
 
 		select {
 		case md := <-startConsuming:
-			// fmt.Println("start consuming ")
 			for _, p := range md {
 				if b.output != nil {
-					// fmt.Printf("fileBackend.loop name:%s, consuming md: 0x%X \n", b.name, &md)
-					// fmt.Println(p.Metric)
 					res, _ := p.MarshalJSON()
 					buf.Write(res)
 					buf.Write([]byte("\n"))
@@ -94,10 +91,10 @@ func (b *fileBackend) loop() {
 			if !opened {
 				// failed open it the first time,
 				// then we try to open file with time interval, until opened successfully.
-				log.Println("open the first time failed, try to open with interval of 1s")
+				logging.Error("open the first time failed, try to open with interval of 1s")
 				try_open_file_tick = time.Tick(time.Second * 1)
 			} else {
-				// log.Println("file opened the first time.", b.output, try_open_file_once, try_open_file_tick)
+				logging.Debugf("file opened the first time.")
 				startConsuming = b.updates
 			}
 		case <-try_open_file_tick:
@@ -108,15 +105,14 @@ func (b *fileBackend) loop() {
 				try_open_file_tick = nil
 				startConsuming = b.updates
 			} else {
-				log.Printf("CRITICAL: filebackend trying to open file but failed: %s", err)
+				logging.Errorf("filebackend trying to open file but failed: %s", err)
 			}
 		case errc := <-b.closing:
-			// fmt.Println("errc <- b.closing")
-			log.Println("filebackend.loop closing")
+			logging.Debug("filebackend.loop closing")
 			startConsuming = nil // stop comsuming
 			errc <- nil
 			close(b.updates)
-			log.Println("filebackend.loop stopped")
+			logging.Debug("filebackend.loop stopped")
 			return
 		}
 	}

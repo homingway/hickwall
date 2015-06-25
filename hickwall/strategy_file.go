@@ -14,11 +14,12 @@ func NewCoreFromFile() (newcore.PublicationSet, *config.RuntimeConfig, error) {
 		return nil, rconf, err
 	}
 	logging.Debug("NewCoreFromFile: load config from file finished.")
-	core, err := CreateRunningCore(rconf)
+	core, err := UpdateRunningCore(rconf)
 	if err != nil {
 		logging.Errorf("NewCoreFromFile: Failed to create running core: %v", err)
 		return nil, rconf, err
 	}
+	//	replace_core(core, rconf)
 	logging.Debug("NewCoreFromFile finished witout error")
 	return core, nil, nil
 }

@@ -264,7 +264,7 @@ func RegistryAndRun(stop chan error) {
 	}
 
 	// here we got a valid registry info. get config and start to run.
-	LoadConfigStrategyEtcd(resp.EtcdMachines, resp.EtcdConfigPath, stop)
+	NewCoreFromEtcd(resp.EtcdMachines, resp.EtcdConfigPath, stop)
 }
 
 //TODO: retrive registry server public key

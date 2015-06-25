@@ -11,7 +11,7 @@ var (
 	_ = fmt.Sprint("")
 )
 
-func LoadConfigStrategyEtcd(etcd_machines []string, etcd_path string, stop chan error) {
+func NewCoreFromEtcd(etcd_machines []string, etcd_path string, stop chan error) {
 	if stop == nil {
 		panic("stop chan is nil")
 	}
@@ -40,7 +40,7 @@ func LoadConfigStrategyEtcd(etcd_machines []string, etcd_path string, stop chan 
 				continue
 			} else {
 				close_core() //TODO: to prevent race condition. maybe we can safely remove this line.
-				core, err := CreateRunningCore(resp.Config)
+				_, err := UpdateRunningCore(resp.Config)
 				// fmt.Println(" -------------- CreateRunningCore finished ------------------------------")
 				if err != nil {
 					// logging.Errorf("failed to create running core from etcd: %s", err)
@@ -48,7 +48,7 @@ func LoadConfigStrategyEtcd(etcd_machines []string, etcd_path string, stop chan 
 					continue
 				} else {
 					rconf := resp.Config
-					replace_core(core, rconf)
+					//					replace_core(core, rconf)
 
 					// dump cached runtime config only if it changed.
 					if cached_hash != rconf.GetHash() {

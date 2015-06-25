@@ -80,29 +80,37 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 	}
 }
 
-func CreateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, error) {
-	logging.Debug("running_core.CreateRunningCore")
+// Update RunningCore with provided RuntimeConfig.
+func UpdateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, error) {
+	logging.Debug("CreateRunningCore")
 	core, _, err := create_running_core_hooked(rconf, false)
 	if err != nil {
 		return nil, err
 	}
-	return core, nil
-}
 
-func replace_core(c newcore.PublicationSet, rconf *config.RuntimeConfig) {
-	// do nothing if nil interface
-	if c == nil {
-		return
-	}
-
-	// close first
 	if the_core != nil {
 		close_core()
 	}
-
-	the_core = c
+	the_core = core
 	the_rconf = rconf
+
+	return core, nil
 }
+
+//func replace_core(c newcore.PublicationSet, rconf *config.RuntimeConfig) {
+//	// do nothing if nil interface
+//	if c == nil {
+//		return
+//	}
+//
+//	// close first
+//	if the_core != nil {
+//		close_core()
+//	}
+//
+//	the_core = c
+//	the_rconf = rconf
+//}
 
 func close_core() {
 	if the_core != nil {
@@ -136,7 +144,7 @@ func Start() error {
 			logging.Critical("EtcdPath is empty!!")
 			return fmt.Errorf("EtcdPath is empty!!")
 		}
-		go LoadConfigStrategyEtcd(config.CoreConf.EtcdMachines, config.CoreConf.EtcdPath, done)
+		go NewCoreFromEtcd(config.CoreConf.EtcdMachines, config.CoreConf.EtcdPath, done)
 	case config.REGISTRY:
 		logging.Info("use registry config strategy")
 		if len(config.CoreConf.RegistryURLs) <= 0 {
@@ -146,13 +154,12 @@ func Start() error {
 		go RegistryAndRun(done)
 	default:
 		logging.Info("[default] use file config strategy")
-		core, p_rconf, err := NewCoreFromFile()
+		_, _, err := NewCoreFromFile()
 		if err != nil {
 			// logging.Errorf("faile to create running core from file: %v", err)
 			logging.Error(err)
 			return err
 		}
-		replace_core(core, p_rconf)
 	}
 	return nil
 }

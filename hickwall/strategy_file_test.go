@@ -18,7 +18,7 @@ func Test_strategy_file_LoadConfigFromFileAndRun_Single(t *testing.T) {
 		t.Error("no core created. ")
 		return
 	}
-	defer core.Close()
+	defer close_core()
 }
 
 func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
@@ -34,7 +34,7 @@ func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
 		t.Error("no core created. ")
 		return
 	}
-	defer core.Close()
+	defer close_core()
 }
 
 func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir_DupPrefix(t *testing.T) {
@@ -48,4 +48,5 @@ func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir_DupPrefix(t *testing.T
 	if core != nil {
 		t.Error("should not create a core.")
 	}
+	defer close_core()
 }
