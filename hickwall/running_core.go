@@ -81,11 +81,14 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 }
 
 // Update RunningCore with provided RuntimeConfig.
-func UpdateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, error) {
-	logging.Debug("CreateRunningCore")
+func UpdateRunningCore(rconf *config.RuntimeConfig) error {
+	logging.Debug("UpdateRunningCore")
+	if rconf == nil {
+		return fmt.Errorf("rconf is nil")
+	}
 	core, _, err := create_running_core_hooked(rconf, false)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if the_core != nil {
@@ -93,31 +96,18 @@ func UpdateRunningCore(rconf *config.RuntimeConfig) (newcore.PublicationSet, err
 	}
 	the_core = core
 	the_rconf = rconf
-
-	return core, nil
+	logging.Debug("UpdateRunningCore Finished")
+	return nil
 }
 
-//func replace_core(c newcore.PublicationSet, rconf *config.RuntimeConfig) {
-//	// do nothing if nil interface
-//	if c == nil {
-//		return
-//	}
-//
-//	// close first
-//	if the_core != nil {
-//		close_core()
-//	}
-//
-//	the_core = c
-//	the_rconf = rconf
-//}
-
 func close_core() {
+	logging.Debugf("closing the core")
 	if the_core != nil {
 		the_core.Close()
 	}
 	the_core = nil
 	the_rconf = nil
+	logging.Debugf("the_core now closed")
 }
 
 func IsRunning() bool {
@@ -154,7 +144,7 @@ func Start() error {
 		go RegistryAndRun(done)
 	default:
 		logging.Info("[default] use file config strategy")
-		_, _, err := NewCoreFromFile()
+		_, err := NewCoreFromFile()
 		if err != nil {
 			// logging.Errorf("faile to create running core from file: %v", err)
 			logging.Error(err)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/logging"
 	"path/filepath"
 	"testing"
 	"time"
@@ -16,7 +17,7 @@ client:
         path: "/var/lib/hickwall/fileoutput.txt"`),
 }
 
-func Test_running_core_CreateRunningCore(t *testing.T) {
+func Test_running_core_UpdateRunningCore(t *testing.T) {
 	for key, data := range configs {
 		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 		if err != nil {
@@ -24,27 +25,28 @@ func Test_running_core_CreateRunningCore(t *testing.T) {
 			return
 		}
 
-		core, err := UpdateRunningCore(rconf)
+		err = UpdateRunningCore(rconf)
 		if err != nil {
 			t.Errorf("failed create running core: %s, err %v", key, err)
 		}
-		if core == nil {
+		if the_core == nil {
 			t.Errorf("core is nil: %s, err %v", key, err)
 		}
-		//		t.Logf("%s - %+v", key, core)
+		t.Logf("%s - %+v", key, the_core)
 	}
 }
 
-func Test_running_core_CreateRunningCore_Nil(t *testing.T) {
-	core, err := UpdateRunningCore(nil)
-	if err == nil || core != nil {
-		t.Errorf("should fail but not. core: %+v", core)
+func Test_running_core_UpdateRunningCore_Nil(t *testing.T) {
+	close_core()
+	err := UpdateRunningCore(nil)
+	if err == nil || the_core != nil {
+		t.Errorf("should fail but not. core: %+v", the_core)
 		return
 	}
 }
 
 // make sure heartbeat is always created
-func Test_running_core_CreateRunningCore_Alwasy_Heartbeat(t *testing.T) {
+func Test_running_core_UpdateRunningCore_Alwasy_Heartbeat(t *testing.T) {
 	data := []byte(`
 client:
     transport_dummy:
@@ -116,38 +118,32 @@ func Test_running_core_Start_From_File(t *testing.T) {
 	}
 }
 
-// multiple core can run side by side.
-// TODO: possible data lose while replace 2 cores if we support counters.
-// counters is something works like this way:
-//  c.Add(1)  c.Decr(1)
-// if 2 cores are running. these counters will have different value.
-// who to preserve those counters ??? or we just don't support counters
-// internally.
 func Test_running_core_MultipleCore(t *testing.T) {
+	logging.Debug("")
+	//	logging.SetLevel("debug")
 	rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(configs["file"]))
 	if err != nil {
 		t.Errorf("err %v", err)
 		return
 	}
 
-	core1, err := UpdateRunningCore(rconf)
+	err = UpdateRunningCore(rconf)
 	if err != nil {
 		t.Errorf("err %v", err)
 	}
-	if core1 == nil {
+	if the_core == nil {
 		t.Errorf("err %v", err)
 	}
 
-	core2, err := UpdateRunningCore(rconf)
-	if err != nil {
-		t.Errorf("err %v", err)
+	for i := 0; i < 100; i++ {
+		err = UpdateRunningCore(rconf)
+		if err != nil {
+			t.Errorf("err %v", err)
+		}
+		if the_core == nil {
+			t.Errorf("err %v", err)
+		}
 	}
-	if core2 == nil {
-		t.Errorf("err %v", err)
-	}
-
-	t.Logf("%+v", core1)
-	t.Logf("%+v", core2)
 }
 
 func Test_running_core_kafka_producer(t *testing.T) {

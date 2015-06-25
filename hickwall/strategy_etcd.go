@@ -40,8 +40,8 @@ func NewCoreFromEtcd(etcd_machines []string, etcd_path string, stop chan error) 
 				continue
 			} else {
 				close_core() //TODO: to prevent race condition. maybe we can safely remove this line.
-				_, err := UpdateRunningCore(resp.Config)
-				// fmt.Println(" -------------- CreateRunningCore finished ------------------------------")
+				err := UpdateRunningCore(resp.Config)
+				// fmt.Println(" -------------- UpdateRunningCore finished ------------------------------")
 				if err != nil {
 					// logging.Errorf("failed to create running core from etcd: %s", err)
 					logging.Error(err)

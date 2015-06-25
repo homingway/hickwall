@@ -12,12 +12,11 @@ import (
 func Test_Mem(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("../../hickwall/test/config_mem.yml")
 	t.Log(config.CONF_FILEPATH)
-	core, _, err := hickwall.NewCoreFromFile()
+	_, err := hickwall.NewCoreFromFile()
 	if err != nil {
 		t.Error("failed")
 		return
 	}
-	defer core.Close()
 
 	// tick := time.Tick(time.Second * 1)
 	// tickClose := time.Tick(time.Second * 2)
