@@ -12,16 +12,12 @@ const (
 	REGISTRY          = "registry"
 )
 
-func (s *Strategy) IsValid() bool {
-	k := strings.ToLower(string(*s))
+func ValidStrategy(s string) string {
+	k := strings.ToLower(s)
 	switch k {
 	case "file", "etcd", "registry":
-		return true
+		return k
 	default:
-		return false
+		return ""
 	}
-}
-
-func (s *Strategy) GetString() string {
-	return strings.ToLower(string(*s))
 }

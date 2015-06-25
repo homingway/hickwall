@@ -21,6 +21,7 @@ var (
 	CONF_FILEPATH        = ""
 	CONF_GROUP_DIRECTORY = ""
 	REGISTRY_FILEPATH    = ""
+	CONF_CACHE_PATH      = ""
 	_                    = fmt.Sprintln("")
 )
 
@@ -35,10 +36,12 @@ func init() {
 
 	SHARED_DIR, _ = filepath.Abs(path.Join(dir, "shared"))
 	LOG_DIR, _ = filepath.Abs(path.Join(SHARED_DIR, "logs"))
+
 	LOG_FILEPATH, _ = filepath.Abs(path.Join(LOG_DIR, LOG_FILE))
 	CORE_CONF_FILEPATH, _ = filepath.Abs(path.Join(SHARED_DIR, "core_config.yml"))
 	CONF_FILEPATH, _ = filepath.Abs(path.Join(SHARED_DIR, "config.yml"))
 	REGISTRY_FILEPATH, _ = filepath.Abs(path.Join(SHARED_DIR, "registry"))
+	CONF_CACHE_PATH, _ = filepath.Abs(path.Join(SHARED_DIR, "etcd_config_cache.yml"))
 
 	// CollectorConfigGroup with in this folder
 	CONF_GROUP_DIRECTORY, _ = filepath.Abs(path.Join(SHARED_DIR, "groups.d"))

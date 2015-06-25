@@ -3,10 +3,13 @@
 package config
 
 import (
+	"bytes"
+	//	"errors"
 	"fmt"
+	"github.com/coreos/go-etcd/etcd"
 	"github.com/oliveagle/hickwall/logging"
-	"github.com/oliveagle/viper"
-	_ "github.com/oliveagle/viper/remote"
+	//	"github.com/oliveagle/viper"
+	//	_ "github.com/oliveagle/viper/remote"
 	"time"
 )
 
@@ -14,80 +17,100 @@ var (
 	_ = fmt.Sprint("")
 )
 
-func WatchRuntimeConfFromEtcd(etcd_url, etcd_path string, stop chan error) <-chan RespConfig {
+//func ConnectEtcd(machines []string) (*etcd.Client, error) {
+//	if len(machines) <= 0 {
+//		return errors.New("etcd machines is empty")
+//	}
+//	client = etcd.NewClient(machines)
+//}
+
+func getRuntimeConfFromEtcd(client *etcd.Client, etcd_path string) (*RuntimeConfig, error) {
+	resp, err := client.Get(etcd_path, false, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get RuntimeConfig:%v", err)
+	}
+	r := bytes.NewReader([]byte(resp.Node.Value))
+	return ReadRuntimeConfig(r)
+}
+
+func WatchRuntimeConfFromEtcd(etcd_machines []string, etcd_path string, stop chan error) <-chan RespConfig {
 	var (
-		runtime_viper = viper.New()
-		out           = make(chan RespConfig, 1)
-		// sleep_duration = time.Second * 5
+		out            = make(chan RespConfig, 1)
 		sleep_duration = time.Second
+		// sleep_duration = time.Second * 5
 	)
 
 	if stop == nil {
-		stop = make(chan error)
+		panic("stop chan is nil")
 	}
 
-	err := runtime_viper.AddRemoteProvider("etcd", etcd_url, etcd_path)
-	if err != nil {
-		logging.Criticalf("addRemoteProvider Error: %v", err)
-	}
-	runtime_viper.SetConfigType("YAML")
-
-	//TODO: should limit retry cnt
 	go func() {
-		var err error
-		var retry_cnt = 0
-		var startWatch <-chan time.Time
+		var (
+			the_first_time = true
+			watching       = false
+			chGetConf      <-chan time.Time
+			chWaching      <-chan time.Time
+		)
 
-	label_get_first:
-		//need to get config at least once
-		var tmp_conf RuntimeConfig
+		client := etcd.NewClient(etcd_machines)
 
-		err = runtime_viper.ReadRemoteConfig()
-		if err == nil {
-			err = runtime_viper.Marshal(&tmp_conf)
-		}
+		cached_conf, _ := LoadRuntimeConfFromPath(CONF_CACHE_PATH)
 
-		if err != nil {
-			out <- RespConfig{nil, err}
-			retry_cnt += 1
-			if retry_cnt > 5 {
-				out <- RespConfig{nil, fmt.Errorf("cannot get inital config from remote. after 5 attempts")}
-				return
-			}
-
-			// delay
-			time.Sleep(sleep_duration)
-			goto label_get_first
-		}
-
-		out <- RespConfig{&tmp_conf, nil}
-
-		startWatch = time.Tick(sleep_duration)
+		watch_stop := make(chan bool, 0)
 
 	loop:
-		// watch changes
 		for {
-			var runtime_conf RuntimeConfig
+			if watching == false && chGetConf == nil {
+				if the_first_time == true {
+					chGetConf = time.After(0)
+				} else {
+					chGetConf = time.After(sleep_duration)
+				}
+			}
+
+			if watching == true && chWaching == nil {
+				chWaching = time.After(sleep_duration)
+			}
 
 			select {
 			case <-stop:
-				logging.Debugf("stop watching etcd remote config.")
+				logging.Debugf("stop watching etcd.")
+				watch_stop <- true
+				logging.Debugf("watching etcd stopped.")
 				break loop
-			case <-startWatch:
-				logging.Debugf("watching etcd remote config: %s, %s", CoreConf.EtcdURL, CoreConf.EtcdPath)
-				err := runtime_viper.WatchRemoteConfig()
+			case <-chGetConf:
+				the_first_time = false
+				chGetConf = nil
+
+				tmp_conf, err := getRuntimeConfFromEtcd(client, etcd_path)
 				if err != nil {
-					logging.Errorf("unable to read remote config: %v", err)
+					if cached_conf != nil {
+						// if failed to get config from etcd but we have a cached copy. then use
+						// this cached version first.
+						out <- RespConfig{cached_conf, nil}
+						cached_conf = nil // cached copy only need to emit once.
+					}
+				} else {
+					out <- RespConfig{tmp_conf, nil}
+					watching = true
+				}
+			case <-chWaching:
+				logging.Debugf("watching etcd remote config: %s, %s", etcd_machines, etcd_path)
+				resp, err := client.Watch(etcd_path, 0, false, nil, watch_stop)
+				if err != nil {
+					logging.Errorf("watching etcd error: %v", err)
 					break
 				}
 
-				err = runtime_viper.Marshal(&runtime_conf)
+				r := bytes.NewReader([]byte(resp.Node.Value))
+				tmp_conf, err := ReadRuntimeConfig(r)
 				if err != nil {
-					logging.Errorf("unable to marshal to config: %v", err)
+					logging.Errorf("watching etcd. changes detected but faild to parse config: %v", err)
 					break
 				}
+
 				logging.Debugf("a new config is comming")
-				out <- RespConfig{&runtime_conf, nil}
+				out <- RespConfig{tmp_conf, nil}
 			}
 		}
 	}()

@@ -1,6 +1,7 @@
 package hickwall
 
 import (
+	"container/ring"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -77,10 +78,10 @@ func new_reg_request_from_hashed(hr *HashedRegistryRequest) (*RegistryRequest, e
 type RegistryResponse struct {
 	Request *RegistryRequest `json:"request",omitempty`
 
-	RequestHash string    `json:"request_hash"`
-	Timestamp   time.Time `json:"timestamp"`
-	Etcd_url    string    `json:"etcd_url"`
-	Config_path string    `json:"config_path"`
+	RequestHash    string    `json:"request_hash"`
+	Timestamp      time.Time `json:"timestamp"`
+	EtcdMachines   []string  `json:"etcd_machines"`
+	EtcdConfigPath string    `json:"etcd_config_path"`
 }
 
 type HashedRegistryResponse struct {
@@ -187,13 +188,21 @@ func do_registry(reg_url string) (*RegistryResponse, error) {
 		return nil, err
 	}
 
-	_, err = url.Parse(resp.Etcd_url)
-	if err != nil {
-		return nil, fmt.Errorf("invalid etcd_url: %s", err)
+	if len(resp.EtcdMachines) <= 0 {
+		return nil, fmt.Errorf("EtcdMachines is empty")
 	}
-	if resp.Config_path == "" {
+
+	for _, m := range resp.EtcdMachines {
+		_, err = url.Parse(m)
+		if err != nil {
+			return nil, fmt.Errorf("invalid etcd machine url: %s", err)
+		}
+	}
+
+	if resp.EtcdConfigPath == "" {
 		return nil, fmt.Errorf("config path is empty")
 	}
+
 	if resp.RequestHash != hReq.Hash {
 		return nil, fmt.Errorf("request hash and response hash mismatch: %s != %s", hReq.Hash, resp.RequestHash)
 	}
@@ -220,16 +229,30 @@ func RegistryAndRun(stop chan error) {
 		panic("stop chan is nil")
 	}
 
+	if len(config.CoreConf.RegistryURLs) <= 0 {
+		logging.Criticalf("RegistryURLs is empty!!")
+		panic("RegistryURLS is empty!!")
+		//		return fmt.Errorf("RegistryURLS is empty!!")
+	}
+
 	resp, err := LoadRegistryResponse()
 	if err != nil {
 		// we don't have a valid registry info.
 		tick := time.Tick(time.Minute * 5)
 
+		// round robin registry machines
+		r := ring.New(len(config.CoreConf.RegistryURLs))
+		for i := 0; i < r.Len(); i++ {
+			r.Value = config.CoreConf.RegistryURLs[i]
+			r = r.Next()
+		}
+
 	registry_loop:
 		for {
 			select {
 			case <-tick:
-				resp, err = do_registry(config.CoreConf.RegistryURL)
+				r = r.Next()
+				resp, err = do_registry(r.Value.(string))
 				if err == nil {
 					// we are registried.
 					break registry_loop
@@ -241,7 +264,7 @@ func RegistryAndRun(stop chan error) {
 	}
 
 	// here we got a valid registry info. get config and start to run.
-	LoadConfigStrategyEtcd(resp.Etcd_url, resp.Config_path, stop)
+	LoadConfigStrategyEtcd(resp.EtcdMachines, resp.EtcdConfigPath, stop)
 }
 
 //TODO: retrive registry server public key

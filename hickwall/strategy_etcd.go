@@ -11,13 +11,22 @@ var (
 	_ = fmt.Sprint("")
 )
 
-func LoadConfigStrategyEtcd(etcd_url, etcd_path string, stop chan error) {
-	//FIXME: what if etcd_url and etcd_path are not configured?
+func LoadConfigStrategyEtcd(etcd_machines []string, etcd_path string, stop chan error) {
 	if stop == nil {
 		panic("stop chan is nil")
 	}
+	if len(etcd_machines) <= 0 {
+		logging.Critical("EtcdMachines is empty!!")
+		panic("LoadConfigStrategyEtcd: EtcdMachines is empty!!")
+	}
+	if etcd_path == "" {
+		logging.Critical("EtcdPath is empty!!")
+		panic("LoadConfigStrategyEtcd: EtcdPath is empty!!")
+	}
 
-	respCh := config.WatchRuntimeConfFromEtcd(etcd_url, etcd_path, stop)
+	cached_hash, _ := config.GetCachedRuntimeConfigHash()
+
+	respCh := config.WatchRuntimeConfFromEtcd(etcd_machines, etcd_path, stop)
 
 	// loop:
 	for {
@@ -40,6 +49,16 @@ func LoadConfigStrategyEtcd(etcd_url, etcd_path string, stop chan error) {
 				} else {
 					rconf := resp.Config
 					replace_core(core, rconf)
+
+					// dump cached runtime config only if it changed.
+					if cached_hash != rconf.GetHash() {
+						err = config.DumpRuntimeConfig(rconf)
+						if err != nil {
+							logging.Errorf("failed to dump runtime config: %v", err)
+						}
+						cached_hash = rconf.GetHash()
+					}
+
 				}
 			}
 		case <-stop:

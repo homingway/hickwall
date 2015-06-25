@@ -25,7 +25,7 @@ var unsigner utils.Unsigner
 
 func load_unsigner() error {
 	if unsigner == nil && (config.CoreConf.SecureAPIWrite || config.CoreConf.SecureAPIRead) {
-		s, err := utils.LoadPublicKeyFromPath(config.CoreConf.ServerPubKey)
+		s, err := utils.LoadPublicKeyFromPath(config.CoreConf.ServerPubKeyPath)
 		if err != nil {
 			return err
 		}

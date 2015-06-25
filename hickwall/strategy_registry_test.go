@@ -43,9 +43,9 @@ func Test_RegistryResponse_Save_and_Load(t *testing.T) {
 			Timestamp:  time.Now(),
 			SystemInfo: sysinfo,
 		},
-		Timestamp:   time.Now(),
-		Etcd_url:    "hahah",
-		Config_path: "path",
+		Timestamp:      time.Now(),
+		EtcdMachines:   []string{"hahah"},
+		EtcdConfigPath: "path",
 	}
 
 	err := resp.Save()
@@ -65,7 +65,7 @@ func Test_RegistryResponse_Save_and_Load(t *testing.T) {
 		t.Error("the should not be the same one")
 	}
 
-	if new_resp.Etcd_url != "hahah" {
+	if new_resp.EtcdMachines[0] != "hahah" {
 		t.Error("data is not correct")
 	}
 
@@ -101,10 +101,10 @@ func Test_Do_Registry(t *testing.T) {
 		}
 
 		resp := RegistryResponse{
-			RequestHash: hashed.Hash,
-			Timestamp:   time.Now(),
-			Etcd_url:    "http://localhost",
-			Config_path: "/config/xxxx",
+			RequestHash:    hashed.Hash,
+			Timestamp:      time.Now(),
+			EtcdMachines:   []string{"http://localhost"},
+			EtcdConfigPath: "/config/xxxx",
 		}
 		hResp, err := new_hashed_reg_resp(&resp)
 		if err != nil {

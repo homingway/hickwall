@@ -22,19 +22,19 @@ var (
 )
 
 type CoreConfig struct {
-	Hostname        string   `json:"hostname"`          // hostname, which will override auto collected hostname
-	RssLimitMb      int      `json:"rss_limit_mb"`      // rss_limit_mb to kill client, default is 50Mb
-	LogLevel        string   `json:"log_level"`         // possible values: trace, debug, info, warn, error, critical
-	LogFileMaxSize  int      `json:"log_file_maxsize"`  // TODO: log_file_maxsize
-	LogFileMaxRolls int      `json:"log_file_maxrolls"` // TODO: log_file_maxrolls
-	ConfigStrategy  Strategy `json:"config_strategy"`   // possible values:  file, etcd, registry
-	EtcdURL         string   `json:"etcd_url"`          // etcd url
-	EtcdPath        string   `json:"etcd_path"`         // etcd config path
-	RegistryURL     string   `json:"registry_url"`      // registry server config
-	ListenPort      int      `json:"listen_port"`       // api listen port, default 3031
-	SecureAPIWrite  bool     `json:"secure_api_write"`  // default false, use admin server public key to protect write apis.
-	SecureAPIRead   bool     `json:"secure_api_read"`   // default false, use admin server public key to protect read apis.
-	ServerPubKey    string   `json:"server_pub_key"`    // use this public key to verify server api call
+	Hostname         string   `json:"hostname"`            // hostname, which will override auto collected hostname
+	RssLimitMb       int      `json:"rss_limit_mb"`        // rss_limit_mb to kill client, default is 50Mb
+	LogLevel         string   `json:"log_level"`           // possible values: trace, debug, info, warn, error, critical
+	LogFileMaxSize   int      `json:"log_file_maxsize"`    // TODO: log_file_maxsize
+	LogFileMaxRolls  int      `json:"log_file_maxrolls"`   // TODO: log_file_maxrolls
+	ConfigStrategy   string   `json:"config_strategy"`     // possible values:  file, etcd, registry
+	EtcdMachines     []string `json:"etcd_machines"`       // etcd machines
+	EtcdPath         string   `json:"etcd_path"`           // etcd config path
+	RegistryURLs     []string `json:"registry_machines"`   // registry server config
+	ListenPort       int      `json:"listen_port"`         // api listen port, default 3031
+	SecureAPIWrite   bool     `json:"secure_api_write"`    // default false, use admin server public key to protect write apis.
+	SecureAPIRead    bool     `json:"secure_api_read"`     // default false, use admin server public key to protect read apis.
+	ServerPubKeyPath string   `json:"server_pub_key_path"` // use this public key to verify server api call
 }
 
 func IsCoreConfigLoaded() bool {
@@ -84,7 +84,7 @@ func LoadCoreConfig() error {
 
 	if CoreConf.SecureAPIRead || CoreConf.SecureAPIWrite {
 		// we should check public key config.
-		_, err := utils.LoadPublicKeyFromPath(CoreConf.ServerPubKey)
+		_, err := utils.LoadPublicKeyFromPath(CoreConf.ServerPubKeyPath)
 		if err != nil {
 			logging.Criticalf("unable to load server public key while SecureAPIx is set to be true: %s", err)
 		}

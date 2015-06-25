@@ -125,12 +125,24 @@ func Start() error {
 	}
 	logging.Info("Starting the core.")
 
-	switch config.CoreConf.ConfigStrategy {
+	switch config.ValidStrategy(config.CoreConf.ConfigStrategy) {
 	case config.ETCD:
 		logging.Info("use etcd config strategy")
-		go LoadConfigStrategyEtcd(config.CoreConf.EtcdURL, config.CoreConf.EtcdPath, done)
+		if len(config.CoreConf.EtcdMachines) <= 0 {
+			logging.Critical("EtcdMachines is empty!!")
+			return fmt.Errorf("EtcdMachines is empty!!")
+		}
+		if config.CoreConf.EtcdPath == "" {
+			logging.Critical("EtcdPath is empty!!")
+			return fmt.Errorf("EtcdPath is empty!!")
+		}
+		go LoadConfigStrategyEtcd(config.CoreConf.EtcdMachines, config.CoreConf.EtcdPath, done)
 	case config.REGISTRY:
 		logging.Info("use registry config strategy")
+		if len(config.CoreConf.RegistryURLs) <= 0 {
+			logging.Criticalf("RegistryURLs is empty!!")
+			return fmt.Errorf("RegistryURLS is empty!!")
+		}
 		go RegistryAndRun(done)
 	default:
 		logging.Info("[default] use file config strategy")
