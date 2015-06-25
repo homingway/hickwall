@@ -146,7 +146,7 @@ func Start() error {
 		go RegistryAndRun(done)
 	default:
 		logging.Info("[default] use file config strategy")
-		core, p_rconf, err := LoadConfigStrategyFile()
+		core, p_rconf, err := NewCoreFromFile()
 		if err != nil {
 			// logging.Errorf("faile to create running core from file: %v", err)
 			logging.Error(err)

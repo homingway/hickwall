@@ -6,18 +6,19 @@ import (
 	"github.com/oliveagle/hickwall/newcore"
 )
 
-func LoadConfigStrategyFile() (newcore.PublicationSet, *config.RuntimeConfig, error) {
+func NewCoreFromFile() (newcore.PublicationSet, *config.RuntimeConfig, error) {
+	logging.Debug("NewCoreFromFile")
 	rconf, err := config.LoadRuntimeConfigFromFiles()
 	if err != nil {
-		logging.Errorf("Failed to load RuntimeConfig from files: %v", err)
+		logging.Errorf("NewCoreFromFile: Failed to load RuntimeConfig from files: %v", err)
 		return nil, rconf, err
 	}
-	logging.Info("load config from file finished.")
+	logging.Debug("NewCoreFromFile: load config from file finished.")
 	core, err := CreateRunningCore(rconf)
 	if err != nil {
-		logging.Errorf("Failed to create running core: %v", err)
+		logging.Errorf("NewCoreFromFile: Failed to create running core: %v", err)
 		return nil, rconf, err
 	}
-	logging.Info("replace the core finished.")
+	logging.Debug("NewCoreFromFile finished witout error")
 	return core, nil, nil
 }

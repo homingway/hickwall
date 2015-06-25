@@ -268,3 +268,4 @@ func RegistryAndRun(stop chan error) {
 }
 
 //TODO: retrive registry server public key
+//TODO: what if SystemInfo changed after registration?
