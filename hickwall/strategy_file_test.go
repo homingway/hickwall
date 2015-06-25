@@ -8,7 +8,7 @@ import (
 
 func Test_strategy_file_LoadConfigFromFileAndRun_Single(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config.yml")
-	_, err := NewCoreFromFile()
+	_, err := new_core_from_file()
 	if err != nil {
 		t.Error("failed")
 		return
@@ -24,7 +24,7 @@ func Test_strategy_file_LoadConfigFromFileAndRun_Single(t *testing.T) {
 func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 	config.CONF_GROUP_DIRECTORY, _ = filepath.Abs("./test/groups.d")
-	_, err := NewCoreFromFile()
+	_, err := new_core_from_file()
 	if err != nil {
 		t.Error("failed")
 		return
@@ -40,7 +40,7 @@ func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
 func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir_DupPrefix(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 	config.CONF_GROUP_DIRECTORY, _ = filepath.Abs("./test/groups_dup_prefix.d")
-	_, err := NewCoreFromFile()
+	_, err := new_core_from_file()
 	if err == nil {
 		t.Error("failed. duplicated group prefix should raise error")
 		return

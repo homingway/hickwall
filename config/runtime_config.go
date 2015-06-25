@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/viper"
 	"io"
 	"io/ioutil"
@@ -24,6 +25,7 @@ func GetCachedRuntimeConfigHash() (string, error) {
 
 // Dump RuntimeConfig rawdata content into a file. override if file already exists
 func DumpRuntimeConfig(rconf *RuntimeConfig) error {
+	logging.Debug("DumpRuntimeConfig")
 	if len(rconf.rawdata) <= 0 {
 		return fmt.Errorf("runtime config rawdata length <= 0")
 	}
@@ -37,6 +39,7 @@ func DumpRuntimeConfig(rconf *RuntimeConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to dump RuntimeConfig: %v", err)
 	}
+	logging.Debug("DumpRuntimeConfig Finished")
 	return nil
 }
 

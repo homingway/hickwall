@@ -30,7 +30,7 @@ type CoreConfig struct {
 	ConfigStrategy   string   `json:"config_strategy"`     // possible values:  file, etcd, registry
 	EtcdMachines     []string `json:"etcd_machines"`       // etcd machines
 	EtcdPath         string   `json:"etcd_path"`           // etcd config path
-	RegistryURLs     []string `json:"registry_machines"`   // registry server config
+	RegistryURLs     []string `json:"registry_urls"`       // registry server config
 	ListenPort       int      `json:"listen_port"`         // api listen port, default 3031
 	SecureAPIWrite   bool     `json:"secure_api_write"`    // default false, use admin server public key to protect write apis.
 	SecureAPIRead    bool     `json:"secure_api_read"`     // default false, use admin server public key to protect read apis.

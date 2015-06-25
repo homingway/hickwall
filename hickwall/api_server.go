@@ -17,8 +17,9 @@ import (
 )
 
 var (
-	_ = pretty.Sprintf("")
-	_ = fmt.Sprint("")
+	_               = pretty.Sprintf("")
+	_               = fmt.Sprint("")
+	api_srv_running = false
 )
 
 var unsigner utils.Unsigner
@@ -60,7 +61,7 @@ func protect(h httprouter.Handle, expire time.Duration, trigger string) httprout
 		} else if trigger == "write" && config.CoreConf.SecureAPIWrite {
 			secure = true
 		}
-		fmt.Printf("trigger: %s, secure: %v, w: %v, r: %v\n", trigger, secure, config.CoreConf.SecureAPIWrite, config.CoreConf.SecureAPIRead)
+		logging.Infof("trigger: %s, secure: %v, write: %v, read: %v\n", trigger, secure, config.CoreConf.SecureAPIWrite, config.CoreConf.SecureAPIRead)
 
 		if secure {
 			hostname := r.URL.Query().Get("hostname")
@@ -181,7 +182,7 @@ func serveRegistryRevoke(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 //	fmt.Fprint(w, "Welcome!, \n")
 //}
 
-func serve() {
+func serve_api() {
 	router := httprouter.New()
 	router.GET("/sys_info", protect_read(serveSysInfo, time.Second))
 
@@ -197,6 +198,14 @@ func serve() {
 	if config.CoreConf.ListenPort > 0 {
 		addr = fmt.Sprintf(":%d", config.CoreConf.ListenPort)
 	}
-	logging.Infof("api served at %s", addr)
-	http.ListenAndServe(addr, router)
+	logging.Infof("api served at: %s", addr)
+
+	api_srv_running = true
+	err := http.ListenAndServe(addr, router)
+	api_srv_running = false
+	if err != nil {
+		logging.Criticalf("api server is not running!: %v", err)
+	} else {
+		logging.Info("api server stopped")
+	}
 }

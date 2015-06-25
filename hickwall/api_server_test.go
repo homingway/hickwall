@@ -19,7 +19,7 @@ import (
 
 func Test_api_info(t *testing.T) {
 	logging.SetLevel("debug")
-	go serve()
+	go serve_api()
 
 	resp, err := http.Get("http://localhost:3031/sys_info?detail=true")
 	if err != nil {
@@ -36,7 +36,7 @@ func Test_api_info(t *testing.T) {
 
 func Test_api_registry_revoke(t *testing.T) {
 	logging.SetLevel("debug")
-	go serve()
+	go serve_api()
 	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 
@@ -103,7 +103,7 @@ oYi+1hqp1fIekaxsyQIDAQAB
 
 func Test_api_registry_revoke_secure(t *testing.T) {
 	logging.SetLevel("debug")
-	go serve()
+	go serve_api()
 	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 	config.CoreConf.SecureAPIWrite = true // need to add signature

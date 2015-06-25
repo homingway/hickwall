@@ -37,9 +37,9 @@ func Test_RegistryRequest_Hashed(t *testing.T) {
 
 func Test_RegistryResponse_Save_and_Load(t *testing.T) {
 	sysinfo, _ := GetSystemInfo()
-	resp := &RegistryResponse{
+	resp := &registry_response{
 		RequestHash: "hadhfasdfadsfasdf",
-		Request: &RegistryRequest{
+		Request: &registry_request{
 			Timestamp:  time.Now(),
 			SystemInfo: sysinfo,
 		},
@@ -53,7 +53,7 @@ func Test_RegistryResponse_Save_and_Load(t *testing.T) {
 		t.Error("...")
 		return
 	}
-	new_resp, err := LoadRegistryResponse()
+	new_resp, err := load_reg_response()
 	if err != nil {
 		t.Error("load failed")
 		return
@@ -73,7 +73,7 @@ func Test_RegistryResponse_Save_and_Load(t *testing.T) {
 
 func Test_LoadRegistryResponse_Failed_Open(t *testing.T) {
 	os.Remove(config.REGISTRY_FILEPATH)
-	_, err := LoadRegistryResponse()
+	_, err := load_reg_response()
 	if err == nil {
 		t.Error("should raise error if nothing to load")
 	}
@@ -92,7 +92,7 @@ func Test_Do_Registry(t *testing.T) {
 		}
 		defer r.Body.Close()
 
-		var hashed HashedRegistryRequest
+		var hashed hashed_registry_request
 		err = json.Unmarshal(body, &hashed)
 		if err != nil {
 			t.Error("err", err)
@@ -100,7 +100,7 @@ func Test_Do_Registry(t *testing.T) {
 			return
 		}
 
-		resp := RegistryResponse{
+		resp := registry_response{
 			RequestHash:    hashed.Hash,
 			Timestamp:      time.Now(),
 			EtcdMachines:   []string{"http://localhost"},

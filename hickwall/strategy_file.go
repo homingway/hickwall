@@ -6,7 +6,7 @@ import (
 	//	"github.com/oliveagle/hickwall/newcore"
 )
 
-func NewCoreFromFile() (*config.RuntimeConfig, error) {
+func new_core_from_file() (*config.RuntimeConfig, error) {
 	logging.Debug("NewCoreFromFile")
 	rconf, err := config.LoadRuntimeConfigFromFiles()
 	if err != nil {

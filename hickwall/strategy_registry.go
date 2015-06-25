@@ -20,29 +20,29 @@ var (
 
 // ----------------------------------- RegistryRequest ----------------------------------
 
-type RegistryRequest struct {
+type registry_request struct {
 	Timestamp  time.Time  `json:"timestamp"`
 	SystemInfo SystemInfo `json:"systeminfo"`
 }
 
-type HashedRegistryRequest struct {
+type hashed_registry_request struct {
 	Hash       string `json:"hash"`
 	RequestStr string `json:"request_str"`
 }
 
-func new_reg_request() (*RegistryRequest, error) {
+func new_reg_request() (*registry_request, error) {
 	sysinfo, err := GetSystemInfo()
 	if err != nil {
 		return nil, err
 	}
 
-	return &RegistryRequest{
+	return &registry_request{
 		Timestamp:  time.Now(),
 		SystemInfo: sysinfo,
 	}, nil
 }
 
-func new_hashed_reg_request(r *RegistryRequest) (*HashedRegistryRequest, error) {
+func new_hashed_reg_request(r *registry_request) (*hashed_registry_request, error) {
 	r_str, err := json.Marshal(r)
 	if err != nil {
 		return nil, err
@@ -51,20 +51,20 @@ func new_hashed_reg_request(r *RegistryRequest) (*HashedRegistryRequest, error) 
 	h := md5.New()
 	h.Write(r_str)
 	hash := hex.EncodeToString(h.Sum(nil))
-	return &HashedRegistryRequest{
+	return &hashed_registry_request{
 		Hash:       hash,
 		RequestStr: string(r_str),
 	}, nil
 }
 
-func new_reg_request_from_hashed(hr *HashedRegistryRequest) (*RegistryRequest, error) {
+func new_reg_request_from_hashed(hr *hashed_registry_request) (*registry_request, error) {
 	h := md5.New()
 	h.Write([]byte(hr.RequestStr))
 	hash_expect := hex.EncodeToString(h.Sum(nil))
 	if hr.Hash != hash_expect {
 		return nil, fmt.Errorf("hash doesn't match: %s != %s", hr.Hash, hash_expect)
 	}
-	var rr RegistryRequest
+	var rr registry_request
 	err := json.Unmarshal([]byte(hr.RequestStr), &rr)
 	if err != nil {
 		return nil, err
@@ -75,8 +75,8 @@ func new_reg_request_from_hashed(hr *HashedRegistryRequest) (*RegistryRequest, e
 
 // ----------------------------------- RegistryResponse ----------------------------------
 
-type RegistryResponse struct {
-	Request *RegistryRequest `json:"request",omitempty`
+type registry_response struct {
+	Request *registry_request `json:"request",omitempty`
 
 	RequestHash    string    `json:"request_hash"`
 	Timestamp      time.Time `json:"timestamp"`
@@ -84,12 +84,12 @@ type RegistryResponse struct {
 	EtcdConfigPath string    `json:"etcd_config_path"`
 }
 
-type HashedRegistryResponse struct {
+type hashed_registry_response struct {
 	Hash        string `json:"hash"`
 	ResponseStr string `json:"response_str"`
 }
 
-func new_hashed_reg_resp(r *RegistryResponse) (*HashedRegistryResponse, error) {
+func new_hashed_reg_resp(r *registry_response) (*hashed_registry_response, error) {
 	dump, err := json.Marshal(r)
 	if err != nil {
 		return nil, err
@@ -98,14 +98,14 @@ func new_hashed_reg_resp(r *RegistryResponse) (*HashedRegistryResponse, error) {
 	h := md5.New()
 	h.Write(dump)
 	hash := hex.EncodeToString(h.Sum(nil))
-	return &HashedRegistryResponse{
+	return &hashed_registry_response{
 		Hash:        hash,
 		ResponseStr: string(dump),
 	}, nil
 }
 
-func new_hashed_reg_response_from_json(dump []byte) (*HashedRegistryResponse, error) {
-	var hr HashedRegistryResponse
+func new_hashed_reg_response_from_json(dump []byte) (*hashed_registry_response, error) {
+	var hr hashed_registry_response
 	// fmt.Println("dump ---- : ", string(dump))
 	err := json.Unmarshal(dump, &hr)
 	if err != nil {
@@ -114,14 +114,14 @@ func new_hashed_reg_response_from_json(dump []byte) (*HashedRegistryResponse, er
 	return &hr, nil
 }
 
-func new_reg_resp_from_hashed(hr HashedRegistryResponse) (*RegistryResponse, error) {
+func new_reg_resp_from_hashed(hr hashed_registry_response) (*registry_response, error) {
 	h := md5.New()
 	h.Write([]byte(hr.ResponseStr))
 	hash_expect := hex.EncodeToString(h.Sum(nil))
 	if hr.Hash != hash_expect {
 		return nil, fmt.Errorf("hash doesn't match: %s != %s", hr.Hash, hash_expect)
 	}
-	var resp RegistryResponse
+	var resp registry_response
 	err := json.Unmarshal([]byte(hr.ResponseStr), &resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal RegistryResponse: %v", err)
@@ -129,7 +129,7 @@ func new_reg_resp_from_hashed(hr HashedRegistryResponse) (*RegistryResponse, err
 	return &resp, nil
 }
 
-func NewRegistryResponseFromJson(dump []byte) (*RegistryResponse, error) {
+func new_reg_response_from_json(dump []byte) (*registry_response, error) {
 	hr, err := new_hashed_reg_response_from_json(dump)
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func NewRegistryResponseFromJson(dump []byte) (*RegistryResponse, error) {
 	return new_reg_resp_from_hashed(*hr)
 }
 
-func (r *RegistryResponse) Save() error {
+func (r *registry_response) Save() error {
 	dump, err := json.Marshal(r)
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func (r *RegistryResponse) Save() error {
 	return nil
 }
 
-func do_registry(reg_url string) (*RegistryResponse, error) {
+func do_registry(reg_url string) (*registry_response, error) {
 	req, err := new_reg_request()
 	if err != nil {
 		return nil, err
@@ -183,7 +183,7 @@ func do_registry(reg_url string) (*RegistryResponse, error) {
 		return nil, fmt.Errorf("failed to read body %v", err)
 	}
 
-	resp, err := NewRegistryResponseFromJson(body)
+	resp, err := new_reg_response_from_json(body)
 	if err != nil {
 		return nil, err
 	}
@@ -210,12 +210,12 @@ func do_registry(reg_url string) (*RegistryResponse, error) {
 	return resp, nil
 }
 
-func LoadRegistryResponse() (*RegistryResponse, error) {
+func load_reg_response() (*registry_response, error) {
 	data, err := ioutil.ReadFile(config.REGISTRY_FILEPATH)
 	if err != nil {
 		return nil, err
 	}
-	var resp RegistryResponse
+	var resp registry_response
 
 	err = json.Unmarshal(data, &resp)
 	if err != nil {
@@ -224,7 +224,7 @@ func LoadRegistryResponse() (*RegistryResponse, error) {
 	return &resp, nil
 }
 
-func RegistryAndRun(stop chan error) {
+func new_core_from_registry(stop chan error) {
 	if stop == nil {
 		panic("stop chan is nil")
 	}
@@ -235,7 +235,7 @@ func RegistryAndRun(stop chan error) {
 		//		return fmt.Errorf("RegistryURLS is empty!!")
 	}
 
-	resp, err := LoadRegistryResponse()
+	resp, err := load_reg_response()
 	if err != nil {
 		// we don't have a valid registry info.
 		tick := time.Tick(time.Minute * 5)
@@ -264,7 +264,7 @@ func RegistryAndRun(stop chan error) {
 	}
 
 	// here we got a valid registry info. get config and start to run.
-	NewCoreFromEtcd(resp.EtcdMachines, resp.EtcdConfigPath, stop)
+	new_core_from_etcd(resp.EtcdMachines, resp.EtcdConfigPath, stop)
 }
 
 //TODO: retrive registry server public key

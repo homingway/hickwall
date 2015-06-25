@@ -91,9 +91,7 @@ func UpdateRunningCore(rconf *config.RuntimeConfig) error {
 		return err
 	}
 
-	if the_core != nil {
-		close_core()
-	}
+	close_core()
 	the_core = core
 	the_rconf = rconf
 	logging.Debug("UpdateRunningCore Finished")
@@ -118,6 +116,12 @@ func IsRunning() bool {
 }
 
 func Start() error {
+
+	// start api serve once.
+	if !api_srv_running {
+		go serve_api()
+	}
+
 	if IsRunning() == true {
 		return fmt.Errorf("one core is already running. stop it first!")
 	}
@@ -134,17 +138,17 @@ func Start() error {
 			logging.Critical("EtcdPath is empty!!")
 			return fmt.Errorf("EtcdPath is empty!!")
 		}
-		go NewCoreFromEtcd(config.CoreConf.EtcdMachines, config.CoreConf.EtcdPath, done)
+		go new_core_from_etcd(config.CoreConf.EtcdMachines, config.CoreConf.EtcdPath, done)
 	case config.REGISTRY:
 		logging.Info("use registry config strategy")
 		if len(config.CoreConf.RegistryURLs) <= 0 {
 			logging.Criticalf("RegistryURLs is empty!!")
 			return fmt.Errorf("RegistryURLS is empty!!")
 		}
-		go RegistryAndRun(done)
+		go new_core_from_registry(done)
 	default:
 		logging.Info("[default] use file config strategy")
-		_, err := NewCoreFromFile()
+		_, err := new_core_from_file()
 		if err != nil {
 			// logging.Errorf("faile to create running core from file: %v", err)
 			logging.Error(err)

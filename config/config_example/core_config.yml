@@ -1,32 +1,63 @@
+# hickwal will get system hostname automatically. but if the automatically 
+# collected hostname is not what you want. You can set it here. hickwall
+# will use this value to fill in the host tag.
+# hostname: "myhostname"
+
+# When 'resident set size(RSS)' of the client reached limit, which is 50Mb 
+# in default, the client will be  killed at once.  currently windows will 
+# also run a helper service side by side to watch this client service status 
+# with 1 second interval. If the client service is not running, the helper 
+# serivce will start it at once.  
+# Don't set this too small.
+rss_limit_mb: 50
+
 # ---------- log configurations -------------------------------------------
 # Levels: trace, debug, info, warn, error, critical
-log_level: "debug"
+log_level: "info"
 
-# calculated in Mb
-# alway >=1
-log_file_maxsize: 100
+# TODO: log rotate 
+# # calculated in Mb
+# # alway >=1
+# log_file_maxsize: 100
 
-# alway >=1
-log_file_maxrolls: 5
+# # alway >=1
+# log_file_maxrolls: 5
 
-#TODO: memory_limit_in_mb
-# when use 'memory' transport cache backend, we have to set a hard limit to prevent memory leak
-# once this limit reached, the client will restart automatically
-memory_limit_in_mb: 500
-
+# possible values are: file, etcd, registry
 config_strategy: "file"
 
-# above configurations always needed
+# config_strategy: file -------------------------------------
+# hickwall can load runtime config from 
+# 1. a single config file with all config in one place.
+# 2. a single config file with common configurations and multiple group config 
+#   files under `shared/groups.d/`
 
-etcd_enabled: false
-
-# use this to retrive remote configuration
-# Viper will read a config string (as JSON, TOML, or YAML) retrieved from a path 
-# in a Key/Value store such as Etcd or Consul. These values take precedence over 
-# default values, but are overriden by configuration values retrieved from disk
-
-# the last good configuration from remote will be cached locally. 
-
-# current only support etcd
-etcd_url: "http://192.168.59.103:4001"
+# config_strategy: etcd  ------------------------------------
+# hickwall will try to retreive a single config from one etcd path. If we 
+# successfully get the config from etcd, hickwall will cache this config to 
+# local file system. so it can be used when remote etcd cannot be reached. 
+# after we have a valid config, hickwall will try to watch changes from etcd 
+# and reflect changes once it happened.
+etcd_machines: 
+    - "http://192.168.59.103:4001"
 etcd_path: "/config/host/DST54869.yml"
+
+# config_strategy: registry ---------------------------------
+# we are working on a registry frontend project. where we can get hickwall agent 
+# registried to it. and retreive configuration from the etcd path which the 
+# registry told us. and will also watch changes from etcd. the registry can also 
+# revoke hickwall registration through calling hickwall api. 
+registry_urls: 
+    - "http://192.168.59.103:8080/agent_registry"
+# api listen port, default is 3031
+listen_port: 3031 
+
+# if secure_api_write is set to be true. hickwall will verify the signature of 
+# write api calls from registry server with it's public rsa key.
+secure_api_write: false
+
+# protect read api.
+secure_api_read: false
+
+# where the public key of the registry server located.
+server_pub_key_path: "xxxx"
