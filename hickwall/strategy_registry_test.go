@@ -6,6 +6,7 @@ import (
 	"github.com/franela/goreq"
 	"github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/config"
+	. "github.com/oliveagle/hickwall/hickwall/system_info"
 	"github.com/oliveagle/hickwall/logging"
 	"io/ioutil"
 	"net/http"

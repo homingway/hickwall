@@ -21,7 +21,7 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 				continue
 			}
 
-			fmt.Printf("gid: %d, prefix: %s\n", gid, group.Prefix)
+			logging.Debugf("gid: %d, prefix: %s\n", gid, group.Prefix)
 			if len(group.Prefix) <= 0 {
 				return nil, fmt.Errorf("group (idx:%d) prefix is empty.", gid)
 			} else {
@@ -35,7 +35,7 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 			}
 
 			for cid, conf := range group.Collector_ping {
-				c := NewPingCollectors(gen_collector_name(gid, cid, "ping"), group.Prefix, conf)
+				c := MustNewPingCollectors(gen_collector_name(gid, cid, "ping"), group.Prefix, conf)
 				clrs = append(clrs, c...)
 			}
 
@@ -50,8 +50,8 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 		logging.Debugf("rconf.Client.Metric_Enabled: %v, rconf.Client.Metric_Interval: %v",
 			rconf.Client.Metric_Enabled, rconf.Client.Metric_Interval)
 		if rconf.Client.Metric_Enabled == true {
-			clrs = append(clrs, NewHickwallCollector(rconf.Client.Metric_Interval))
-			clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
+			clrs = append(clrs, MustNewHickwallCollector(rconf.Client.Metric_Interval))
+			//			clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
 		}
 
 		return clrs[:], nil

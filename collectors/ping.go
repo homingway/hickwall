@@ -24,7 +24,7 @@ type ping_collector struct {
 	tags    newcore.TagSet
 }
 
-func NewPingCollectors(name, prefix string, conf config.Config_Ping) []newcore.Collector {
+func MustNewPingCollectors(name, prefix string, conf config.Config_Ping) []newcore.Collector {
 	var sconf config.Config_single_pinger
 	var pings []newcore.Collector
 

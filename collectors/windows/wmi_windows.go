@@ -1,4 +1,4 @@
-package collectors
+package windows
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ type win_wmi_collector struct {
 	config  config.Config_win_wmi
 }
 
-func NewWinWmiCollector(name, prefix string, opts config.Config_win_wmi) newcore.Collector {
+func MustNewWinWmiCollector(name, prefix string, opts config.Config_win_wmi) newcore.Collector {
 	c := &win_wmi_collector{
 		name:     name,
 		enabled:  true,
@@ -236,13 +236,13 @@ func (c *win_wmi_collector) CollectOnce() (res newcore.CollectResult) {
 
 					metric, err := c.c_win_wmi_parse_metric_key(string(item.Metric), record)
 					if err != nil {
-						fmt.Println(err)
+						logging.Errorf("CollectOnce: %v", err)
 						continue
 					}
 
 					tags, err := c.c_win_wmi_parse_tags(item.Tags, record)
 					if err != nil {
-						fmt.Println(err)
+						logging.Errorf("CollectOnce: %v", err)
 						continue
 					}
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TestHickwallCollector(t *testing.T) {
-	sub := newcore.Subscribe(NewHickwallCollector("500ms"), nil)
+	sub := newcore.Subscribe(MustNewHickwallCollector("500ms"), nil)
 
 	time.AfterFunc(time.Second*1, func() {
 		sub.Close()

@@ -1,4 +1,4 @@
-package collectors
+package windows
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func TestWinPdhCollector(t *testing.T) {
 			}},
 	}
 
-	sub := newcore.Subscribe(NewWinPdhCollector("c1", "prefix", opts), nil)
+	sub := newcore.Subscribe(MustNewWinPdhCollector("c1", "prefix", opts), nil)
 
 	time.AfterFunc(time.Second*1, func() {
 		sub.Close()

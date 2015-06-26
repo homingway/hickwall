@@ -20,7 +20,7 @@ type hickwall_collector struct {
 	// hickwall_collector specific attributes
 }
 
-func NewHickwallCollector(interval string) newcore.Collector {
+func MustNewHickwallCollector(interval string) newcore.Collector {
 	c := hickwall_collector{
 		enabled:  true,
 		interval: newcore.NewInterval(interval).MustDuration(time.Second),

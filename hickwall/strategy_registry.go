@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/franela/goreq"
 	"github.com/oliveagle/hickwall/config"
+	. "github.com/oliveagle/hickwall/hickwall/system_info"
 	"github.com/oliveagle/hickwall/logging"
 	"io/ioutil"
 	"net/url"

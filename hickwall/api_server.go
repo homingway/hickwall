@@ -7,6 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/config"
+	. "github.com/oliveagle/hickwall/hickwall/system_info"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/hickwall/utils"

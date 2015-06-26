@@ -1,4 +1,4 @@
-package collectors
+package windows
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ type win_pdh_collector struct {
 	map_queries map[string]config.Config_win_pdh_query
 }
 
-func NewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_collector) newcore.Collector {
+func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_collector) newcore.Collector {
 
 	c := win_pdh_collector{
 		name:        name,

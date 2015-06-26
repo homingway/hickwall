@@ -56,11 +56,11 @@ func LoadRuntimeConfigFromFiles() (rc *RuntimeConfig, err error) {
 		if err == nil {
 			for _, f := range files {
 				filepath := path.Join(CONF_GROUP_DIRECTORY, f.Name())
-				fmt.Println("filepath: ", filepath)
+				logging.Debugf("filepath: %v", filepath)
 				if ccg, err := load_group_conf_from_filepath(filepath); err == nil {
 					rc.Groups = append(rc.Groups, ccg)
 				} else {
-					fmt.Println("error: ", err)
+					logging.Errorf("load_group_conf_from_filepath failed: %v", err)
 				}
 			}
 		}

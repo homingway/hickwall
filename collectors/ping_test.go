@@ -19,7 +19,7 @@ func TestNewPingCollectors(t *testing.T) {
 		Packets:  5,
 	}
 
-	cs := NewPingCollectors("test", "prefix", conf)
+	cs := MustNewPingCollectors("test", "prefix", conf)
 	if len(cs) != 2 {
 		t.Error("")
 	}

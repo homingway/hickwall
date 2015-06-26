@@ -3,6 +3,7 @@ package collectors
 
 import (
 	"fmt"
+	"github.com/oliveagle/hickwall/collectors/windows"
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
@@ -31,18 +32,23 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 		}
 
 		for cid, conf := range group.Collector_ping {
-			c := NewPingCollectors(gen_collector_name(gid, cid, "ping"), group.Prefix, conf)
+			c := MustNewPingCollectors(gen_collector_name(gid, cid, "ping"), group.Prefix, conf)
 			clrs = append(clrs, c...)
 		}
 
 		for cid, conf := range group.Collector_win_pdh {
-			c := NewWinPdhCollector(gen_collector_name(gid, cid, "pdh"), group.Prefix, conf)
+			c := windows.MustNewWinPdhCollector(gen_collector_name(gid, cid, "pdh"), group.Prefix, conf)
 			clrs = append(clrs, c)
 		}
 
 		for cid, conf := range group.Collector_win_wmi {
-			c := NewWinWmiCollector(gen_collector_name(gid, cid, "wmi"), group.Prefix, conf)
+			c := windows.MustNewWinWmiCollector(gen_collector_name(gid, cid, "wmi"), group.Prefix, conf)
 			clrs = append(clrs, c)
+		}
+
+		if group.Collector_win_sys != nil {
+			cs := windows.MustNewWinSysCollectors(gen_collector_name(gid, 0, "win_sys"), group.Prefix, group.Collector_win_sys)
+			clrs = append(clrs, cs...)
 		}
 
 	}
@@ -50,8 +56,8 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 	logging.Debugf("rconf.Client.Metric_Enabled: %v, rconf.Client.Metric_Interval: %v",
 		rconf.Client.Metric_Enabled, rconf.Client.Metric_Interval)
 	if rconf.Client.Metric_Enabled == true {
-		clrs = append(clrs, NewHickwallCollector(rconf.Client.Metric_Interval))
-		clrs = append(clrs, NewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
+		clrs = append(clrs, MustNewHickwallCollector(rconf.Client.Metric_Interval))
+		clrs = append(clrs, windows.MustNewWinHickwallMemCollector(rconf.Client.Metric_Interval, rconf.Client.Tags))
 	}
 	return clrs[:], nil
 }

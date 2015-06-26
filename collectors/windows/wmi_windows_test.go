@@ -1,4 +1,4 @@
-package collectors
+package windows
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ func TestWinWmiCollector(t *testing.T) {
 		},
 	}
 
-	sub := newcore.Subscribe(NewWinWmiCollector("c1", "prefix", opts), nil)
+	sub := newcore.Subscribe(MustNewWinWmiCollector("c1", "prefix", opts), nil)
 
 	time.AfterFunc(time.Second*1, func() {
 		sub.Close()
@@ -104,7 +104,7 @@ queries:
 
 	fmt.Printf("opts loaded from viper: %+v \n", opts)
 
-	sub := newcore.Subscribe(NewWinWmiCollector("c1", "prefix", opts), nil)
+	sub := newcore.Subscribe(MustNewWinWmiCollector("c1", "prefix", opts), nil)
 
 	time.AfterFunc(time.Second*1, func() {
 		sub.Close()

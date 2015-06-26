@@ -1,11 +1,11 @@
-package collectors
+package windows
 
 import (
 	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/newcore"
 )
 
-func NewWinHickwallMemCollector(interval string, tags newcore.TagSet) newcore.Collector {
+func MustNewWinHickwallMemCollector(interval string, tags newcore.TagSet) newcore.Collector {
 	opts := config.Config_win_pdh_collector{
 		Interval: newcore.Interval(interval),
 		Tags:     tags,
@@ -17,5 +17,5 @@ func NewWinHickwallMemCollector(interval string, tags newcore.TagSet) newcore.Co
 			},
 		},
 	}
-	return NewWinPdhCollector("hickwall_mem", "hickwall.client.mem", opts)
+	return MustNewWinPdhCollector("hickwall_mem", "hickwall.client.mem", opts)
 }
