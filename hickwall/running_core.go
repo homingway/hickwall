@@ -15,6 +15,10 @@ var (
 	done      = make(chan error)
 )
 
+// create the topology of our running core.
+//
+//  (collector -> subscription)s -> merged subscription -> fanout -> publications(backends)
+//
 func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newcore.PublicationSet, *newcore.HookBackend, error) {
 	var hook *newcore.HookBackend
 	var subs []newcore.Subscription
@@ -24,6 +28,7 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 		return nil, nil, fmt.Errorf("RuntimeConfig is nil")
 	}
 
+	// create backends --------------------------------------------------------------------
 	bks, err := backends.UseConfigCreateBackends(rconf)
 	if err != nil {
 		return nil, nil, err
@@ -34,48 +39,53 @@ func create_running_core_hooked(rconf *config.RuntimeConfig, ishook bool) (newco
 	}
 
 	for _, bk := range bks {
-		logging.Debugf("backend: %s", bk.Name())
-		logging.Tracef("backend: %s -> %+v", bk.Name(), bk)
+		logging.Debugf("loaded backend: %s", bk.Name())
+		logging.Tracef("loaded backend: %s -> %+v", bk.Name(), bk)
 	}
 
+	// create collectors ------------------------------------------------------------------
 	clrs, err := collectors.UseConfigCreateCollectors(rconf)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	// make sure heartbeat collector always created.
 	for _, c := range clrs {
 		if c.Name() == "heartbeat" {
 			heartbeat_exists = true
 		}
 	}
-
 	if heartbeat_exists == false {
-		logging.Debugf(" heartbeat_exists == false: len(subs): %d", len(subs))
 		clrs = append(clrs, collectors.NewHeartBeat(rconf.Client.HeartBeat_Interval))
 	}
 
+	// create collector subscriptions.
 	for _, c := range clrs {
-		logging.Debugf("collector: %s", c.Name())
-		logging.Tracef("collector: %s -> %+v", c.Name(), c)
 		subs = append(subs, newcore.Subscribe(c, nil))
 	}
 
-	// create other subscriptions, such as kafka
+	// create other subscriptions, such as kafka consumer
 	_subs, err := collectors.UseConfigCreateSubscription(rconf)
 	if err != nil {
 		return nil, nil, err
 	}
 	subs = append(subs, _subs...)
 
-	merge := newcore.Merge(subs...)
+	for _, s := range subs {
+		logging.Debugf("loaded subscription: %s", s.Name())
+		logging.Tracef("loaded subscription: %s -> %+v", s.Name(), s)
+	}
+
+	merged := newcore.Merge(subs...)
 
 	if ishook == true {
+		// the only reason to create a hooked running core is to do unittesting. it's not a good idea though.
 		hook = newcore.NewHookBackend()
 		bks = append(bks, hook)
-		fset := newcore.FanOut(merge, bks...)
+		fset := newcore.FanOut(merged, bks...)
 		return fset, hook, nil
 	} else {
-		fset := newcore.FanOut(merge, bks...)
+		fset := newcore.FanOut(merged, bks...)
 		return fset, nil, nil
 	}
 }
@@ -108,7 +118,7 @@ func close_core() {
 	logging.Debugf("the_core now closed")
 }
 
-func IsRunning() bool {
+func Running() bool {
 	if the_core != nil {
 		return true
 	}
@@ -118,30 +128,30 @@ func IsRunning() bool {
 func Start() error {
 
 	// start api serve once.
-	if !api_srv_running {
+	if !api_srv_running && config.CoreConf.Enable_http_api {
 		go serve_api()
 	}
 
-	if IsRunning() == true {
+	if Running() == true {
 		return fmt.Errorf("one core is already running. stop it first!")
 	}
 	logging.Info("Starting the core.")
 
-	switch config.ValidStrategy(config.CoreConf.ConfigStrategy) {
+	switch config.ValidStrategy(config.CoreConf.Config_strategy) {
 	case config.ETCD:
 		logging.Info("use etcd config strategy")
-		if len(config.CoreConf.EtcdMachines) <= 0 {
+		if len(config.CoreConf.Etcd_machines) <= 0 {
 			logging.Critical("EtcdMachines is empty!!")
 			return fmt.Errorf("EtcdMachines is empty!!")
 		}
-		if config.CoreConf.EtcdPath == "" {
+		if config.CoreConf.Etcd_path == "" {
 			logging.Critical("EtcdPath is empty!!")
 			return fmt.Errorf("EtcdPath is empty!!")
 		}
-		go new_core_from_etcd(config.CoreConf.EtcdMachines, config.CoreConf.EtcdPath, done)
+		go new_core_from_etcd(config.CoreConf.Etcd_machines, config.CoreConf.Etcd_path, done)
 	case config.REGISTRY:
 		logging.Info("use registry config strategy")
-		if len(config.CoreConf.RegistryURLs) <= 0 {
+		if len(config.CoreConf.Registry_urls) <= 0 {
 			logging.Criticalf("RegistryURLs is empty!!")
 			return fmt.Errorf("RegistryURLS is empty!!")
 		}
@@ -159,8 +169,8 @@ func Start() error {
 }
 
 func Stop() error {
-	if IsRunning() {
-		switch config.CoreConf.ConfigStrategy {
+	if Running() {
+		switch config.CoreConf.Config_strategy {
 		case config.ETCD:
 			logging.Trace("Stopping etcd strategy")
 			done <- nil

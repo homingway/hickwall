@@ -229,7 +229,7 @@ func new_core_from_registry(stop chan error) {
 		panic("stop chan is nil")
 	}
 
-	if len(config.CoreConf.RegistryURLs) <= 0 {
+	if len(config.CoreConf.Registry_urls) <= 0 {
 		logging.Criticalf("RegistryURLs is empty!!")
 		panic("RegistryURLS is empty!!")
 		//		return fmt.Errorf("RegistryURLS is empty!!")
@@ -241,9 +241,9 @@ func new_core_from_registry(stop chan error) {
 		tick := time.Tick(time.Minute * 5)
 
 		// round robin registry machines
-		r := ring.New(len(config.CoreConf.RegistryURLs))
+		r := ring.New(len(config.CoreConf.Registry_urls))
 		for i := 0; i < r.Len(); i++ {
-			r.Value = config.CoreConf.RegistryURLs[i]
+			r.Value = config.CoreConf.Registry_urls[i]
 			r = r.Next()
 		}
 

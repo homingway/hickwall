@@ -142,7 +142,7 @@ func (c *win_wmi_collector) query(query string, fields []string) ([]map[string]s
 				if err == nil {
 					itemMap[field] = fmt.Sprintf("%v", asString.Value())
 				} else {
-					fmt.Println(err)
+					logging.Errorf("cannot find field in SWbemObject: %v", err)
 				}
 			}
 

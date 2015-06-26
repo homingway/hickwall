@@ -3,12 +3,15 @@ package hickwall
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/franela/goreq"
 	"github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/logging"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -129,4 +132,61 @@ func Test_Do_Registry(t *testing.T) {
 		t.Error("do_registry failed")
 	}
 	t.Log(err, resp)
+}
+
+func Test_strategy_registry_enable_api_server(t *testing.T) {
+	logging.SetLevel("info")
+	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config_registry_enable_api.yml")
+	//	config.CONF_FILEPATH, _ = filepath.Abs("./test/config.yml")
+	err := config.LoadCoreConfig()
+	if err != nil || config.CoreConf.Enable_http_api != true {
+		t.Error("CoreConf.EnableHTTPAPI != true, err: %v", err)
+		return
+	}
+
+	Stop() // stop if already exists while test all cases
+	Start()
+
+	//	resp, err := http.Get("http://localhost:3031/sys_info")
+	hResp, err := goreq.Request{
+		Method:      "Get",
+		Uri:         "http://localhost:3031/sys_info",
+		Accept:      "application/json",
+		ContentType: "application/json",
+		UserAgent:   "hickwall",
+		Timeout:     100 * time.Millisecond,
+	}.Do()
+	if err != nil {
+		t.Errorf("api server doesn't work. %v", err)
+		return
+	}
+	defer hResp.Body.Close()
+	t.Log(hResp)
+
+}
+
+func Test_strategy_registry_disable_api_server(t *testing.T) {
+	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config_registry_disable_api.yml")
+	err := config.LoadCoreConfig()
+	if err != nil || config.CoreConf.Enable_http_api != false {
+		t.Error("CoreConf.EnableHTTPAPI != false, err: %v, %v", err, config.CoreConf.Enable_http_api)
+		return
+	}
+
+	Stop() // stop if already exists while test all cases
+	Start()
+
+	//	resp, err := http.Get("http://localhost:3031/sys_info")
+	hResp, err := goreq.Request{
+		Method:      "Get",
+		Uri:         "http://localhost:3034/sys_info", // use disabled api port 3034
+		Accept:      "application/json",
+		ContentType: "application/json",
+		UserAgent:   "hickwall",
+		Timeout:     100 * time.Millisecond,
+	}.Do()
+	if err == nil {
+		t.Error("api server still working.")
+		defer hResp.Body.Close()
+	}
 }

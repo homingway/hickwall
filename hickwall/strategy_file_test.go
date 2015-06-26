@@ -2,11 +2,13 @@ package hickwall
 
 import (
 	"github.com/oliveagle/hickwall/config"
+	"github.com/oliveagle/hickwall/logging"
 	"path/filepath"
 	"testing"
 )
 
-func Test_strategy_file_LoadConfigFromFileAndRun_Single(t *testing.T) {
+func Test_strategy_file_new_core_from_file_Single(t *testing.T) {
+	logging.SetLevel("debug")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config.yml")
 	_, err := new_core_from_file()
 	if err != nil {
@@ -21,7 +23,7 @@ func Test_strategy_file_LoadConfigFromFileAndRun_Single(t *testing.T) {
 	defer close_core()
 }
 
-func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
+func Test_strategy_file_new_core_from_file_GroupDir(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 	config.CONF_GROUP_DIRECTORY, _ = filepath.Abs("./test/groups.d")
 	_, err := new_core_from_file()
@@ -37,7 +39,7 @@ func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir(t *testing.T) {
 	defer close_core()
 }
 
-func Test_strategy_file_LoadConfigFromFileAndRun_GroupDir_DupPrefix(t *testing.T) {
+func Test_strategy_file_new_core_from_file_GroupDir_DupPrefix(t *testing.T) {
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
 	config.CONF_GROUP_DIRECTORY, _ = filepath.Abs("./test/groups_dup_prefix.d")
 	_, err := new_core_from_file()

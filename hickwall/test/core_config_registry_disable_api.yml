@@ -1,0 +1,21 @@
+rss_limit_mb: 50
+log_level: "info"
+log_file_maxsize: 100
+log_file_maxrolls: 5
+
+
+config_strategy: "registry"
+
+# config_strategy: etcd  ------------------------------------
+etcd_machines:
+    - "http://192.168.59.103:4001"
+etcd_path: "/config/host/DST54869.yml"
+
+# config_strategy: registry ---------------------------------
+registry_urls:
+    - "http://192.168.59.103:8080/agent_registry"
+#enable_http_api: true
+listen_port: 3034
+secure_api_write: false
+secure_api_read: false
+server_pub_key_path: "xxxx"

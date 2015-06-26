@@ -25,8 +25,8 @@ var (
 var unsigner utils.Unsigner
 
 func load_unsigner() error {
-	if unsigner == nil && (config.CoreConf.SecureAPIWrite || config.CoreConf.SecureAPIRead) {
-		s, err := utils.LoadPublicKeyFromPath(config.CoreConf.ServerPubKeyPath)
+	if unsigner == nil && (config.CoreConf.Secure_api_write || config.CoreConf.Secure_api_read) {
+		s, err := utils.LoadPublicKeyFromPath(config.CoreConf.Server_pub_key_path)
 		if err != nil {
 			return err
 		}
@@ -56,12 +56,12 @@ func protect(h httprouter.Handle, expire time.Duration, trigger string) httprout
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		secure := false
-		if trigger == "read" && config.CoreConf.SecureAPIRead {
+		if trigger == "read" && config.CoreConf.Secure_api_read {
 			secure = true
-		} else if trigger == "write" && config.CoreConf.SecureAPIWrite {
+		} else if trigger == "write" && config.CoreConf.Secure_api_write {
 			secure = true
 		}
-		logging.Infof("trigger: %s, secure: %v, write: %v, read: %v\n", trigger, secure, config.CoreConf.SecureAPIWrite, config.CoreConf.SecureAPIRead)
+		logging.Infof("trigger: %s, secure: %v, write: %v, read: %v\n", trigger, secure, config.CoreConf.Secure_api_write, config.CoreConf.Secure_api_read)
 
 		if secure {
 			hostname := r.URL.Query().Get("hostname")
@@ -195,8 +195,8 @@ func serve_api() {
 	//	router.PUT("/config/renew", serveConfigRenew)
 
 	addr := ":3031"
-	if config.CoreConf.ListenPort > 0 {
-		addr = fmt.Sprintf(":%d", config.CoreConf.ListenPort)
+	if config.CoreConf.Listen_port > 0 {
+		addr = fmt.Sprintf(":%d", config.CoreConf.Listen_port)
 	}
 	logging.Infof("api served at: %s", addr)
 

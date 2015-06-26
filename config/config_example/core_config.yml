@@ -49,6 +49,10 @@ etcd_path: "/config/host/DST54869.yml"
 # revoke hickwall registration through calling hickwall api. 
 registry_urls: 
     - "http://192.168.59.103:8080/agent_registry"
+
+# default false.  you can enable api server by set this option to true. 
+enable_http_api: true
+
 # api listen port, default is 3031
 listen_port: 3031 
 

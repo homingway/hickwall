@@ -106,7 +106,7 @@ func Test_api_registry_revoke_secure(t *testing.T) {
 	go serve_api()
 	config.CORE_CONF_FILEPATH, _ = filepath.Abs("./test/core_config.yml")
 	config.CONF_FILEPATH, _ = filepath.Abs("./test/config_wo_groups.yml")
-	config.CoreConf.SecureAPIWrite = true // need to add signature
+	config.CoreConf.Secure_api_write = true // need to add signature
 
 	unsigner, _ = utils.LoadPublicKey(public_key) // override interval unsigner
 	signer, _ := utils.LoadPrivateKey(private_key)
