@@ -3,8 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/oliveagle/hickwall/logging"
-	"github.com/oliveagle/viper"
-	//	"io"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path"
@@ -21,31 +20,24 @@ func LoadRuntimeConfFromPath(filepath string) (*RuntimeConfig, error) {
 }
 
 func load_group_conf_from_filepath(filepath string) (ccg CollectorConfigGroup, err error) {
-	var file *os.File
+	//	defer func() {
+	//		if r := recover(); r != nil {
+	//			logging.Critical("recoverd in load_group_conf_from_filepath: ", r)
+	//			err = fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
+	//		}
+	//	}()
 
-	defer func() {
-		if r := recover(); r != nil {
-			logging.Critical("recoverd in load_group_conf_from_filepath: ", r)
-			err = fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
-		}
-	}()
-
-	file, err = os.Open(filepath)
+	data, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		logging.Errorf("failed to open file: %s, %v", filepath, err)
-		return
+		return ccg, fmt.Errorf("failed to load_group_failed: %s, %v", filepath, err)
 	}
-	defer file.Close()
-
-	vp := viper.New()
-	vp.SetConfigType("yaml")
-	err = vp.ReadConfig(file)
+	err = yaml.Unmarshal(data, &ccg)
 	if err != nil {
 		logging.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
 		return ccg, fmt.Errorf("load_group_failed: path: %s, err: %v", filepath, err)
 	}
 
-	vp.Marshal(&ccg)
 	logging.Infof("load_group_conf_from_filepath success: %s", filepath)
 	return ccg, nil
 }

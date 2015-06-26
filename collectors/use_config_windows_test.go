@@ -124,7 +124,7 @@ groups:
                                 metric: "win.wmi.cpu.numberofcores"`),
 }
 
-func Test_UseConfigCreateCollectors_1(t *testing.T) {
+func Test_use_config_windows_UseConfigCreateCollectors_1(t *testing.T) {
 	for key, data := range configs {
 		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 		if err != nil {
@@ -174,7 +174,7 @@ groups:
                 interval: 1s`),
 }
 
-func Test_UseConfigCreateCollectors_Fails(t *testing.T) {
+func Test_use_config_windows_UseConfigCreateCollectors_Fails(t *testing.T) {
 	for key, data := range fail_configs {
 		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 		if err != nil {
@@ -205,7 +205,7 @@ client:
 `),
 }
 
-func Test_UseConfigCreateSubscription(t *testing.T) {
+func Test_use_config_windows_UseConfigCreateSubscription(t *testing.T) {
 	for key, data := range sub_configs {
 		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 		if err != nil {
@@ -250,7 +250,7 @@ client:
 `),
 }
 
-func Test_UseConfigCreateSubscription_fails(t *testing.T) {
+func Test_use_config_windows_UseConfigCreateSubscription_fails(t *testing.T) {
 	for key, data := range sub_fails_configs {
 		rconf, err := config.ReadRuntimeConfig(bytes.NewBuffer(data))
 		if err != nil {

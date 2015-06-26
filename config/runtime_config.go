@@ -53,6 +53,8 @@ func ReadRuntimeConfig(r io.Reader) (*RuntimeConfig, error) {
 		return nil, err
 	}
 
+	// we have to use viper to load config. coz yaml cannot unmarshal
+	// complicated struct. inside of viper. it use mapstructure to do it.
 	nr := bytes.NewReader(data)
 	vp := viper.New()
 	vp.SetConfigType("yaml")

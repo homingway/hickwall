@@ -47,6 +47,8 @@ func LoadCoreConfig() error {
 		return fmt.Errorf("faild to read core config: %v", err)
 	}
 	CoreConf = CoreConfig{}
+	// we can use yaml to load config directly. only because
+	// core config structure is very simple and flat.
 	err = yaml.Unmarshal(data, &CoreConf)
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal yaml: %v", err)

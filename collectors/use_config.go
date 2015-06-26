@@ -20,11 +20,10 @@ func UseConfigCreateSubscription(rconf *config.RuntimeConfig) ([]newcore.Subscri
 				return nil, fmt.Errorf("duplicated kafka subscribe name are not allowed: %s", conf.Name)
 			}
 			kafka_sub_names[conf.Name] = true
-
 			sub, err := NewKafkaSubscription(*conf)
 			if err != nil {
 				logging.Errorf("failed to create kafka subscription: %v", err)
-				return nil, err
+				return nil, fmt.Errorf("failed to create kafka subscription: %v", err)
 			}
 			subs = append(subs, sub)
 		}
