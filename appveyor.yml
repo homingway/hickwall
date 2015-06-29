@@ -72,13 +72,14 @@ install:
   - go version
   - go env
   - go get -u github.com/mattn/gom
-  - go get code.google.com/p/snappy-go/snappy
-  - go get code.google.com/p/winsvc/svc
 
   - cd %APPVEYOR_BUILD_FOLDER%
 
-  - md _vendor\src\code.google.com
-  - move c:\gopath\src\code.google.com _vendor\src\
+  - md _vendor\src\code.google.com\p\winsvc
+  - git clone https://github.com/oliveagle/winsvc.git _vendor\src\code.google.com\p\winsvc
+
+  - md _vendor\src\code.google.com\p\snappy-go
+  - git clone https://github.com/VividCortex/snappy-go.git _vendor\src\code.google.com\p\snappy-go
 
   - md _vendor\src\github.com\influxdb\influxdb_088
   - git clone https://github.com/influxdb/influxdb.git _vendor\src\github.com\influxdb\influxdb_088
