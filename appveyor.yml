@@ -68,12 +68,18 @@ install:
   # - cinst golang -Version 1.4
   # - set GOROOT=c:\tools\go
   # - echo %APPVEYOR_BUILD_FOLDER%
-  - SET PATH=%GOPATH%\bin;%PATH%;C:\MinGW\bin
+  - SET PATH=%GOPATH%\bin;%PATH%
   - go version
   - go env
   - go get -u github.com/mattn/gom
 
   - cd %APPVEYOR_BUILD_FOLDER%
+
+  - choco install curl
+  - curl http://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/4.8.2/threads-posix/seh/x86_64-4.8.2-release-posix-seh-rt_v3-rev4.7z?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fmingw-w64%2Ffiles%2FToolchains%2520targetting%2520Win64%2FPersonal%2520Builds%2Fmingw-builds%2F4.8.2%2Fthreads-posix%2Fseh%2F&ts=1435582105&use_mirror=nchc -O mingw64.7z
+  - 7z.exe x mingw64.7z -oc:\mingw64
+  - SET PATH=%GOPATH%\bin;c:\mingw64\bin;%PATH%
+
 
   - md _vendor\src\code.google.com\p\winsvc
   - git clone https://github.com/oliveagle/winsvc.git _vendor\src\code.google.com\p\winsvc
