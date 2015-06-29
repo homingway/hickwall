@@ -68,22 +68,29 @@ install:
   # - cinst golang -Version 1.4
   # - set GOROOT=c:\tools\go
   # - echo %APPVEYOR_BUILD_FOLDER%
+  - SET PATH=%GOPATH%\bin;%PATH%
   - go version
   - go env
-  # - mkdir c:\gopath
-  #- mkdir c:\gopath\src\github.com\oliveagle\go-collectors
   - go get -u github.com/mattn/gom
-  # - git clone https://github.com/bosun-monitor/bosun.git c:\gopath\src\bosun.org
+  - go get code.google.com/p/snappy-go/snappy
+  - go get code.google.com/p/winsvc/svc
+
+  - cd %APPVEYOR_BUILD_FOLDER%
+
+  - md _vendor\src\code.google.com
+  - move c:\gopath\src\code.google.com _vendor\src\
+
+  - md _vendor\src\github.com\influxdb\influxdb_088
+  - git clone https://github.com/influxdb/influxdb.git _vendor\src\github.com\influxdb\influxdb_088
+
+  - cd %APPVEYOR_BUILD_FOLDER%
+  # - cd _vendor\src\github.com\influxdb\influxdb_088
+  # - git checkout v0.8.8
+  # - cd %APPVEYOR_BUILD_FOLDER%
+  - gom install
 
 build_script:
 - SET PATH=%GOPATH%\bin;%PATH%
-- cd %APPVEYOR_BUILD_FOLDER%
-- md _vendor\src\github.com\influxdb\influxdb_088
-- git clone https://github.com/influxdb/influxdb.git _vendor\src\github.com\influxdb\influxdb_088
-- cd _vendor\src\github.com\influxdb\influxdb_088
-- git checkout v0.8.8
-- cd %APPVEYOR_BUILD_FOLDER%
-- gom install
 - gom test -v ./...
 
 # to disable automatic tests
