@@ -89,6 +89,8 @@ func WatchRuntimeConfFromEtcd(etcd_machines []string, etcd_path string, stop cha
 						// this cached version first.
 						out <- RespConfig{cached_conf, nil}
 						cached_conf = nil // cached copy only need to emit once.
+					} else {
+						out <- RespConfig{nil, fmt.Errorf("failed to getRuntimeConfFromEtcd: %v", err)}
 					}
 				} else {
 					out <- RespConfig{tmp_conf, nil}
