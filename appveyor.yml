@@ -76,6 +76,8 @@ install:
   - cd %APPVEYOR_BUILD_FOLDER%
 
   - choco install mingw
+  - SET PATH=%GOPATH%\bin;%PATH%;C:\tools\mingw64\bin
+  - gcc --version
 
   - md _vendor\src\code.google.com\p\winsvc
   - git clone https://github.com/oliveagle/winsvc.git _vendor\src\code.google.com\p\winsvc
