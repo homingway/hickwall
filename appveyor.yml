@@ -78,9 +78,9 @@ install:
 build_script:
 - SET PATH=%GOPATH%\bin;%PATH%
 - cd %APPVEYOR_BUILD_FOLDER%
-- mkdir -p _vendor/src/github.com/influxdb/influxdb_088
-- git clone https://github.com/influxdb/influxdb.git _vendor/src/github.com/influxdb/influxdb_088
-- cd _vendor/src/github.com/influxdb/influxdb_088
+- md _vendor\src\github.com\influxdb\influxdb_088
+- git clone https://github.com/influxdb/influxdb.git _vendor\src\github.com\influxdb\influxdb_088
+- cd _vendor\src\github.com\influxdb\influxdb_088
 - git checkout v0.8.8
 - cd %APPVEYOR_BUILD_FOLDER%
 - gom install
