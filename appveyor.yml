@@ -1,0 +1,93 @@
+# Notes:
+#   - Minimal appveyor.yml file is an empty file. All sections are optional.
+#   - Indent each level of configuration with 2 spaces. Do not use tabs!
+#   - All section names are case-sensitive.
+#   - Section names should be unique on each level.
+
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# version format
+version: 0.2.2.{build}                 # You can use {branch} to, for example
+
+# you can use {branch} name in version format too
+# version: 1.0.{build}-{branch}
+
+# branches to build
+branches:
+  # whitelist
+  only:
+    # windows ci is so slow, so test it less frequently with another branch
+    - release
+    - master
+
+  # blacklist
+  # except:
+  #   - gh-pages
+
+# Do not build on tags (GitHub only)
+skip_tags: true
+
+# Skipping commits with particular message or from user
+# skip_commits:
+#   message: /Created.*\.(png|jpg|jpeg|bmp|gif)/       # Regex for matching commit message
+#   author: John        # Commit author's username, name, email or regexp maching one of these.
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+os: Windows Server 2012
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
+# clone directory
+clone_folder: c:\gopath\src\github.com\oliveagle\hickwall
+
+# set clone depth
+clone_depth: 5                      # clone entire repository history if not defined
+
+# setting up etc\hosts file
+# hosts:
+#   queue-server: 127.0.0.1
+#   db.server.com: 127.0.0.2
+
+environment:
+  GOPATH: c:\gopath
+
+# scripts that run after cloning repository
+install:
+  # install and use golang 1.4
+  # - set Path=c:\tools\go\bin;%Path%
+  # - echo %PATH%
+  # - choco version
+  # - cinst golang -Version 1.4
+  # - set GOROOT=c:\tools\go
+  # - echo %APPVEYOR_BUILD_FOLDER%
+  - go version
+  - go env
+  # - mkdir c:\gopath
+  #- mkdir c:\gopath\src\github.com\oliveagle\go-collectors
+  - go get -u github.com/mattn/gom
+  # - git clone https://github.com/bosun-monitor/bosun.git c:\gopath\src\bosun.org
+
+build_script:
+- SET PATH=%GOPATH%\bin;%PATH%
+- cd %APPVEYOR_BUILD_FOLDER%
+- mkdir -p _vendor/src/github.com/influxdb/influxdb_088
+- git clone https://github.com/influxdb/influxdb.git _vendor/src/github.com/influxdb/influxdb_088
+- cd _vendor/src/github.com/influxdb/influxdb_088
+- git checkout v0.8.8
+- cd %APPVEYOR_BUILD_FOLDER%
+- gom install
+- gom test -v ./...
+
+# to disable automatic tests
+test: off
+
+# to disable deployment
+deploy: off
