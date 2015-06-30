@@ -6,4 +6,5 @@ type Transport_elasticsearch struct {
 	URL   string `json:"url"`
 	Index string `json:"index"`
 	Type  string `json:"type"`
+	// Timeout int    `json:"timeout"`
 }

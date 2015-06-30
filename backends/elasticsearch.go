@@ -4,11 +4,12 @@ package backends
 
 import (
 	"fmt"
-	"github.com/mozillazg/request"
+	// "github.com/mozillazg/request"
+	"github.com/franela/goreq"
 	"github.com/oliveagle/hickwall/backends/config"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
-	"net/http"
+	// "net/http"
 	"time"
 )
 
@@ -25,7 +26,7 @@ type elasticsearchBackend struct {
 	// elasticsearch backend specific attributes
 	conf *config.Transport_elasticsearch
 
-	output *request.Request
+	// output *request.Request
 }
 
 func NewElasticsearchBackend(name string, conf *config.Transport_elasticsearch) (newcore.Publication, error) {
@@ -40,77 +41,83 @@ func NewElasticsearchBackend(name string, conf *config.Transport_elasticsearch) 
 	return s, nil
 }
 
-func (b *elasticsearchBackend) ElasticsearchClient() error {
-	c := new(http.Client)
-	req := request.NewRequest(c)
-	b.output = req
-	return nil
-}
+// func (b *elasticsearchBackend) ElasticsearchClient() error {
+// 	c := new(http.Client)
+// 	req := request.NewRequest(c)
+// 	b.output = req
+// 	return nil
+// }
 
 func (b *elasticsearchBackend) loop() {
 	var (
-		startConsuming         <-chan newcore.MultiDataPoint
-		try_create_client_once chan bool
-		try_create_client_tick <-chan time.Time
+		startConsuming <-chan newcore.MultiDataPoint
+		// try_create_client_once chan bool
+		// try_create_client_tick <-chan time.Time
 	)
 	startConsuming = b.updates
 	logging.Info("elasticsearch backend loop started")
 
 	for {
-		if b.output == nil && try_create_client_once == nil && try_create_client_tick == nil {
-			startConsuming = nil // disable consuming
-			try_create_client_once = make(chan bool)
-			// try to create elasticsearch client the first time async.
-			go func() {
-				err := b.ElasticsearchClient()
-				if err == nil {
-					try_create_client_once <- true
-				} else {
-					try_create_client_once <- false
-				}
-			}()
-		}
+		// if b.output == nil && try_create_client_once == nil && try_create_client_tick == nil {
+		// 	startConsuming = nil // disable consuming
+		// 	try_create_client_once = make(chan bool)
+		// 	// try to create elasticsearch client the first time async.
+		// 	go func() {
+		// 		err := b.ElasticsearchClient()
+		// 		if err == nil {
+		// 			try_create_client_once <- true
+		// 		} else {
+		// 			try_create_client_once <- false
+		// 		}
+		// 	}()
+		// }
 
 		select {
 		case md := <-startConsuming:
-			if b.output != nil {
-				logging.Tracef("elasticsearch backend consuming: 0x%X", &md)
-				url := b.conf.URL + "/" + b.conf.Index + "/" + b.conf.Type
-				for _, p := range md {
-					b.output.Json = map[string]interface{}{
-						"metric":     p.Metric.Clean(),
-						"@timestamp": p.Timestamp.Format(time.RFC3339Nano),
-						"value":      p.Value,
-						"tags":       p.Tags,
-					}
-					resp, err := b.output.Post(url)
+			// if b.output != nil {
+			logging.Tracef("elasticsearch backend consuming: 0x%X", &md)
+			url := b.conf.URL + "/" + b.conf.Index + "/" + b.conf.Type
+			for _, p := range md {
+				data := map[string]interface{}{
+					"metric":     p.Metric.Clean(),
+					"@timestamp": p.Timestamp.Format(time.RFC3339Nano),
+					"value":      p.Value,
+					"tags":       p.Tags,
+				}
+				// resp, err := b.output.Post(url)
+				resp, err := goreq.Request{
+					Method: "POST",
+					Uri:    url,
+					Body:   data,
+				}.Do()
+				if err != nil {
+					logging.Critical("post data to elasticsearch fail: %s", err)
+				} else {
 					resp.Body.Close() // Don't forget close the response body
-					if err != nil {
-						logging.Critical("post data to elasticsearch fail: %s", err)
-					}
 				}
 			}
+			// }
 
-		case opened := <-try_create_client_once:
-			try_create_client_once = nil // disable this branch
-			if !opened {
-				// failed open it the first time,
-				// then we try to open file with time interval, until opened successfully.
-				logging.Debug("open the first time failed, try to open with interval of 1s")
-				try_create_client_tick = time.Tick(time.Second * 1)
-			} else {
-				startConsuming = b.updates
-			}
-		case <-try_create_client_tick:
-			// try to open with interval
-			err := b.ElasticsearchClient()
-			if b.output != nil && err == nil {
-				// finally opened.
-				try_create_client_tick = nil
-				startConsuming = b.updates
-			} else {
-				logging.Critical("elasticsearch backend trying to open file but failed: %s", err)
-			}
+		// case opened := <-try_create_client_once:
+		// 	try_create_client_once = nil // disable this branch
+		// 	if !opened {
+		// 		// failed open it the first time,
+		// 		// then we try to open file with time interval, until opened successfully.
+		// 		logging.Debug("open the first time failed, try to open with interval of 1s")
+		// 		try_create_client_tick = time.Tick(time.Second * 1)
+		// 	} else {
+		// 		startConsuming = b.updates
+		// 	}
+		// case <-try_create_client_tick:
+		// 	// try to open with interval
+		// 	err := b.ElasticsearchClient()
+		// 	if b.output != nil && err == nil {
+		// 		// finally opened.
+		// 		try_create_client_tick = nil
+		// 		startConsuming = b.updates
+		// 	} else {
+		// 		logging.Critical("elasticsearch backend trying to open file but failed: %s", err)
+		// 	}
 		case errc := <-b.closing:
 			// fmt.Println("errc <- b.closing")
 			logging.Debug("elasticsearch backend .loop closing")
