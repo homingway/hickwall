@@ -71,22 +71,24 @@ install:
   - SET PATH=%GOPATH%\bin;%PATH%
   - go version
   - go env
-  - go get -u github.com/mattn/gom
 
   - cd %APPVEYOR_BUILD_FOLDER%
 
   # mingw-w64
-  - choco install mingw
+  - choco install -y mingw
   - SET PATH=%GOPATH%\bin;%PATH%;C:\tools\mingw64\bin
   - gcc --version
 
   # get-rss has to be compiled before go build
   - md _vendor\src\github.com\oliveagle\get-rss
   - cd _vendor\src\github.com\oliveagle\get-rss
-  - make
+  - gcc `go env GOGCCFLAGS` -I. -c get_rss.c
+  - ar rvs libget_rss.a get_rss.o
+  - rm get_rss.o
 
   - cd %APPVEYOR_BUILD_FOLDER%
 
+  # special repos
   - md _vendor\src\code.google.com\p\winsvc
   - git clone https://github.com/oliveagle/winsvc.git _vendor\src\code.google.com\p\winsvc
 
@@ -96,10 +98,9 @@ install:
   - md _vendor\src\github.com\influxdb\influxdb_088
   - git clone https://github.com/influxdb/influxdb.git _vendor\src\github.com\influxdb\influxdb_088
 
+  # gom
+  - go get -u github.com/mattn/gom
   - cd %APPVEYOR_BUILD_FOLDER%
-  # - cd _vendor\src\github.com\influxdb\influxdb_088
-  # - git checkout v0.8.8
-  # - cd %APPVEYOR_BUILD_FOLDER%
   - gom install
 
 build_script:
