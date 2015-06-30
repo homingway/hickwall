@@ -72,8 +72,6 @@ install:
   - go version
   - go env
 
-  - cd %APPVEYOR_BUILD_FOLDER%
-
   - # inno setup
   - choco install -y innosetup
   - SET PATH=%GOPATH%\bin;%PATH%;"C:\Program Files (x86)\Inno Setup 5"
@@ -82,14 +80,6 @@ install:
   - choco install -y mingw
   - SET PATH=%GOPATH%\bin;%PATH%;C:\tools\mingw64\bin
   - gcc --version
-
-  # # get-rss has to be compiled before go build
-  # - md _vendor\src\github.com\oliveagle\get-rss
-  # - git clone https://github.com/oliveagle/get-rss.git _vendor\src\github.com\oliveagle\get-rss
-  # - cd _vendor\src\github.com\oliveagle\get-rss
-  # - gcc -I. -c get_rss.c
-  # - ar rvs libget_rss.a get_rss.o
-  # - rm get_rss.o
 
   - cd %APPVEYOR_BUILD_FOLDER%
 

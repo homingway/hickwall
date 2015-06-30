@@ -1,7 +1,10 @@
 Hickwall
 ==========
+A metric collecting and reporting daemon for major platforms. Currently we are focusing on windows.
 
-A metric collection and reporting daemon for major platforms.
+[![Build status](https://ci.appveyor.com/api/projects/status/o8mfdexkpebe60k6?svg=true)](https://ci.appveyor.com/project/oliveagle/hickwall)
+we are mocking services that we are still relay on in unittests.
+
 
 ***Under heavy construction!***
 
