@@ -76,6 +76,10 @@ install:
 
   - # inno setup
   - choco install -y innosetup
+  - dir "C:\tools"
+  - dir "C:\Program Files"
+  - dir "C:\Program Files (x86)"
+  - SET PATH=%GOPATH%\bin;%PATH%;"C:\Program Files (x86)\Inno Setup 5"
   - iscc
 
 
