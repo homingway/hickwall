@@ -49,7 +49,11 @@ func TestFileBackend(t *testing.T) {
 	)
 
 	b1, _ := NewFileBackend("b1", conf)
-	fset := newcore.FanOut(merge, b1)
+
+	hook := newcore.NewHookBackend()
+	bks := []newcore.Publication{b1, hook}
+
+	fset := newcore.FanOut(merge, bks...)
 
 	fset_closed_chan := make(chan error)
 
@@ -60,9 +64,17 @@ func TestFileBackend(t *testing.T) {
 
 	timeout := time.After(time.Second * time.Duration(3))
 
+	expected := 0
 main_loop:
 	for {
 		select {
+		case md, ok := <-hook.Hook():
+			if ok != false {
+				expected += len(md)
+			} else {
+				break main_loop
+			}
+
 		case <-fset_closed_chan:
 			fmt.Println("fset closed")
 			break main_loop
@@ -81,8 +93,9 @@ main_loop:
 	// on windows this may fail!
 	os.Remove(test_file_path)
 
+	t.Logf("expected: %d, got: %d", expected, lines)
 	// 1s / 100 ms = 10 batch x 1 for each x 2 collectors = 20
-	expected := 20
+	//	expected := 20
 	if lines != expected {
 		t.Error("lines mismatch: lines: %d, expected: %d", lines, expected)
 	}
