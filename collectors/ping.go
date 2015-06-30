@@ -24,9 +24,9 @@ type ping_collector struct {
 	tags    newcore.TagSet
 }
 
-func MustNewPingCollectors(name, prefix string, conf config.Config_Ping) []newcore.Collector {
+func MustNewPingCollectors(name, prefix string, conf config.Config_Ping) []*ping_collector {
 	var sconf config.Config_single_pinger
-	var pings []newcore.Collector
+	var pings []*ping_collector
 
 	sconf.Interval = conf.Interval
 	sconf.Metric = conf.Metric
@@ -42,7 +42,7 @@ func MustNewPingCollectors(name, prefix string, conf config.Config_Ping) []newco
 	return pings
 }
 
-func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinger) newcore.Collector {
+func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinger) *ping_collector {
 
 	if conf.Target == "" {
 		logging.Critical("CRITICAL: we cannot ping empty target.")
@@ -55,7 +55,7 @@ func NewSinglePingCollector(name, prefix string, conf config.Config_single_pinge
 		conf.Packets = 1
 	}
 
-	c := ping_collector{
+	c := &ping_collector{
 		name:    name,
 		enabled: true,
 		config:  conf,

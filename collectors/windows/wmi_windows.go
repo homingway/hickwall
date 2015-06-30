@@ -34,7 +34,7 @@ type win_wmi_collector struct {
 	config  config.Config_win_wmi
 }
 
-func MustNewWinWmiCollector(name, prefix string, opts config.Config_win_wmi) newcore.Collector {
+func MustNewWinWmiCollector(name, prefix string, opts config.Config_win_wmi) *win_wmi_collector {
 	c := &win_wmi_collector{
 		name:     name,
 		enabled:  true,
