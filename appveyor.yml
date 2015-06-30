@@ -75,9 +75,17 @@ install:
 
   - cd %APPVEYOR_BUILD_FOLDER%
 
+  # mingw-w64
   - choco install mingw
   - SET PATH=%GOPATH%\bin;%PATH%;C:\tools\mingw64\bin
   - gcc --version
+
+  # get-rss has to be compiled before go build
+  - md _vendor\src\github.com\oliveagle\get-rss
+  - cd _vendor\src\github.com\oliveagle\get-rss
+  - make
+
+  - cd %APPVEYOR_BUILD_FOLDER%
 
   - md _vendor\src\code.google.com\p\winsvc
   - git clone https://github.com/oliveagle/winsvc.git _vendor\src\code.google.com\p\winsvc
