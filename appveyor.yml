@@ -83,12 +83,13 @@ install:
   - SET PATH=%GOPATH%\bin;%PATH%;C:\tools\mingw64\bin
   - gcc --version
 
-  # get-rss has to be compiled before go build
-  - md _vendor\src\github.com\oliveagle\get-rss
-  - cd _vendor\src\github.com\oliveagle\get-rss
-  - gcc -I. -c get_rss.c
-  - ar rvs libget_rss.a get_rss.o
-  - rm get_rss.o
+  # # get-rss has to be compiled before go build
+  # - md _vendor\src\github.com\oliveagle\get-rss
+  # - git clone https://github.com/oliveagle/get-rss.git _vendor\src\github.com\oliveagle\get-rss
+  # - cd _vendor\src\github.com\oliveagle\get-rss
+  # - gcc -I. -c get_rss.c
+  # - ar rvs libget_rss.a get_rss.o
+  # - rm get_rss.o
 
   - cd %APPVEYOR_BUILD_FOLDER%
 
