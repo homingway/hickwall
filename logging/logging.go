@@ -9,15 +9,13 @@ import (
 	"log"
 	"os"
 	"strings"
-	"sync"
+	// "sync"
 )
 
 var (
-	output *os.File
-	mu     sync.Mutex
+	output *utils.RotateWriter
 	_level level.LEVEL
 	logger *log.Logger
-	rw     *utils.RotateWriter
 )
 
 // var ppFree = sync.Pool{
@@ -51,26 +49,20 @@ func Close() error {
 }
 
 func create_output(log_filepath string) (writer io.Writer, err error) {
-	mu.Lock()
-	defer mu.Unlock()
+	// mu.Lock()
+	// defer mu.Unlock()
 
 	if output != nil {
 		output.Close()
 		output = nil
 	}
 
-	// output, err = os.OpenFile(log_filepath[:], os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	w, err := utils.NewRotateWriter(log_filepath[:], 5000)
-	rw = w
+	output, err = utils.NewRotateWriter(log_filepath[:], 5000)
 	if err != nil {
 		return nil, err
 	}
 
-	writer = io.MultiWriter(os.Stdout, rw.Fp)
+	writer = io.MultiWriter(os.Stdout, output)
 	return
 }
 
@@ -97,159 +89,73 @@ func SetLevel(lvl string) error {
 }
 
 func Trace(v ...interface{}) {
-
 	if _level <= level.TRACE && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[TRACE] %s", v...))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[TRACE] %s", v...))
-		}
+		logger.Output(2, fmt.Sprintf("[TRACE] %s", v...))
 	}
 }
 
 func Tracef(format string, v ...interface{}) {
 	if _level <= level.TRACE && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[TRACE] %s", fmt.Sprintf(format, v...)))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[TRACE] %s", fmt.Sprintf(format, v...)))
-		}
+		logger.Output(2, fmt.Sprintf("[TRACE] %s", fmt.Sprintf(format, v...)))
 	}
 }
 
 func Debug(v ...interface{}) {
 	if _level <= level.DEBUG && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[DEBUG] %s", v...)) // 1728 ns/op
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[DEBUG] %s", v...))
-		}
+		logger.Output(2, fmt.Sprintf("[DEBUG] %s", v...)) // 1728 ns/op
 	}
 }
 
 func Debugf(format string, v ...interface{}) {
 	if _level <= level.DEBUG && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[DEBUG] %s", fmt.Sprintf(format, v...))) //2046 ns/op
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[DEBUG] %s", fmt.Sprintf(format, v...)))
-		}
+		logger.Output(2, fmt.Sprintf("[DEBUG] %s", fmt.Sprintf(format, v...))) //2046 ns/op
 	}
 }
 
 func Info(v ...interface{}) {
 	if _level <= level.INFO && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[INFO] %s", v...))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[INFO] %s", v...))
-		}
+		logger.Output(2, fmt.Sprintf("[INFO] %s", v...))
 	}
 }
 
 func Infof(format string, v ...interface{}) {
 	if _level <= level.INFO && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[INFO] %s", fmt.Sprintf(format, v...)))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[INFO] %s", fmt.Sprintf(format, v...)))
-		}
+		logger.Output(2, fmt.Sprintf("[INFO] %s", fmt.Sprintf(format, v...)))
 	}
 }
 
 func Warn(v ...interface{}) {
 	if _level <= level.WARNING && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[WARN] %s", v...))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[WARN] %s", v...))
-		}
+		logger.Output(2, fmt.Sprintf("[WARN] %s", v...))
 	}
 }
 
 func Warnf(format string, v ...interface{}) {
 	if _level <= level.WARNING && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[WARN] %s", fmt.Sprintf(format, v...)))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[WARN] %s", fmt.Sprintf(format, v...)))
-		}
+		logger.Output(2, fmt.Sprintf("[WARN] %s", fmt.Sprintf(format, v...)))
 	}
 }
 
 func Error(v ...interface{}) {
 	if _level <= level.ERROR && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[ERROR] %s", v...))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[ERROR] %s", v...))
-		}
-
+		logger.Output(2, fmt.Sprintf("[ERROR] %s", v...))
 	}
 }
 
 func Errorf(format string, v ...interface{}) {
 	if _level <= level.ERROR && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[ERROR] %s", fmt.Sprintf(format, v...)))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[ERROR] %s", fmt.Sprintf(format, v...)))
-		}
+		logger.Output(2, fmt.Sprintf("[ERROR] %s", fmt.Sprintf(format, v...)))
 	}
 }
 
 func Critical(v ...interface{}) {
 	if _level <= level.CRITICAL && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[CRITICAL] %s", v...))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[CRITICAL] %s", v...))
-		}
+		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", v...))
 	}
 }
 
 func Criticalf(format string, v ...interface{}) {
 	if _level <= level.CRITICAL && logger != nil {
-		mu.Lock()
-		defer mu.Unlock()
-		err := logger.Output(2, fmt.Sprintf("[CRITICAL] %s", fmt.Sprintf(format, v...)))
-		if err != nil {
-			writer := io.MultiWriter(os.Stdout, rw.Fp)
-			logger = log.New(writer, "", log.Ldate|log.Ltime|log.Lshortfile)
-			logger.Output(2, fmt.Sprintf("[CRITICAL] %s", fmt.Sprintf(format, v...)))
-		}
+		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", fmt.Sprintf(format, v...)))
 	}
 }

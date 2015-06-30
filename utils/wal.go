@@ -16,7 +16,7 @@ import (
 type RotateWriter struct {
 	lock        sync.Mutex
 	filename    string // should be set to the actual filename
-	Fp          *os.File
+	fp          *os.File
 	max_size_kb int64     // max size in kb
 	stop        chan bool // stop chan
 }
@@ -75,7 +75,7 @@ func (w *RotateWriter) ListArchives() []string {
 func (w *RotateWriter) Write(output []byte) (int, error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
-	return w.Fp.Write(output)
+	return w.fp.Write(output)
 }
 
 func (w *RotateWriter) watching_myself(stop chan bool) {
@@ -120,17 +120,16 @@ func (w *RotateWriter) create_output(log_filepath string) (err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
-	if w.Fp != nil {
-		w.Fp.Close()
-		w.Fp = nil
+	if w.fp != nil {
+		w.fp.Close()
+		w.fp = nil
 	}
 
 	output, err := os.OpenFile(log_filepath[:], os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	w.Fp = output
+	w.fp = output
 	if err != nil {
 		return err
 	}
-	// writer = io.MultiWriter(os.Stdout, output)
 	return
 }
 
@@ -140,9 +139,9 @@ func (w *RotateWriter) rotate() (err error) {
 	defer w.lock.Unlock()
 
 	// Close existing file if open
-	if w.Fp != nil {
-		err = w.Fp.Close()
-		w.Fp = nil
+	if w.fp != nil {
+		err = w.fp.Close()
+		w.fp = nil
 		if err != nil {
 			return
 		}
@@ -165,6 +164,6 @@ func (w *RotateWriter) rotate() (err error) {
 		}
 	}
 	// Create a file.
-	w.Fp, err = os.Create(w.filename)
+	w.fp, err = os.Create(w.filename)
 	return
 }
