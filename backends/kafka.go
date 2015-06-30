@@ -26,7 +26,7 @@ type kafkaBackend struct {
 	producer sarama.AsyncProducer
 }
 
-func MustNewKafkaBackend(name string, bconf *config.Transport_kafka) newcore.Publication {
+func MustNewKafkaBackend(name string, bconf *config.Transport_kafka) *kafkaBackend {
 	logging.Info("MustNewKafkaBackend: %+v", bconf)
 	_kconf := sarama.NewConfig()
 

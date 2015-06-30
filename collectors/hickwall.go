@@ -20,35 +20,35 @@ type hickwall_collector struct {
 	// hickwall_collector specific attributes
 }
 
-func MustNewHickwallCollector(interval string) newcore.Collector {
-	c := hickwall_collector{
+func MustNewHickwallCollector(interval string) *hickwall_collector {
+	c := &hickwall_collector{
 		enabled:  true,
 		interval: newcore.NewInterval(interval).MustDuration(time.Second),
 	}
 	return c
 }
 
-func (c hickwall_collector) Name() string {
+func (c *hickwall_collector) Name() string {
 	return "hickwall_collector"
 }
 
-func (c hickwall_collector) Close() error {
+func (c *hickwall_collector) Close() error {
 	return nil
 }
 
-func (c hickwall_collector) ClassName() string {
+func (c *hickwall_collector) ClassName() string {
 	return "hickwall_collector"
 }
 
-func (c hickwall_collector) IsEnabled() bool {
+func (c *hickwall_collector) IsEnabled() bool {
 	return c.enabled
 }
 
-func (c hickwall_collector) Interval() time.Duration {
+func (c *hickwall_collector) Interval() time.Duration {
 	return c.interval
 }
 
-func (c hickwall_collector) CollectOnce() newcore.CollectResult {
+func (c *hickwall_collector) CollectOnce() newcore.CollectResult {
 	var md newcore.MultiDataPoint
 
 	runtime.ReadMemStats(&mem_stats)

@@ -29,7 +29,7 @@ type fileBackend struct {
 	conf   *config.Transport_file
 }
 
-func NewFileBackend(name string, conf *config.Transport_file) (newcore.Publication, error) {
+func NewFileBackend(name string, conf *config.Transport_file) (*fileBackend, error) {
 	s := &fileBackend{
 		name:    name,
 		closing: make(chan chan error),

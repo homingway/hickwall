@@ -32,8 +32,10 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 		}
 
 		for cid, conf := range group.Collector_ping {
-			c := MustNewPingCollectors(gen_collector_name(gid, cid, "ping"), group.Prefix, conf)
-			clrs = append(clrs, c...)
+			pings := MustNewPingCollectors(gen_collector_name(gid, cid, "ping"), group.Prefix, conf)
+			for _, c := range pings {
+				clrs = append(clrs, c)
+			}
 		}
 
 		for cid, conf := range group.Collector_win_pdh {

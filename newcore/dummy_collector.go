@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type dummy_collector struct {
+type DummyCollector struct {
 	name     string // collector name
 	interval time.Duration
 	enabled  bool
@@ -18,11 +18,11 @@ func dummyCollectorFactory(name string) Collector {
 	return NewDummyCollector(name, time.Millisecond*100, 10)
 }
 
-func NewDummyCollector(name string, interval time.Duration, points int) Collector {
+func NewDummyCollector(name string, interval time.Duration, points int) *DummyCollector {
 	if points <= 0 {
 		points = 1
 	}
-	c := &dummy_collector{
+	c := &DummyCollector{
 		name:     name,
 		enabled:  true,
 		interval: interval,
@@ -31,27 +31,27 @@ func NewDummyCollector(name string, interval time.Duration, points int) Collecto
 	return c
 }
 
-func (c *dummy_collector) Name() string {
+func (c *DummyCollector) Name() string {
 	return c.name
 }
 
-func (c *dummy_collector) Close() error {
+func (c *DummyCollector) Close() error {
 	return nil
 }
 
-func (c *dummy_collector) ClassName() string {
+func (c *DummyCollector) ClassName() string {
 	return "dummy_collector"
 }
 
-func (c *dummy_collector) IsEnabled() bool {
+func (c *DummyCollector) IsEnabled() bool {
 	return c.enabled
 }
 
-func (c *dummy_collector) Interval() time.Duration {
+func (c *DummyCollector) Interval() time.Duration {
 	return c.interval
 }
 
-func (c *dummy_collector) CollectOnce() CollectResult {
+func (c *DummyCollector) CollectOnce() CollectResult {
 	var items MultiDataPoint
 
 	for i := 0; i < c.points; i++ {

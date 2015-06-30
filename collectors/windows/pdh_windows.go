@@ -26,9 +26,9 @@ type win_pdh_collector struct {
 	map_queries map[string]config.Config_win_pdh_query
 }
 
-func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_collector) newcore.Collector {
+func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_collector) *win_pdh_collector {
 
-	c := win_pdh_collector{
+	c := &win_pdh_collector{
 		name:        name,
 		enabled:     true,
 		prefix:      prefix,
@@ -54,28 +54,28 @@ func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_coll
 	return c
 }
 
-func (c win_pdh_collector) Name() string {
+func (c *win_pdh_collector) Name() string {
 	return c.name
 }
 
-func (c win_pdh_collector) Close() error {
+func (c *win_pdh_collector) Close() error {
 	c.hPdh.Close()
 	return nil
 }
 
-func (c win_pdh_collector) ClassName() string {
+func (c *win_pdh_collector) ClassName() string {
 	return "win_pdh_collector"
 }
 
-func (c win_pdh_collector) IsEnabled() bool {
+func (c *win_pdh_collector) IsEnabled() bool {
 	return c.enabled
 }
 
-func (c win_pdh_collector) Interval() time.Duration {
+func (c *win_pdh_collector) Interval() time.Duration {
 	return c.interval
 }
 
-func (c win_pdh_collector) CollectOnce() newcore.CollectResult {
+func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
 	logging.Debug("win_pdh_collector.CollectOnce Started")
 
 	var items newcore.MultiDataPoint

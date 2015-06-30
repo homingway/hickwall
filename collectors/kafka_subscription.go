@@ -152,7 +152,7 @@ type kafka_subscription struct {
 	state           *kafka_sub_state
 }
 
-func NewKafkaSubscription(opts Config_KafkaSubscription) (newcore.Subscription, error) {
+func NewKafkaSubscription(opts Config_KafkaSubscription) (*kafka_subscription, error) {
 	var max_batch_size = 100
 	var state_file_name string
 

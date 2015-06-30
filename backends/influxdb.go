@@ -29,7 +29,7 @@ type influxdbBackend struct {
 	version string
 }
 
-func NewInfluxdbBackend(name string, conf *config.Transport_influxdb) (newcore.Publication, error) {
+func NewInfluxdbBackend(name string, conf *config.Transport_influxdb) (*influxdbBackend, error) {
 	s := &influxdbBackend{
 		name:    name,
 		closing: make(chan chan error),

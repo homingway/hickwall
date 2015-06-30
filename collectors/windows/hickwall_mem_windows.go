@@ -5,7 +5,7 @@ import (
 	"github.com/oliveagle/hickwall/newcore"
 )
 
-func MustNewWinHickwallMemCollector(interval string, tags newcore.TagSet) newcore.Collector {
+func MustNewWinHickwallMemCollector(interval string, tags newcore.TagSet) *win_pdh_collector {
 	opts := config.Config_win_pdh_collector{
 		Interval: newcore.Interval(interval),
 		Tags:     tags,

@@ -10,7 +10,7 @@ var (
 	_ = fmt.Sprintf("")
 )
 
-type dummyBackend struct {
+type DummyBackend struct {
 	name      string
 	closing   chan chan error     // for Close
 	updates   chan MultiDataPoint // for receive updates
@@ -19,8 +19,8 @@ type dummyBackend struct {
 	detail    bool                // if true print every datapoing
 }
 
-func MustNewDummyBackend(name string, jamming Interval, printting bool, detail bool) Publication {
-	s := &dummyBackend{
+func MustNewDummyBackend(name string, jamming Interval, printting bool, detail bool) *DummyBackend {
+	s := &DummyBackend{
 		name:      name,
 		closing:   make(chan chan error),
 		updates:   make(chan MultiDataPoint),
@@ -32,7 +32,7 @@ func MustNewDummyBackend(name string, jamming Interval, printting bool, detail b
 	return s
 }
 
-func (b *dummyBackend) loop() {
+func (b *DummyBackend) loop() {
 	var (
 		startConsuming <-chan MultiDataPoint
 	)
@@ -68,11 +68,11 @@ func (b *dummyBackend) loop() {
 	}
 }
 
-func (b *dummyBackend) Updates() chan<- MultiDataPoint {
+func (b *DummyBackend) Updates() chan<- MultiDataPoint {
 	return b.updates
 }
 
-func (b *dummyBackend) Close() error {
+func (b *DummyBackend) Close() error {
 	// fmt.Println("bk.Close() start")
 	errc := make(chan error)
 	b.closing <- errc
@@ -80,6 +80,6 @@ func (b *dummyBackend) Close() error {
 	return <-errc
 }
 
-func (b *dummyBackend) Name() string {
+func (b *DummyBackend) Name() string {
 	return b.name
 }

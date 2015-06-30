@@ -16,5 +16,5 @@
 
 # echo "GOPATH=$GOPATH"
 
-go test ./... -v
-# go test ./... -v | grep -E "(--- FAIL)|(^FAIL\s+)|(^ok\s+)"
+#go test ./... -v
+go test ./... -v | grep -E "(--- FAIL)|(^FAIL\s+)|(^ok\s+)"
