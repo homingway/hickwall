@@ -27,7 +27,7 @@ type kafkaBackend struct {
 }
 
 func MustNewKafkaBackend(name string, bconf *config.Transport_kafka) *kafkaBackend {
-	logging.Info("MustNewKafkaBackend: %+v", bconf)
+	logging.Infof("MustNewKafkaBackend: %+v", bconf)
 	_kconf := sarama.NewConfig()
 
 	_kconf.Net.DialTimeout = newcore.Interval(bconf.Dail_timeout).MustDuration(time.Second * 5)
