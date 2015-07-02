@@ -4,7 +4,8 @@
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJ_ROOT="$SCRIPT_ROOT/../.."
 #ISCC=$HOME/bin/iscc
-ISCC=/root/bin/iscc
+#ISCC=/root/bin/iscc
+ISCC=$(which iscc)
 VER=$(cat $PROJ_ROOT/release-version)
 
 echo "$ISCC" 
