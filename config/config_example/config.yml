@@ -1,10 +1,4 @@
 # ---------- client configurations -------------------------------------------
-
-#TODO: if collect data failed, now we can provide DEFAULT value from config. how about NO-DATA alert
-#   like zabbix ?
-#TODO: write time precision is limited to MS (milliseconds) only
-#TODO: {{.Key}}.{{.Tags}}   if Tags is empty, key will have a trailing dot.  e.g.:  `metric1.`
-
 client:
     # customize hostname, if omit this option, the client will use $(hostname) automatically
     # hostname: "test_server1"
@@ -88,16 +82,16 @@ client:
 
     #     FlatTemplate: "{{.Key}}.{{.Tags}}"
 
-    #     backfill_enabled: true
-    #     backfill_interval: 1s
-    #     backfill_handsoff: true
-    #     backfill_latency_threshold_ms: 100
-    #     backfill_cool_down: 5s
+    #     # backfill_enabled: true
+    #     # backfill_interval: 1s
+    #     # backfill_handsoff: true
+    #     # backfill_latency_threshold_ms: 100
+    #     # backfill_cool_down: 5s
 
     transport_kafka:
         broker_list:
-            - "192.168.81.208:9092"
-        topic_id: "test"
+            - "opsdevhdp02.qa.nt.ctripcorp.com:9092"
+        topic_id: "metric"
         compression_codec: "gzip"
         ack_timeout_ms: 100
         required_acks: false
@@ -105,6 +99,30 @@ client:
         write_timeout: 100ms
         dail_timeout: 1s
         keepalive: 30m
+
+    # subscribe_kafka:
+    #     -
+    #         name: kafka_sub_1
+    #         broker_list: 
+    #             - "oleubuntu:9092"
+    #         topic: test
+    #         max_batch_size: 10
+    #         flush_interval: 100ms
+
+
+    # TODO: transport_graphite
+    # transport_graphite:
+    #     -
+    #         # metadata is nort supported with graphite backend
+    #         enabled: false
+    #         max_batch_size: 100
+    #         interval: 1s
+    #         merge_requests: false
+
+    #         hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
+    #         FlatTemplate: "{{.Key}}.{{.Tags}}"
+
+
 
 # ---------- transport configurations -------------------------------------------
 
@@ -121,7 +139,7 @@ client:
 #  {{.Tags_xxx}}        you can also reference field of tags directly. once a field is referenced, it will be poped out, so
 #                       all fields in {tags} will only appear once in generated flat metric key.  so if you have `{{Tgas_xxx}}` 
 #                       and `{tags}` in the option at the same time, then `{tags}` will only applys to the remaining tags 
-# Note: {{.Lv2.Lv2}}         Multiple leveled tempalte is not allowed
+# Note: {{.Lv1.Lv2}}         Multiple leveled tempalte is not allowed
 
 # when transport target host failed, the client will try to cache up requests into a file queue. once the target host
 # back online again, the client will try to send cached requests back into target host. 
@@ -132,39 +150,34 @@ client:
 # the first one report latest data with fixed interval, cache request if failed. 
 # the second thread try to backfill data in cache with all following tweaks.
 
-transport_graphite:
-    -
-        # metadata is nort supported with graphite backend
-        enabled: false
-        max_batch_size: 100
-        interval: 1s
-        merge_requests: false
-
-        hosts: ["127.0.0.1:2003", "127.0.0.1:2004"]
-        FlatTemplate: "{{.Key}}.{{.Tags}}"
 
 # ---------- collector configurations -------------------------------------------
-
-# builtin collectors will always working without configurations
-
 #TODO: different collector type: gauge, counter 
 groups:
     -
-        prefix: "prefix"
+        prefix: "sys"
+        collector_win_sys:
+            pdh_interval: 1s
+            wmi_interval: 15s
+
+        # ---------------------------------------------------------------------------------------------
         # collector_win_pdh:
         #     - 
-        #         interval: 2s
-        #         tags: {
-        #             "bu": "train"
-        #         }
+        #         interval: 1s
         #         queries:
         #             -
-        #                 query: "\\System\\Processes"
-        #                 metric: "win.pdh.process_cnt"
-        #                 # metric: "win.processes.count"     duplicated metric key: win.processes.count
-        #             - 
-        #                 query: "\\Memory\\Available Bytes"
-        #                 metric: "win.pdh.memory.available_bytes"
+        #                 # CPU load
+        #                 query: "\\System\\Processor Queue Length"
+        #                 metric: "win.pdh.processor_queue_length"
+
+        # TODO:
+        #   ratio of cpu load and cpu number ? dont need
+        #   used memory
+        #   total swap space
+        #   total memory
+        #   free memory
+        #   avaiable memory in %
+
 
         # - 
         #     interval: 2s
@@ -190,17 +203,44 @@ groups:
         #                 "mount": "C"
         #             }
 
+        # ---------------------------------------------------------------------------------------------
         # # This collector is supplement for win_pdh. and is not performace optimized. so should be used with 
         # # limitations. Internally, all queries with in this collector will be executed sequencially.
         # collector_win_wmi:
         #     - 
-        #         interval: 2s
-        #         tags: {
-        #             "bu": "train",
-        #             "prodution": "短周期"
-        #         }
-
+        #         interval: 1h
         #         queries: 
+        #             - 
+        #                 query: "select Name, NumberOfCores from Win32_Processor"
+        #                 metrics:
+        #                     # character cases matters here!!  
+        #                     -
+        #                         value_from: "Name"
+        #                         metric: "win.wmi.cpu.name"
+        #                     -
+        #                         value_from: "NumberOfCores"
+        #                         metric: "win.wmi.cpu.numberofcores"
+        #             - 
+        #                 query: "select Name, Size from Win32_LogicalDisk where MediaType=11 or mediatype=12"
+
+        #                 #  map[FreeSpace: Name:A: FileSystem:]
+        #                 #  map[Name:C: FileSystem:NTFS FreeSpace:57517752320]
+        #                 #  map[FileSystem:CDFS FreeSpace:0 Name:D:]
+
+        #                 # metric string is a template. {Name} means use the value of `Name` Field of collected record. 
+        #                 metrics:
+        #                     # character cases matters here!!  
+        #                     -
+        #                         value_from: "Size"
+        #                         metric: "win.wmi.logicaldisk.total_size_bytes"
+        #                         tags: {
+        #                             "mount": "{{.Name}}",
+        #                         }
+        #                         #TODO: support meta
+        #                         # meta: {
+        #                         #     "unit": "bytes"
+        #                         # }
+
         #             # - 
         #             #     # query: "select * from Win32_SystemServices where Name='W3svc'"
         #             #     query: "select * from Win32_Service where Name='W3svc'"
@@ -224,18 +264,7 @@ groups:
         #             #             default: "IIS Not Installed"
 
 
-        #             # simplest query form. for single instance return query
-        #             # - 
-        #             #     # query: "wmic cpu get Name,NumberOfCores"
-        #             #     query: "select Name, NumberOfCores from Win32_Processor"
-        #             #     metrics:
-        #             #         # character cases matters here!!  
-        #             #         -
-        #             #             value_from: "Name"
-        #             #             metric: "win.wmi.cpu.name"
-        #             #         -
-        #             #             value_from: "NumberOfCores"
-        #             #             metric: "win.wmi.cpu.numberofcores"
+
 
         #             # query with metric templating, tags for multiple instance return query
         #             - 
@@ -295,19 +324,7 @@ groups:
         #                         value_from: "NumberOfCores"
         #                         metric: "win.wmi.cpu.numberofcores"
 
-
-        # #TODO: collector_cmd:
-        # collector_cmd:
-        #     - 
-        #         cmd: 
-        #             - 'c:\python27\python.exe'
-        #             - 'D:\Users\rhtang\oledev\gocodez\src\github.com\oliveagle\hickwall\misc\collector_cmd.py'
-        #         # interval: s - seconds, m - minutes, h - hours
-        #         interval: 1s
-
-
-
-        # # TODO: collector_ping
+        # ---------------------------------------------------------------------------------------------
         # collector_ping:
         #     -
         #         # in seconds
