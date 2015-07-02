@@ -22,7 +22,7 @@
 * added heartbeat metrics
 * removed hickwallhelper service on windows.
 
-### Version 0.2.1
+### Version 0.2.1 - 2016Jun17
 * collector_cmd removed for risk consideration
 * use c implemented hickwallhelper service on windows.
 * implemented a newcore. 
@@ -33,3 +33,13 @@
 * remove 3rd-party logging module. replaced with a customized wrapper of builtin log
 * add RSS limit of the hickwall process.
 * unittest covered most packages.
+
+### Version 0.2.2-rc1
+* fixed serveral bugs.
+* etcd config and etcd unittest
+* registry & api
+* change hostname in core_config.yml
+* CI
+
+
+
