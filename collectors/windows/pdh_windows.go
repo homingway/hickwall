@@ -50,7 +50,7 @@ func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_coll
 			q.Tags = newcore.AddTags.Copy()
 		}
 
-		if !q.Ignore_query_tag {
+		if opts.Query_to_tag == true || q.Query_to_tag == true {
 			q.Tags["query"] = q.Query
 		}
 

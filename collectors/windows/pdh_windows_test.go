@@ -9,6 +9,52 @@ import (
 	"time"
 )
 
+func Test_pdh_windows_QueryToTag_1(t *testing.T) {
+	opts := config.Config_win_pdh_collector{
+		Interval: "100ms",
+		Queries: []config.Config_win_pdh_query{
+			{
+				Query:        "\\System\\Processes",
+				Metric:       "processes.1",
+				Query_to_tag: true,
+			}, {
+				Query:  "\\System\\Processor Queue Length",
+				Metric: "win.pdh.processor_queue_length",
+			}},
+	}
+
+	c := MustNewWinPdhCollector("c1", "prefix", opts)
+	q, _ := c.map_queries["\\System\\Processes"]
+	if _, ok := q.Tags["query"]; ok == false {
+		t.Error("query is not in tag")
+		t.Logf("%+v", q)
+	}
+	q, _ = c.map_queries["\\System\\Processor Queue Length"]
+	if _, ok := q.Tags["query"]; ok != false {
+		t.Error("query should not in tag")
+		t.Logf("%+v", q)
+	}
+}
+
+func Test_pdh_windows_QueryToTag_2(t *testing.T) {
+	opts := config.Config_win_pdh_collector{
+		Interval:     "100ms",
+		Query_to_tag: true,
+		Queries: []config.Config_win_pdh_query{
+			{
+				Query:  "\\System\\Processes",
+				Metric: "processes.1",
+			}},
+	}
+
+	c := MustNewWinPdhCollector("c1", "prefix", opts)
+	q, _ := c.map_queries["\\System\\Processes"]
+	if _, ok := q.Tags["query"]; ok == false {
+		t.Error("query is not in tag")
+		t.Logf("%+v", q)
+	}
+}
+
 func TestWinPdhCollector(t *testing.T) {
 	opts := config.Config_win_pdh_collector{
 		Interval: "100ms",
@@ -42,10 +88,6 @@ main_loop:
 						fmt.Println("dp: ---> ", dp)
 						if _, ok := dp.Tags["host"]; ok == false {
 							t.Error("host is not in tags")
-							return
-						}
-						if _, ok := dp.Tags["query"]; ok == false {
-							t.Error("query is not in tags")
 							return
 						}
 						if !strings.HasPrefix(dp.Metric.Clean(), "prefix.processes.") {

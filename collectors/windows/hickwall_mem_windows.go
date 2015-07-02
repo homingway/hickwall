@@ -11,9 +11,8 @@ func MustNewWinHickwallMemCollector(interval string, tags newcore.TagSet) *win_p
 		Tags:     tags,
 		Queries: []config.Config_win_pdh_query{
 			{
-				Query:            "\\Process(hickwall)\\Working Set - Private",
-				Metric:           "private_working_set.bytes",
-				Ignore_query_tag: true,
+				Query:  "\\Process(hickwall)\\Working Set - Private",
+				Metric: "private_working_set.bytes",
 			},
 		},
 	}
