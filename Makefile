@@ -16,8 +16,7 @@ TARGETS=hickwall
 ifeq ($(OS),Windows_NT)
     HICKWALL_BIN="hickwall.exe"
 	HICKWALL_BIN_ARCH="hickwall-windows-386.exe"
-	#TARGETS += win_helper
-	#TARGETS += pack_win
+	PACK=hickwall pack_win
 endif
 
 # add version and git commit hash
@@ -28,19 +27,22 @@ LD_FLAGS="-X main.Version $(VER) -X main.Build $(GIT_HASH)"
 
 all: $(TARGETS)
 
+test:
+	go test ./... -v | grep -E "(--- FAIL)|(^FAIL\s+)|(^ok\s+)"
+
 hickwall: *.go
 	rm -f $(HICKWALL_BIN)
 	go build -ldflags $(LD_FLAGS) -v -o $(HICKWALL_BIN) && cp $(HICKWALL_BIN) bin/$(HICKWALL_BIN_ARCH)	
 
+clean:
+	rm -f $(HICKWALL_BIN)
+
+pack: $(PACK)
+
+# -------- windows ----------
 win_helper:
 	rm -f bin/hickwall_helper.exe
 	gcc -Os make/win_helper_service/hickwall_helper.c -o bin/hickwall_helper.exe
-
-test:
-	go test ./... -v | grep -E "(--- FAIL)|(^FAIL\s+)|(^ok\s+)"
-
-clean:
-	rm -f $(HICKWALL_BIN)
 
 pack_win: hickwall win_helper
 	./make/pack_win/pack_with_inno.sh

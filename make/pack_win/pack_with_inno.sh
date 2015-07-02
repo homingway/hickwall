@@ -36,6 +36,7 @@ cp bin/hickwall_helper.exe $TMP_DIR/hickwall_helper.exe && \
   cp Readme.md $TMP_DIR/ && \
   cp Readme.html $TMP_DIR/ && \
   cd $TMP_DIR && \
+  rm -f $DST && \
   $ISCC win.iss && \
   cp Output/setup.exe $DST && \
   echo "copied setup into $DST"
