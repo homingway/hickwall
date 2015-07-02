@@ -2,6 +2,7 @@ package windows
 
 import (
 	"fmt"
+	"github.com/kr/pretty"
 	"github.com/oliveagle/hickwall/collectors/config"
 	"github.com/oliveagle/hickwall/lib/pdh"
 	"github.com/oliveagle/hickwall/logging"
@@ -51,6 +52,12 @@ func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_coll
 		c.map_queries[q.Query] = q
 	}
 
+	pretty.Println("============================")
+	pretty.Println(opts.Queries)
+	pretty.Println("============================")
+	pretty.Println(c.map_queries)
+	pretty.Println("============================")
+
 	return c
 }
 
@@ -76,7 +83,7 @@ func (c *win_pdh_collector) Interval() time.Duration {
 }
 
 func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
-	logging.Debug("win_pdh_collector.CollectOnce Started")
+	logging.Info("win_pdh_collector.CollectOnce Started")
 
 	var items newcore.MultiDataPoint
 
@@ -84,6 +91,7 @@ func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
 		if pd.Err == nil {
 			query, ok := c.map_queries[pd.Query]
 			if ok == true {
+				logging.Infof("query: %+v, string: --->%s<---      \n %+v", query.Metric, query.Metric.Clean(), query)
 				items = append(items, newcore.NewDP(c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", ""))
 			}
 		} else {
@@ -93,7 +101,7 @@ func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
 		}
 	}
 
-	logging.Debugf("win_pdh_collector.CollectOnce Finished. count: %d", len(items))
+	logging.Infof("win_pdh_collector.CollectOnce Finished. count: %d", len(items))
 	return newcore.CollectResult{
 		Collected: items,
 		Next:      time.Now().Add(c.interval),

@@ -50,7 +50,10 @@ func UseConfigCreateCollectors(rconf *config.RuntimeConfig) ([]newcore.Collector
 
 		if group.Collector_win_sys != nil {
 			cs := windows.MustNewWinSysCollectors(gen_collector_name(gid, 0, "win_sys"), group.Prefix, group.Collector_win_sys)
-			clrs = append(clrs, cs...)
+			for _, c := range cs {
+				clrs = append(clrs, c)
+			}
+			//			clrs = append(clrs, cs...)
 		}
 
 	}

@@ -3,6 +3,7 @@ package windows
 import (
 	"bytes"
 	c_conf "github.com/oliveagle/hickwall/collectors/config"
+	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/viper"
 	"strings"
@@ -38,7 +39,7 @@ queries:
         metric: "win.pdh.memory.pct_committed_bytes_in_use"
     -
         query: "\\PhysicalDisk(_Total)\\Avg. Disk sec/Read"
-        metrc: "win.pdh.physical_disk.avg_disk_sec_read"
+        metric: "win.pdh.physical_disk.avg_disk_sec_read"
     -
         query: "\\PhysicalDisk(_Total)\\Avg. Disk sec/Write"
         metric: "win.pdh.physical_disk.avg_disk_sec_write"
@@ -79,6 +80,8 @@ queries:
 `
 	pdh_config_str := strings.Replace(pdh_config_str_tpl, "{-----}", interval, 1)
 
+	logging.Tracef("pdh_config_str: %s", pdh_config_str)
+
 	pdh_viper := viper.New()
 	pdh_viper.SetConfigType("yaml")
 	pdh_viper.ReadConfig(bytes.NewBuffer([]byte(pdh_config_str)))
@@ -112,6 +115,9 @@ queries:
                 }
 `
 	wmi_config_str := strings.Replace(wmi_config_str_tpl, "{-----}", interval, 1)
+
+	logging.Tracef("pdh_config_str: %s", wmi_config_str)
+
 	wmi_viper := viper.New()
 	wmi_viper.SetConfigType("yaml")
 	wmi_viper.ReadConfig(bytes.NewBuffer([]byte(wmi_config_str)))
