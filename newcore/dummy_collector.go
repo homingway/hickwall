@@ -55,7 +55,7 @@ func (c *DummyCollector) CollectOnce() CollectResult {
 	var items MultiDataPoint
 
 	for i := 0; i < c.points; i++ {
-		items = append(items, DataPoint{
+		items = append(items, &DataPoint{
 			Metric:    Metric(fmt.Sprintf("metric.%s", c.name)),
 			Timestamp: time.Now(),
 			Value:     1,

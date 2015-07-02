@@ -52,7 +52,7 @@ func Test_MultiDataPoint_MarshalJSON(t *testing.T) {
 		Value:     1,
 	}
 	md := MultiDataPoint{}
-	md = append(md, d)
+	md = append(md, &d)
 
 	v, err := json.Marshal(md)
 	t.Logf("%s, %v\n", v, err)

@@ -140,13 +140,14 @@ func (b *kafkaBackend) loop() {
 
 		select {
 		case md := <-startConsuming:
-			for _, p := range md {
+			for idx, p := range md {
 				b.producer.Input() <- &sarama.ProducerMessage{
 					Topic: b.conf.Topic_id,
 					Key:   sarama.StringEncoder(p.Metric),
-					Value: &p,
+					Value: p,
 				}
-				logging.Tracef(" -> point: %+v", p)
+				_d, _ := p.Encode()
+				logging.Tracef("kafka producer ---> %d,  %s", idx, _d)
 			}
 			logging.Debugf("kafkaBackend consuming finished: count: %d", len(md))
 		case connected := <-try_connect_first:

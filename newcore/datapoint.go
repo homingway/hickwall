@@ -29,12 +29,13 @@ type DataPoint struct {
 	length int
 }
 
-func NewDPFromJson(content []byte) (dp DataPoint, err error) {
-	err = json.Unmarshal(content, &dp)
-	return
+func NewDPFromJson(content []byte) (*DataPoint, error) {
+	var dp DataPoint
+	err := json.Unmarshal(content, &dp)
+	return &dp, err
 }
 
-func NewDP(prefix, metric string, value interface{}, tags TagSet, datatype string, unit string, desc string) DataPoint {
+func NewDP(prefix, metric string, value interface{}, tags TagSet, datatype string, unit string, desc string) *DataPoint {
 	return NewDataPoint(
 		fmt.Sprintf("%s.%s", prefix, metric),
 		value,
@@ -47,7 +48,7 @@ func NewDP(prefix, metric string, value interface{}, tags TagSet, datatype strin
 }
 
 //TODO: unittest NewDataPoint
-func NewDataPoint(metric string, value interface{}, ts time.Time, t TagSet, datatype string, unit string, desc string) DataPoint {
+func NewDataPoint(metric string, value interface{}, ts time.Time, t TagSet, datatype string, unit string, desc string) *DataPoint {
 	tags := AddTags.Copy().Merge(t)
 
 	if _, present := tags["host"]; !present {
@@ -56,7 +57,7 @@ func NewDataPoint(metric string, value interface{}, ts time.Time, t TagSet, data
 		delete(tags, "host")
 	}
 
-	return DataPoint{
+	return &DataPoint{
 		Metric:    Metric(metric),
 		Timestamp: ts,
 		Value:     value,
@@ -64,7 +65,7 @@ func NewDataPoint(metric string, value interface{}, ts time.Time, t TagSet, data
 	}
 }
 
-type MultiDataPoint []DataPoint
+type MultiDataPoint []*DataPoint
 
 // var ppFree = sync.Pool{
 // 	New: func() interface{} {

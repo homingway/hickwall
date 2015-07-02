@@ -52,7 +52,7 @@ func (c *DummyFlowSubscriber) loop() {
 		case <-tick:
 			if out != nil {
 				for i := 0; i < c.points; i++ {
-					items = append(items, DataPoint{
+					items = append(items, &DataPoint{
 						Metric:    Metric(fmt.Sprintf("metric.%s", c.name)),
 						Timestamp: time.Now(),
 						Value:     1,

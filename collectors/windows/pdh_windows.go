@@ -40,6 +40,11 @@ func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_coll
 	}
 
 	for _, q := range opts.Queries {
+		if q.Metric == "" {
+			logging.Errorf("Error Phd Collector metric is empty: %# v", pretty.Formatter(q))
+			continue
+		}
+
 		c.hPdh.AddEnglishCounter(q.Query)
 		if q.Tags == nil {
 			q.Tags = newcore.AddTags.Copy()
@@ -51,13 +56,8 @@ func MustNewWinPdhCollector(name, prefix string, opts config.Config_win_pdh_coll
 
 		c.map_queries[q.Query] = q
 	}
-
-	pretty.Println("============================")
-	pretty.Println(opts.Queries)
-	pretty.Println("============================")
-	pretty.Println(c.map_queries)
-	pretty.Println("============================")
-
+	logging.Tracef("MustNewWinPdhCollector:opts.Queries: %# v", pretty.Formatter(opts.Queries))
+	logging.Tracef("MustNuewWinPdhCollector c.map_queries: %# v", pretty.Formatter(c.map_queries))
 	return c
 }
 
@@ -83,7 +83,7 @@ func (c *win_pdh_collector) Interval() time.Duration {
 }
 
 func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
-	logging.Info("win_pdh_collector.CollectOnce Started")
+	logging.Debug("win_pdh_collector.CollectOnce Started")
 
 	var items newcore.MultiDataPoint
 
@@ -91,7 +91,7 @@ func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
 		if pd.Err == nil {
 			query, ok := c.map_queries[pd.Query]
 			if ok == true {
-				logging.Infof("query: %+v, string: --->%s<---      \n %+v", query.Metric, query.Metric.Clean(), query)
+				logging.Tracef("query: %+v, \n %+v", query.Metric, query)
 				items = append(items, newcore.NewDP(c.prefix, query.Metric.Clean(), pd.Value, query.Tags, "", "", ""))
 			}
 		} else {
@@ -101,7 +101,7 @@ func (c *win_pdh_collector) CollectOnce() newcore.CollectResult {
 		}
 	}
 
-	logging.Infof("win_pdh_collector.CollectOnce Finished. count: %d", len(items))
+	logging.Debugf("win_pdh_collector.CollectOnce Finished. count: %d", len(items))
 	return newcore.CollectResult{
 		Collected: items,
 		Next:      time.Now().Add(c.interval),

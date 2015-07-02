@@ -1,5 +1,7 @@
 package newcore
 
+import "github.com/oliveagle/hickwall/logging"
+
 // import (
 // 	"github.com/oliveagle/hickwall/logging"
 // )
@@ -35,9 +37,10 @@ func Merge(subs ...Subscription) Subscription {
 				}
 				select {
 				case m.updates <- it:
-					// for _, dp := range it {
-					// 	logging.Tracef("merged datapoing: %+v", dp)
-					// }
+					for idx, dp := range it {
+						_d, _ := dp.Encode()
+						logging.Tracef("merged datapoing: %d, %s", idx, _d)
+					}
 				case <-m.quit:
 					m.errs <- s.Close()
 					return
