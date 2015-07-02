@@ -14,7 +14,7 @@ TMP_DIR=$(mktemp -d)
 echo "temp dir: " $TMP_DIR
 
 cd "$SCRIPT_ROOT"
-GIT_HASH=$(cat $SCRIPT_ROOT/../GIT_HASH)
+GIT_HASH=$(git rev-parse --short HEAD)
 DST="$PROJ_ROOT/bin/dist/hickwall-setup-$VER-$GIT_HASH.exe"
 
 
