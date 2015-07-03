@@ -97,11 +97,15 @@ func UpdateRunningCore(rconf *config.RuntimeConfig) error {
 		return fmt.Errorf("rconf is nil")
 	}
 	core, _, err := create_running_core_hooked(rconf, false)
+
+	// if registry give us an empty config. agent should also reflect this change.
+	close_core()
+
 	if err != nil {
 		return err
 	}
 
-	close_core()
+	//	close_core()
 	the_core = core
 	the_rconf = rconf
 	logging.Debug("UpdateRunningCore Finished")
@@ -133,7 +137,7 @@ func Start() error {
 	}
 
 	if Running() == true {
-		return fmt.Errorf("one core is already running. stop it first!")
+		return logging.SError("one core is already running. stop it first!")
 	}
 	logging.Info("Starting the core.")
 
@@ -141,28 +145,23 @@ func Start() error {
 	case config.ETCD:
 		logging.Info("use etcd config strategy")
 		if len(config.CoreConf.Etcd_machines) <= 0 {
-			logging.Critical("EtcdMachines is empty!!")
-			return fmt.Errorf("EtcdMachines is empty!!")
+			return logging.SCritical("EtcdMachines is empty!!")
 		}
 		if config.CoreConf.Etcd_path == "" {
-			logging.Critical("EtcdPath is empty!!")
-			return fmt.Errorf("EtcdPath is empty!!")
+			return logging.SCritical("EtcdPath is empty!!")
 		}
 		go new_core_from_etcd(config.CoreConf.Etcd_machines, config.CoreConf.Etcd_path, done)
 	case config.REGISTRY:
 		logging.Info("use registry config strategy")
 		if len(config.CoreConf.Registry_urls) <= 0 {
-			logging.Criticalf("RegistryURLs is empty!!")
-			return fmt.Errorf("RegistryURLS is empty!!")
+			return logging.SCritical("RegistryURLS is empty!!")
 		}
 		go new_core_from_registry(done)
 	default:
 		logging.Info("[default] use file config strategy")
 		_, err := new_core_from_file()
 		if err != nil {
-			// logging.Errorf("faile to create running core from file: %v", err)
-			logging.Error(err)
-			return err
+			return logging.SError(err)
 		}
 	}
 	return nil

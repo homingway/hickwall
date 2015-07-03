@@ -3,14 +3,11 @@
 # oliveagle, 2015-07-02 14:12
 #
 
-#.PHONY: all hickwall test clean
+.PHONY: all hickwall test clean
 
 HICKWALL_BIN="hickwall"
 HICKWALL_BIN_ARCH="hickwall"
-
 HELPER_BIN="bin/hickwall_helper.exe"
-
-TARGETS=hickwall
 
 # detect OS
 ifeq ($(OS),Windows_NT)
@@ -24,8 +21,9 @@ VER=$$(cat release-version)
 GIT_HASH=$$(git rev-parse --short HEAD)
 LD_FLAGS="-X main.Version $(VER) -X main.Build $(GIT_HASH)"
 
+default: hickwall
 
-all: $(TARGETS)
+all: $(PACK)
 
 test:
 	go test ./... -v | grep -E "(--- FAIL)|(^FAIL\s+)|(^ok\s+)"
@@ -37,8 +35,6 @@ hickwall: *.go
 clean:
 	rm -f $(HICKWALL_BIN)
 
-pack: $(PACK)
-
 # -------- windows ----------
 win_helper:
 	rm -f bin/hickwall_helper.exe
@@ -46,7 +42,6 @@ win_helper:
 
 pack_win: hickwall win_helper
 	./make/pack_win/pack_with_inno.sh
-
 
 # vim:ft=make
 #

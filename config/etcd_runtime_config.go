@@ -34,6 +34,7 @@ func getRuntimeConfFromEtcd(client *etcd.Client, etcd_path string) (*RuntimeConf
 }
 
 func WatchRuntimeConfFromEtcd(etcd_machines []string, etcd_path string, stop chan error) <-chan RespConfig {
+	logging.Info("WatchRuntimeConfFromEtcd Started")
 	var (
 		out            = make(chan RespConfig, 1)
 		sleep_duration = time.Second
@@ -74,9 +75,9 @@ func WatchRuntimeConfFromEtcd(etcd_machines []string, etcd_path string, stop cha
 
 			select {
 			case <-stop:
-				logging.Debugf("stop watching etcd.")
+				logging.Info("stop watching etcd.")
 				watch_stop <- true
-				logging.Debugf("watching etcd stopped.")
+				logging.Info("watching etcd stopped.")
 				break loop
 			case <-chGetConf:
 				the_first_time = false
@@ -90,14 +91,15 @@ func WatchRuntimeConfFromEtcd(etcd_machines []string, etcd_path string, stop cha
 						out <- RespConfig{cached_conf, nil}
 						cached_conf = nil // cached copy only need to emit once.
 					} else {
-						out <- RespConfig{nil, fmt.Errorf("failed to getRuntimeConfFromEtcd: %v", err)}
+						out <- RespConfig{nil, logging.SErrorf("failed to getRuntimeConfFromEtcd: %v", err)}
 					}
 				} else {
 					out <- RespConfig{tmp_conf, nil}
 					watching = true
 				}
 			case <-chWaching:
-				logging.Debugf("watching etcd remote config: %s, %s", etcd_machines, etcd_path)
+				chWaching = nil
+				logging.Infof("watching etcd remote config: %s, %s", etcd_machines, etcd_path)
 				resp, err := client.Watch(etcd_path, 0, false, nil, watch_stop)
 				if err != nil {
 					logging.Errorf("watching etcd error: %v", err)
@@ -111,7 +113,7 @@ func WatchRuntimeConfFromEtcd(etcd_machines []string, etcd_path string, stop cha
 					break
 				}
 
-				logging.Debugf("a new config is comming")
+				logging.Infof("a new config is comming")
 				out <- RespConfig{tmp_conf, nil}
 			}
 		}

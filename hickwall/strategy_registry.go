@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/franela/goreq"
+	"github.com/oliveagle/hickwall/_vendor/src/github.com/oliveagle/hickwall/newcore"
 	"github.com/oliveagle/hickwall/config"
 	. "github.com/oliveagle/hickwall/hickwall/system_info"
 	"github.com/oliveagle/hickwall/logging"
@@ -63,7 +64,7 @@ func new_reg_request_from_hashed(hr *hashed_registry_request) (*registry_request
 	h.Write([]byte(hr.RequestStr))
 	hash_expect := hex.EncodeToString(h.Sum(nil))
 	if hr.Hash != hash_expect {
-		return nil, fmt.Errorf("hash doesn't match: %s != %s", hr.Hash, hash_expect)
+		return nil, fmt.Errorf("hash doesn't match: (got)%s != (expected)%s", hr.Hash, hash_expect)
 	}
 	var rr registry_request
 	err := json.Unmarshal([]byte(hr.RequestStr), &rr)
@@ -83,6 +84,8 @@ type registry_response struct {
 	Timestamp      time.Time `json:"timestamp"`
 	EtcdMachines   []string  `json:"etcd_machines"`
 	EtcdConfigPath string    `json:"etcd_config_path"`
+	ErrorCode      int       `json:"error_code"`
+	ErrorMsg       string    `json:"error_msg"`
 }
 
 type hashed_registry_response struct {
@@ -93,12 +96,13 @@ type hashed_registry_response struct {
 func new_hashed_reg_resp(r *registry_response) (*hashed_registry_response, error) {
 	dump, err := json.Marshal(r)
 	if err != nil {
-		return nil, err
+		return nil, logging.SError(err)
 	}
 
 	h := md5.New()
 	h.Write(dump)
 	hash := hex.EncodeToString(h.Sum(nil))
+
 	return &hashed_registry_response{
 		Hash:        hash,
 		ResponseStr: string(dump),
@@ -107,10 +111,10 @@ func new_hashed_reg_resp(r *registry_response) (*hashed_registry_response, error
 
 func new_hashed_reg_response_from_json(dump []byte) (*hashed_registry_response, error) {
 	var hr hashed_registry_response
-	// fmt.Println("dump ---- : ", string(dump))
 	err := json.Unmarshal(dump, &hr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal HashedRegistryResponse: %v", err)
+		logging.Errorf("dump: %s", string(dump))
+		return nil, logging.SErrorf("failed to unmarshal HashedRegistryResponse: %v", err)
 	}
 	return &hr, nil
 }
@@ -120,12 +124,12 @@ func new_reg_resp_from_hashed(hr hashed_registry_response) (*registry_response, 
 	h.Write([]byte(hr.ResponseStr))
 	hash_expect := hex.EncodeToString(h.Sum(nil))
 	if hr.Hash != hash_expect {
-		return nil, fmt.Errorf("hash doesn't match: %s != %s", hr.Hash, hash_expect)
+		return nil, logging.SErrorf("hash doesn't match: (got)%s != (expected)%s", hr.Hash, hash_expect)
 	}
 	var resp registry_response
 	err := json.Unmarshal([]byte(hr.ResponseStr), &resp)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal RegistryResponse: %v", err)
+		return nil, logging.SErrorf("failed to unmarshal RegistryResponse: %v", err)
 	}
 	return &resp, nil
 }
@@ -133,7 +137,7 @@ func new_reg_resp_from_hashed(hr hashed_registry_response) (*registry_response, 
 func new_reg_response_from_json(dump []byte) (*registry_response, error) {
 	hr, err := new_hashed_reg_response_from_json(dump)
 	if err != nil {
-		return nil, err
+		return nil, logging.SError(err)
 	}
 	return new_reg_resp_from_hashed(*hr)
 }
@@ -141,24 +145,25 @@ func new_reg_response_from_json(dump []byte) (*registry_response, error) {
 func (r *registry_response) Save() error {
 	dump, err := json.Marshal(r)
 	if err != nil {
-		return err
+		return logging.SError(err)
 	}
 	err = ioutil.WriteFile(config.REGISTRY_FILEPATH, dump, 0644)
 	if err != nil {
-		return err
+		return logging.SError(err)
 	}
 
 	return nil
 }
 
 func do_registry(reg_url string) (*registry_response, error) {
+	logging.Debug("do_registry started")
 	req, err := new_reg_request()
 	if err != nil {
-		return nil, err
+		return nil, logging.SError(err)
 	}
 	hReq, err := new_hashed_reg_request(req)
 	if err != nil {
-		return nil, err
+		return nil, logging.SError(err)
 	}
 
 	hResp, err := goreq.Request{
@@ -173,41 +178,55 @@ func do_registry(reg_url string) (*registry_response, error) {
 
 	if serr, ok := err.(*goreq.Error); ok {
 		if serr.Timeout() {
-			return nil, fmt.Errorf("registry timed out.")
+			return nil, logging.SError(err)
 		}
-		return nil, fmt.Errorf("registry failed: %d", hResp.StatusCode)
+		return nil, logging.SErrorf("registry failed: %d", hResp.StatusCode)
 	}
 	defer hResp.Body.Close()
 
+	if hResp.StatusCode != 200 {
+		return nil, logging.SErrorf("status code != 200: %d", hResp.StatusCode)
+	}
+
 	body, err := ioutil.ReadAll(hResp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read body %v", err)
+		return nil, logging.SErrorf("failed to read body %v", err)
 	}
 
 	resp, err := new_reg_response_from_json(body)
 	if err != nil {
-		return nil, err
+		return nil, logging.SError(err)
 	}
 
 	if len(resp.EtcdMachines) <= 0 {
-		return nil, fmt.Errorf("EtcdMachines is empty")
+		return nil, logging.SError("EtcdMachines is empty")
 	}
 
 	for _, m := range resp.EtcdMachines {
-		_, err = url.Parse(m)
+		machine, err := url.Parse(m)
 		if err != nil {
-			return nil, fmt.Errorf("invalid etcd machine url: %s", err)
+			return nil, logging.SErrorf("invalid etcd machine url: %s", err)
+		}
+		if machine.Scheme != "http" {
+			return nil, logging.SErrorf("etcd machine url only support http : %s", m)
 		}
 	}
+	fmt.Println("------------------------------------------------------------ 7")
 
 	if resp.EtcdConfigPath == "" {
-		return nil, fmt.Errorf("config path is empty")
+		return nil, logging.SError("config path is empty")
 	}
 
+	fmt.Println("------------------------------------------------------------ 8")
+
 	if resp.RequestHash != hReq.Hash {
-		return nil, fmt.Errorf("request hash and response hash mismatch: %s != %s", hReq.Hash, resp.RequestHash)
+		return nil, logging.SErrorf("request hash and response hash mismatch: %s != (response)%s", hReq.Hash, resp.RequestHash)
 	}
+	fmt.Println("------------------------------------------------------------ 9")
 	resp.Request = req
+
+	logging.Debug("do_registry finished")
+	resp.Save()
 	return resp, nil
 }
 
@@ -226,6 +245,7 @@ func load_reg_response() (*registry_response, error) {
 }
 
 func new_core_from_registry(stop chan error) {
+	logging.Debug("new_core_from_registry started")
 	if stop == nil {
 		panic("stop chan is nil")
 	}
@@ -233,13 +253,12 @@ func new_core_from_registry(stop chan error) {
 	if len(config.CoreConf.Registry_urls) <= 0 {
 		logging.Criticalf("RegistryURLs is empty!!")
 		panic("RegistryURLS is empty!!")
-		//		return fmt.Errorf("RegistryURLS is empty!!")
 	}
 
 	resp, err := load_reg_response()
 	if err != nil {
-		// we don't have a valid registry info.
-		tick := time.Tick(time.Minute * 5)
+		logging.Errorf("we don't have a valid registry info cached.")
+		next := time.After(0)
 
 		// round robin registry machines
 		r := ring.New(len(config.CoreConf.Registry_urls))
@@ -251,19 +270,21 @@ func new_core_from_registry(stop chan error) {
 	registry_loop:
 		for {
 			select {
-			case <-tick:
+			case <-next:
 				r = r.Next()
 				resp, err = do_registry(r.Value.(string))
 				if err == nil {
-					// we are registried.
+					logging.Info("we are registry we got a valid registry response.")
 					break registry_loop
 				} else {
 					logging.Errorf("failed to registry: %v", err)
 				}
+				next = time.After(newcore.Interval(config.CoreConf.Registry_delay_on_error).MustDuration(time.Minute))
 			}
 		}
 	}
 
+	// TODO: handle error here. like etcd_machines are not working.
 	// here we got a valid registry info. get config and start to run.
 	new_core_from_etcd(resp.EtcdMachines, resp.EtcdConfigPath, stop)
 }

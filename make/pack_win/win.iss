@@ -62,8 +62,8 @@ begin
     if IsRunningBeforeInstall = True then
     begin
       //MsgBox('isrunning: ' #13#13 'true 1' , mbInformation, MB_OK)
-      //if not Exec(FileName, 'service stop', WorkingDir, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-      if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "IMAGENAME eq hickwall.exe*"', WorkingDir, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      if not Exec(FileName, 'service stop', WorkingDir, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      //if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "IMAGENAME eq hickwall.exe*"', WorkingDir, SW_HIDE, ewWaitUntilTerminated, ResultCode) then
       begin
         //handle failure
         MsgBox('PrepareToInstall' #13#13 'stop service failed ' + IntToStr(ResultCode), mbInformation, MB_OK)

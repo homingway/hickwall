@@ -21,20 +21,21 @@ var (
 )
 
 type CoreConfig struct {
-	Hostname            string   `json:"hostname"`            // hostname, which will override auto collected hostname
-	Rss_limit_mb        int      `json:"rss_limit_mb"`        // rss_limit_mb to kill client, default is 50Mb
-	Log_level           string   `json:"log_level"`           // possible values: trace, debug, info, warn, error, critical
-	Log_file_maxsize    int      `json:"log_file_maxsize"`    // TODO: log_file_maxsize
-	Log_file_maxrolls   int      `json:"log_file_maxrolls"`   // TODO: log_file_maxrolls
-	Config_strategy     string   `json:"config_strategy"`     // possible values:  file, etcd, registry
-	Etcd_machines       []string `json:"etcd_machines"`       // etcd machines
-	Etcd_path           string   `json:"etcd_path"`           // etcd config path
-	Registry_urls       []string `json:"registry_urls"`       // registry server config
-	Enable_http_api     bool     `json:"enable_http_api"`     // enable http api. default is false.
-	Listen_port         int      `json:"listen_port"`         // api listen port, default 3031
-	Secure_api_write    bool     `json:"secure_api_write"`    // default false, use admin server public key to protect write apis.
-	Secure_api_read     bool     `json:"secure_api_read"`     // default false, use admin server public key to protect read apis.
-	Server_pub_key_path string   `json:"server_pub_key_path"` // use this public key to verify server api call
+	Hostname                string   `json:"hostname"`                // hostname, which will override auto collected hostname
+	Rss_limit_mb            int      `json:"rss_limit_mb"`            // rss_limit_mb to kill client, default is 50Mb
+	Log_level               string   `json:"log_level"`               // possible values: trace, debug, info, warn, error, critical
+	Log_file_maxsize        int      `json:"log_file_maxsize"`        // TODO: log_file_maxsize
+	Log_file_maxrolls       int      `json:"log_file_maxrolls"`       // TODO: log_file_maxrolls
+	Config_strategy         string   `json:"config_strategy"`         // possible values:  file, etcd, registry
+	Etcd_machines           []string `json:"etcd_machines"`           // etcd machines
+	Etcd_path               string   `json:"etcd_path"`               // etcd config path
+	Registry_urls           []string `json:"registry_urls"`           // registry server config
+	Registry_delay_on_error string   `json:"registry_delay_on_error"` // registry delay on error, interval default 1m(inute)
+	Enable_http_api         bool     `json:"enable_http_api"`         // enable http api. default is false.
+	Listen_port             int      `json:"listen_port"`             // api listen port, default 3031
+	Secure_api_write        bool     `json:"secure_api_write"`        // default false, use admin server public key to protect write apis.
+	Secure_api_read         bool     `json:"secure_api_read"`         // default false, use admin server public key to protect read apis.
+	Server_pub_key_path     string   `json:"server_pub_key_path"`     // use this public key to verify server api call
 }
 
 func IsCoreConfigLoaded() bool {

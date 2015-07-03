@@ -84,6 +84,7 @@ func Test_LoadRegistryResponse_Failed_Open(t *testing.T) {
 
 }
 
+//TODO: test etcd_machines: ["10.3.4.10:4001", ...] should raise exception
 func Test_Do_Registry(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

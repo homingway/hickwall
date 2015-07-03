@@ -11,6 +11,7 @@ var (
 )
 
 func new_core_from_etcd(etcd_machines []string, etcd_path string, stop chan error) {
+	logging.Debug("new_core_from_etcd started")
 	if stop == nil {
 		panic("stop chan is nil")
 	}
@@ -27,21 +28,20 @@ func new_core_from_etcd(etcd_machines []string, etcd_path string, stop chan erro
 
 	respCh := config.WatchRuntimeConfFromEtcd(etcd_machines, etcd_path, stop)
 
-	// loop:
 	for {
 		select {
 		case resp := <-respCh:
-			logging.Debug("NewCoreFromEtcd: a new response is comming.")
+			logging.Info("NewCoreFromEtcd: a new response is comming.")
 			if resp.Err != nil {
 				logging.Error(resp.Err)
-				continue
+				break
 			} else {
 				err := UpdateRunningCore(resp.Config)
 				if err != nil {
 					logging.Error(err)
-					continue
+					break
 				} else {
-					// dump cached runtime config only if it changed.
+					// dump cached runtime config only if it changed and working
 					if cached_hash != resp.Config.GetHash() {
 						err = config.DumpRuntimeConfig(resp.Config)
 						if err != nil {
@@ -50,8 +50,8 @@ func new_core_from_etcd(etcd_machines []string, etcd_path string, stop chan erro
 						cached_hash = resp.Config.GetHash()
 					}
 				}
+				logging.Info("NewCoreFromEtcd: replaced new core and updated cache.")
 			}
-			logging.Debug("NewCoreFromEtcd: replaced new core and updated cache.")
 		case <-stop:
 			return
 		}
