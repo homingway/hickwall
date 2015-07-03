@@ -1,25 +1,36 @@
 package utils
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
-	// "io"
-	"os"
-	// "path/filepath"
-	// "bytes"
+	"io"
 	"io/ioutil"
+	"os"
 	"path"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
-type RotateWriter struct {
+type Wal struct {
 	lock        sync.Mutex
 	filename    string // should be set to the actual filename
 	fp          *os.File
-	max_size_kb int64     // max size in kb
+	max_size_kb int64 // max size in kb
+	max_rolls   int
 	stop        chan bool // stop chan
+	is_index    bool
 }
+
+var (
+	islast        bool
+	indexfilename string
+	datafile      string
+	offset        int64
+)
 
 func Split(path string) (dir, file string) {
 	i := strings.LastIndex(path, "\\")
@@ -35,28 +46,57 @@ func Join(elem ...string) string {
 	return ""
 }
 
-// Make a new RotateWriter. Return nil if error occurs during setup.
-func NewRotateWriter(filename string, max_size_kb int64) (*RotateWriter, error) {
+// fileExists return flag whether a given file exists
+// and operation error if an unclassified failure occurs.
+func fileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+//the position of string in slice
+func pos(value string, slice []string) int {
+	for p, v := range slice {
+		if v == value {
+			return p
+		}
+	}
+	return -1
+}
+
+// Make a new wal. Return nil if error occurs during setup.
+func NewWal(filename string, max_size_kb int64, max_rolls int, is_index bool) (*Wal, error) {
 	var lock sync.Mutex
-	w := &RotateWriter{filename: filename,
+	w := &Wal{filename: filename,
 		lock:        lock,
 		max_size_kb: max_size_kb,
-		stop:        make(chan bool)}
+		max_rolls:   max_rolls,
+		stop:        make(chan bool),
+		is_index:    is_index,
+	}
 	err := w.create_output(filename)
 	if err != nil {
 		return nil, err
 	}
 
+	if is_index {
+		indexfilename = filename + ".index"
+	}
 	go w.watching_myself(w.stop)
 	return w, nil
 }
 
-func (w *RotateWriter) Close() error {
+func (w *Wal) Close() error {
 	w.stop <- true
 	return nil
 }
 
-func (w *RotateWriter) ListArchives() []string {
+func (w *Wal) ListArchives() []string {
 	archives := []string{}
 	dir, _ := Split(w.filename)
 	// dir := w.filename[:strings.LastIndex(w.filename, "\\")+1]
@@ -68,17 +108,22 @@ func (w *RotateWriter) ListArchives() []string {
 			archives = append(archives, Join(dir, file.Name()))
 		}
 	}
+	sort.Sort(sort.StringSlice(archives))
 	return archives
 }
 
 // Write satisfies the io.Writer interface.
-func (w *RotateWriter) Write(output []byte) (int, error) {
+func (w *Wal) Write(output []byte) (int, error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	return w.fp.Write(output)
 }
 
-func (w *RotateWriter) watching_myself(stop chan bool) {
+func (w *Wal) WriteLine(data string) (int, error) {
+	return w.Write([]byte(data + "\n"))
+}
+
+func (w *Wal) watching_myself(stop chan bool) {
 	if stop == nil {
 		panic("stop chan is nil")
 	}
@@ -104,7 +149,7 @@ func (w *RotateWriter) watching_myself(stop chan bool) {
 	}
 }
 
-func (w *RotateWriter) GetSizeKb() (int64, error) {
+func (w *Wal) GetSizeKb() (int64, error) {
 	fi, err := os.Stat(w.filename)
 	if err != nil {
 		return 0, err
@@ -112,11 +157,11 @@ func (w *RotateWriter) GetSizeKb() (int64, error) {
 	return fi.Size() / 1024, nil
 }
 
-func (w *RotateWriter) GetLimitKb() int64 {
+func (w *Wal) GetLimitKb() int64 {
 	return w.max_size_kb
 }
 
-func (w *RotateWriter) create_output(log_filepath string) (err error) {
+func (w *Wal) create_output(log_filepath string) (err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
@@ -134,7 +179,7 @@ func (w *RotateWriter) create_output(log_filepath string) (err error) {
 }
 
 // Perform the actual act of rotating and reopening file.
-func (w *RotateWriter) rotate() (err error) {
+func (w *Wal) rotate() (err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
@@ -147,23 +192,132 @@ func (w *RotateWriter) rotate() (err error) {
 		}
 	}
 	// Rename dest file if it already exists
+	var newname string
 	_, err = os.Stat(w.filename)
 	if err == nil {
-		err = os.Rename(w.filename, w.filename+"."+time.Now().Format("2006-01-02T15.04.05Z07.00"))
+		newname = w.filename + "." + time.Now().Format("20060102_150405")
+		err = os.Rename(w.filename, newname)
 		if err != nil {
 			return
 		}
 	}
-
 	//remove over file
 	files := w.ListArchives()
-	if len(files) > 5 {
-		for _, file := range files[:len(files)-5] {
+	if len(files) > w.max_rolls {
+		for _, file := range files[:len(files)-w.max_rolls] {
 
 			os.Remove(file)
 		}
 	}
 	// Create a file.
 	w.fp, err = os.Create(w.filename)
+
+	if w.is_index {
+		datafile, _, err = w.GetIndex()
+		if err == nil {
+			if datafile == "" || datafile == w.filename {
+				datafile = newname
+			}
+			err := w.SetIndex()
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+
 	return
+}
+
+// commit index.
+func (w *Wal) Commit() (err error) {
+
+	if islast == true {
+		err = w.DeleteFinishedArchives()
+		if err == nil {
+			islast = false
+		}
+
+	}
+
+	if exist, _ := fileExists(datafile); exist == true {
+		w.SetIndex()
+	}
+	return
+}
+
+func (w *Wal) DeleteFinishedArchives() (err error) {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	err = os.Remove(datafile)
+	if err != nil {
+		fmt.Println(err)
+	}
+	files := w.ListArchives()
+	if len(files) >= 2 {
+		datafile = files[len(files)-2]
+	}
+	offset = 0
+	return
+}
+
+//read line refer to index
+func (w *Wal) ReadLine() (line string, err error) {
+	var (
+		file   *os.File
+		part   []byte
+		prefix bool
+	)
+
+	datafile, offset, err = w.GetIndex()
+	exist, err := fileExists(datafile)
+	if datafile == "" || !exist {
+		files := w.ListArchives()
+		datafile = files[len(files)-1]
+	}
+	if file, err = os.Open(datafile); err != nil {
+		return
+	}
+
+	defer file.Close()
+	file.Seek(offset, os.SEEK_CUR)
+	reader := bufio.NewReader(file)
+	buffer := bytes.NewBuffer(make([]byte, 1024))
+
+	part, prefix, err = reader.ReadLine()
+
+	buffer.Write(part)
+	if !prefix {
+		line = buffer.String()
+		buffer.Reset()
+	}
+	if err == io.EOF {
+		islast = true
+		return
+	}
+	offset += int64(len(line) - 1024 + len("\n"))
+	return
+}
+
+//set index
+func (w *Wal) SetIndex() error {
+	newindex := datafile + "|" + strconv.FormatInt(offset, 10)
+	ioutil.WriteFile(indexfilename, []byte(newindex), 0)
+	return nil
+}
+
+//get index
+func (w *Wal) GetIndex() (string, int64, error) {
+	if exist, _ := fileExists(indexfilename); exist != true {
+		return "", 0, nil
+
+	}
+	buf, err := ioutil.ReadFile(indexfilename)
+	if err != nil {
+		return "", 0, err
+	}
+	index := string(buf)
+	ss := strings.Split(index, "|")
+	off, err := strconv.ParseInt(ss[1], 10, 64)
+	file := ss[0]
+	return file, off, nil
 }

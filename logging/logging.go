@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	output *utils.RotateWriter
+	output *utils.Wal
 	_level level.LEVEL
 	logger *log.Logger
 )
@@ -57,7 +57,7 @@ func create_output(log_filepath string) (writer io.Writer, err error) {
 		output = nil
 	}
 
-	output, err = utils.NewRotateWriter(log_filepath[:], 5000)
+	output, err = utils.NewWal(log_filepath[:], 5000, 5, false)
 	if err != nil {
 		return nil, err
 	}
