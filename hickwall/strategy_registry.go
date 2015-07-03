@@ -198,6 +198,10 @@ func do_registry(reg_url string) (*registry_response, error) {
 		return nil, logging.SError(err)
 	}
 
+	if resp.ErrorCode != 0 {
+		return nil, logging.SErrorf("registry server give this error: %d, msg: %s", resp.ErrorCode, resp.ErrorMsg)
+	}
+
 	if len(resp.EtcdMachines) <= 0 {
 		return nil, logging.SError("EtcdMachines is empty")
 	}
@@ -211,18 +215,14 @@ func do_registry(reg_url string) (*registry_response, error) {
 			return nil, logging.SErrorf("etcd machine url only support http : %s", m)
 		}
 	}
-	fmt.Println("------------------------------------------------------------ 7")
 
 	if resp.EtcdConfigPath == "" {
 		return nil, logging.SError("config path is empty")
 	}
 
-	fmt.Println("------------------------------------------------------------ 8")
-
 	if resp.RequestHash != hReq.Hash {
 		return nil, logging.SErrorf("request hash and response hash mismatch: %s != (response)%s", hReq.Hash, resp.RequestHash)
 	}
-	fmt.Println("------------------------------------------------------------ 9")
 	resp.Request = req
 
 	logging.Debug("do_registry finished")
@@ -247,12 +247,11 @@ func load_reg_response() (*registry_response, error) {
 func new_core_from_registry(stop chan error) {
 	logging.Debug("new_core_from_registry started")
 	if stop == nil {
-		panic("stop chan is nil")
+		logging.Panic("stop chan is nil")
 	}
 
 	if len(config.CoreConf.Registry_urls) <= 0 {
-		logging.Criticalf("RegistryURLs is empty!!")
-		panic("RegistryURLS is empty!!")
+		logging.Panic("RegistryURLs is empty!!")
 	}
 
 	resp, err := load_reg_response()

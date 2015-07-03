@@ -191,3 +191,18 @@ func Criticalf(format string, v ...interface{}) {
 		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", fmt.Sprintf(format, v...)))
 	}
 }
+
+func Panic(v ...interface{}) {
+	if logger != nil {
+		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", v...))
+	}
+	panic(fmt.Sprint(v...))
+}
+
+func Panicf(format string, v ...interface{}) {
+	err := fmt.Sprintf(format, v...)
+	if logger != nil {
+		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", err))
+	}
+	panic(err)
+}
