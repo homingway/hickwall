@@ -148,6 +148,38 @@ func Errorf(format string, v ...interface{}) {
 	}
 }
 
+func SError(v ...interface{}) error {
+	err := fmt.Errorf("%s", v...)
+	if _level <= level.ERROR && logger != nil {
+		logger.Output(2, fmt.Sprintf("[ERROR] %v", err))
+	}
+	return err
+}
+
+func SErrorf(format string, v ...interface{}) error {
+	err := fmt.Errorf(format, v...)
+	if _level <= level.ERROR && logger != nil {
+		logger.Output(2, fmt.Sprintf("[ERROR] %v", err))
+	}
+	return err
+}
+
+func SCritical(v ...interface{}) error {
+	err := fmt.Errorf("%s", v...)
+	if _level <= level.CRITICAL && logger != nil {
+		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", err))
+	}
+	return err
+}
+
+func SCriticalf(format string, v ...interface{}) error {
+	err := fmt.Errorf(format, v...)
+	if _level <= level.CRITICAL && logger != nil {
+		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", err))
+	}
+	return err
+}
+
 func Critical(v ...interface{}) {
 	if _level <= level.CRITICAL && logger != nil {
 		logger.Output(2, fmt.Sprintf("[CRITICAL] %s", v...))
