@@ -20,11 +20,16 @@ var (
 	_ = fmt.Sprintf("")
 )
 
+type AgentInfo struct {
+	Listen_port int `json:"listen_port"`
+}
+
 // ----------------------------------- RegistryRequest ----------------------------------
 
 type registry_request struct {
 	Timestamp  time.Time  `json:"timestamp"`
 	SystemInfo SystemInfo `json:"systeminfo"`
+	AgentInfo  AgentInfo  `json:"agentinfo"`
 }
 
 type hashed_registry_request struct {
@@ -37,10 +42,14 @@ func new_reg_request() (*registry_request, error) {
 	if err != nil {
 		return nil, err
 	}
+	agentinfo := AgentInfo{
+		Listen_port: config.CoreConf.Listen_port,
+	}
 
 	return &registry_request{
 		Timestamp:  time.Now(),
 		SystemInfo: sysinfo,
+		AgentInfo:  agentinfo,
 	}, nil
 }
 
@@ -199,7 +208,12 @@ func do_registry(reg_url string) (*registry_response, error) {
 	}
 
 	if resp.ErrorCode != 0 {
-		return nil, logging.SErrorf("registry server give this error: %d, msg: %s", resp.ErrorCode, resp.ErrorMsg)
+		if resp.ErrorCode == 1001 {
+			logging.Warn("this agent already registried.")
+		} else {
+			return nil, logging.SErrorf("registry server give this error: %d, msg: %s", resp.ErrorCode, resp.ErrorMsg)
+		}
+
 	}
 
 	if len(resp.EtcdMachines) <= 0 {
