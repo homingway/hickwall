@@ -7,7 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	// "path"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -32,19 +33,19 @@ var (
 	offset        int64
 )
 
-func Split(path string) (dir, file string) {
-	i := strings.LastIndex(path, "\\")
-	return path[:i+1], path[i+1:]
-}
+// func Split(path string) (dir, file string) {
+// 	i := strings.LastIndex(path, "\\")
+// 	return path[:i+1], path[i+1:]
+// }
 
-func Join(elem ...string) string {
-	for i, e := range elem {
-		if e != "" {
-			return path.Clean(strings.Join(elem[i:], ""))
-		}
-	}
-	return ""
-}
+// func Join(elem ...string) string {
+// 	for i, e := range elem {
+// 		if e != "" {
+// 			return path.Clean(strings.Join(elem[i:], ""))
+// 		}
+// 	}
+// 	return ""
+// }
 
 // fileExists return flag whether a given file exists
 // and operation error if an unclassified failure occurs.
@@ -98,14 +99,14 @@ func (w *Wal) Close() error {
 
 func (w *Wal) ListArchives() []string {
 	archives := []string{}
-	dir, _ := Split(w.filename)
+	dir, _ := filepath.Split(w.filename)
 	// dir := w.filename[:strings.LastIndex(w.filename, "\\")+1]
 	files, _ := ioutil.ReadDir(dir)
 	for _, file := range files {
 		if file.IsDir() {
 			continue
 		} else {
-			archives = append(archives, Join(dir, file.Name()))
+			archives = append(archives, filepath.Join(dir, file.Name()))
 		}
 	}
 	sort.Sort(sort.StringSlice(archives))
@@ -210,7 +211,8 @@ func (w *Wal) rotate() (err error) {
 		}
 	}
 	// Create a file.
-	w.fp, err = os.Create(w.filename)
+	// w.fp, err = os.Create(w.filename)
+	w.fp, err = os.OpenFile(w.filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 
 	if w.is_index {
 		datafile, _, err = w.GetIndex()
@@ -272,7 +274,12 @@ func (w *Wal) ReadLine() (line string, err error) {
 	exist, err := fileExists(datafile)
 	if datafile == "" || !exist {
 		files := w.ListArchives()
-		datafile = files[len(files)-1]
+		if len(files) >= 1 {
+			datafile = files[len(files)-1]
+		} else {
+			datafile = w.filename
+		}
+
 	}
 	if file, err = os.Open(datafile); err != nil {
 		return

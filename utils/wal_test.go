@@ -2,12 +2,16 @@ package utils
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 )
 
 func TestWal(t *testing.T) {
 
-	wal, err := NewWal("D:\\gocodez\\src\\github.com\\oliveagle\\shared\\logs\\test\\test", 1, 5, true)
+	f, _ := ioutil.TempFile("", "test")
+	f.Close()
+
+	wal, err := NewWal(f.Name(), 1, 5, true)
 	if err != nil {
 		t.Error("err:%v", err)
 	}
