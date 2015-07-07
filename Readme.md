@@ -39,15 +39,15 @@ there are **three ways** to config hickwall client.
     ```yaml
     config_strategy: "etcd"
     etcd_machines:
-        - "http://192.168.1.103:4001"
-    etcd_path: "/config/host/DST54869.yml"
+        - "http://127.0.0.1:4001"
+    etcd_path: "/config/host/myhost.yml"
     ```
 * Use Contral Registry to config. we are working on an contral registration service.
 
 	```yaml
     config_strategy: "registry"
     registry_urls:
-        - "http://192.168.1.103:8080/agent_registry"
+        - "http://127.0.0.1:8080/agent_registry"
     # api listen port, default is 3031
     listen_port: 3031
     ```

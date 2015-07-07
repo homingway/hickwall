@@ -84,11 +84,14 @@ func GetSystemInfo() (SystemInfo, error) {
 
 	}
 
+	//FIXME: we may not be able to get ip list.
 	ipv4list, err := utils.Ipv4List()
 	if err != nil {
-		return info, err
+		logging.Errorf("failed to get ipv4 list: %v", err)
+		//		return info, err
+	} else {
+		info.IPv4 = ipv4list
 	}
-	info.IPv4 = ipv4list
 
 	return info, nil
 }
