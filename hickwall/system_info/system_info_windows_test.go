@@ -22,3 +22,17 @@ func Test_GetSystemInfo(t *testing.T) {
 		t.Error("newcore SetHostname doesn't work here.")
 	}
 }
+
+// hickwall/issues/6, cannot get ipv4 list on windows server 2012
+func Test_GetSystemInfo_Ipv4(t *testing.T) {
+
+	newcore.SetHostname("hahah")
+
+	res, err := GetSystemInfo()
+	if err != nil {
+		t.Error("...")
+	}
+	if len(res.IPv4) <= 0 {
+		t.Error("failed to get ipv4 list")
+	}
+}
