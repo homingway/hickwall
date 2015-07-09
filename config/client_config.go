@@ -11,6 +11,8 @@ type ClientConfig struct {
 	Tags               map[string]string `json:"tags"`
 	Metric_Enabled     bool              `json:"metric_enabled"`
 	Metric_Interval    string            `json:"metric_interval"`
+	Pprof_enabled      bool              `json:"pprof_enabled"`
+	Pprof_listen       string            `json:"pprof_listen"`
 
 	Transport_dummy         *Transport_dummy                   `json:"transport_dummy"` // for testing purpose
 	Transport_file          *b_conf.Transport_file             `json:"transport_file"`

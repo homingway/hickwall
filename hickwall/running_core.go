@@ -7,12 +7,15 @@ import (
 	"github.com/oliveagle/hickwall/config"
 	"github.com/oliveagle/hickwall/logging"
 	"github.com/oliveagle/hickwall/newcore"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 var (
-	the_core  newcore.PublicationSet
-	the_rconf *config.RuntimeConfig
-	done      = make(chan error)
+	the_core      newcore.PublicationSet
+	the_rconf     *config.RuntimeConfig
+	done          = make(chan error)
+	pprof_serving = false
 )
 
 // create the topology of our running core.
@@ -97,6 +100,22 @@ func UpdateRunningCore(rconf *config.RuntimeConfig) error {
 		return fmt.Errorf("rconf is nil")
 	}
 	core, _, err := create_running_core_hooked(rconf, false)
+
+	// http pprof
+	// https://github.com/golang/go/issues/4674
+	// we can only open http pprof, cannot close it.
+	if pprof_serving == false && rconf.Client.Pprof_enabled == true {
+		if rconf.Client.Pprof_listen == "" {
+			rconf.Client.Pprof_listen = ":6060"
+		}
+		go func() {
+			pprof_serving = true
+			logging.Infof("http pprof is listen and served on: %v", rconf.Client.Pprof_listen)
+			err := http.ListenAndServe(rconf.Client.Pprof_listen, nil)
+			logging.Errorf("pprof ListenAndServe Error: %v", err)
+			pprof_serving = false
+		}()
+	}
 
 	// if registry give us an empty config. agent should also reflect this change.
 	close_core()
